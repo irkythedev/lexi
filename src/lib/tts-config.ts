@@ -1,14 +1,17 @@
 // TTS URL configuration — edge-tts + 腾讯云 SCF 代理（复用 stem 现有函数实例）
-// Dev: port 3100 via same host (works for localhost and LAN IP)
-// Prod: 现有 SCF 函数 URL（带 token 鉴权，见 scf-token.ts）
+// Dev 和 Prod 均走 SCF（用户不需要本地 TTS 服务器）。
+// 本地 3100 配置保留仅作后备（VITE_TTS_DEV_LOCAL=true 时启用）。
 // Web Speech API is the fallback when edge-tts is unreachable.
 
-const DEV_PORT = 3100;
 const PROD_URL = import.meta.env.VITE_TTS_URL ?? 'https://1307683613-fg2n0ky3me.ap-shanghai.tencentscf.com';
 
-// Use current hostname so LAN access (192.168.x.x) reaches the same server.
-export const TTS_BASE = import.meta.env.DEV
-  ? `http://${globalThis.location?.hostname ?? 'localhost'}:${DEV_PORT}`
+// Always use SCF in both dev and prod.  Set VITE_TTS_DEV_LOCAL=true to force
+// dev back to localhost:3100 (for offline work or SCF unavailable).
+const DEV_LOCAL = import.meta.env.VITE_TTS_DEV_LOCAL === 'true';
+const hostname = globalThis.location?.hostname ?? 'localhost';
+
+export const TTS_BASE = import.meta.env.DEV && DEV_LOCAL
+  ? `http://${hostname}:3100`
   : PROD_URL;
 
 export const edgeTtsEnabled = Boolean(TTS_BASE);

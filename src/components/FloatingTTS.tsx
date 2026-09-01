@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Pause, Play, Repeat, Globe, Gauge } from 'lucide-react';
+import { Pause, Play, Repeat, Globe, Gauge, Loader2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import type { SpeakOptions } from '../lib/useSpeak.ts';
@@ -63,8 +63,8 @@ export default function FloatingTTS() {
   return (
     <div className="glass-overlay fixed bottom-[4.7rem] left-4 z-40 flex items-center gap-0.5 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 px-1.5 py-1 shadow-[var(--shadow-overlay)]">
       <span className="max-w-[120px] truncate px-2 text-[12px] font-medium text-[var(--color-text-2)]">{active.text}</span>
-      <button onClick={toggle} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-accent)]" aria-label="播放/暂停">
-        {playing ? <Pause size={16} /> : <Play size={16} />}
+      <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? '合成中' : '播放/暂停'}>
+        {state === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : playing ? <Pause size={16} /> : <Play size={16} />}
       </button>
       <button onClick={() => setLoop((v) => !v)} className="press flex h-11 w-11 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label="循环">
         <Repeat size={15} />

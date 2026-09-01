@@ -3,7 +3,7 @@
 // Word-by-word highlight during TTS playback (听步骤的随字符跳动).
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useSessionEngine, type TaskResult } from '../lib/session-engine.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
@@ -14,7 +14,7 @@ export default function SessionView() {
   const { unitId } = useParams();
   const navigate = useNavigate();
   const { selection, unit, studyItems, tts } = useAppStore();
-  const { speak, stop } = useSpeak();
+  const { speak, stop, state: ttsState } = useSpeak();
 
   const activeUnit = useMemo(() => {
     if (unit && unit.unit === Number(unitId)) return unit;
@@ -142,7 +142,7 @@ export default function SessionView() {
             </div>
             <p className="mt-4 text-[14px] text-[var(--color-text-2)]">听发音，跟读</p>
             <div className="mt-5 flex justify-center gap-3">
-              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} className="press flex items-center gap-2 rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-[15px]"><Volume2 size={17} /> 再听一遍</button>
+              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} disabled={ttsState === 'synthesizing'} className="press flex items-center gap-2 rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-[15px] disabled:opacity-60">{ttsState === 'synthesizing' ? <Loader2 size={17} className="animate-spin" /> : <Volume2 size={17} />} {ttsState === 'synthesizing' ? '合成中…' : '再听一遍'}</button>
               <button onClick={() => void grade('correct')} className="press flex items-center gap-1.5 rounded-full px-6 py-2.5 text-[15px] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>听完了 <ChevronRight size={17} /></button>
             </div>
           </div>
