@@ -75,7 +75,7 @@ export default function SettingsView() {
             value={fontScale}
             onChange={(e) => { const v = parseFloat(e.target.value); setFontScale(v); }}
             aria-label={t('fontSize', locale)}
-            className="w-full cursor-pointer"
+            className="w-full thumb-rect cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
           <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('fontSizeMin', locale)}</span><span>{t('fontSizeMax', locale)}</span></div>
@@ -96,9 +96,17 @@ export default function SettingsView() {
             ))}
           </div>
         </div>
-        <div className="py-1">
-          <div className="mb-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('voiceGender', locale)}</div>
-          <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
+        {/* 音色 + 试听同一行 */}
+        <div className="flex items-end gap-2 py-1">
+          <div className="flex-1 min-w-0">
+            <div className="mb-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('voiceGender', locale)}</div>
+            <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
+          </div>
+          {/* 试听当前口音 + 语速 */}
+          <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
+            {previewState === 'synthesizing' ? <Loader2 size={15} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={15} /> : <Play size={15} />}
+            {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('previewPlaying', locale) : t('previewVoice', locale)}
+          </button>
         </div>
         <div className="mt-2 py-1">
           <div className="mb-1.5 flex items-center justify-between text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
@@ -112,16 +120,11 @@ export default function SettingsView() {
             onMouseUp={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             aria-label={t('speed', locale)}
-            className="w-full cursor-pointer"
+            className="w-full thumb-rect cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
           <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('speedRangeMin', locale)}</span><span>{t('speedRangeMax', locale)}</span></div>
         </div>
-        {/* 试听当前口音 + 语速 */}
-        <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
-          {previewState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={16} /> : <Play size={16} />}
-          {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('previewPlaying', locale) : t('previewVoice', locale)}
-        </button>
       </Section>
 
       <Section icon={BookOpen} title={t('textbook', locale)}>

@@ -210,6 +210,34 @@ body {
 
 .safe-b { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
+/* 矩形滑块缩略图（字体/语速拖动条） */
+input[type='range'].thumb-rect {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-track);
+  outline: none;
+}
+input[type='range'].thumb-rect::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 22px;
+  border-radius: 3px;
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+}
+input[type='range'].thumb-rect::-moz-range-thumb {
+  width: 12px;
+  height: 22px;
+  border-radius: 3px;
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+}
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-text) 16%, transparent); border-radius: 999px; }
 
