@@ -16,11 +16,14 @@ export const TTS_BASE = import.meta.env.DEV && DEV_LOCAL
 
 export const edgeTtsEnabled = Boolean(TTS_BASE);
 
-// Voice mapping: accent → Microsoft Edge TTS voice name
-export const EDGE_VOICE: Record<string, string> = {
-  us: 'en-US-AriaNeural',
-  uk: 'en-GB-SoniaNeural',
-};
+export type VoiceGender = 'female' | 'male';
+
+// Voice mapping: accent + gender → Microsoft Edge TTS voice name.
+// 已验证 SCF 支持全部四种组合（美/英 × 女/男）。
+export function getEdgeVoice(accent: 'us' | 'uk', gender: VoiceGender): string {
+  if (accent === 'uk') return gender === 'male' ? 'en-GB-RyanNeural' : 'en-GB-SoniaNeural';
+  return gender === 'male' ? 'en-US-GuyNeural' : 'en-US-AriaNeural';
+}
 
 // Voice mapping for Web Speech API fallback
 export const SPEECH_LANG: Record<string, string> = {

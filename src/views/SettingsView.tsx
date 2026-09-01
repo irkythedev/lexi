@@ -1,10 +1,10 @@
-// SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + i18n
+// SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + 性别(女/男声) + 试听 + i18n
 import { useState } from 'react';
-import { Moon, Sun, Volume2, BookOpen, Sparkles, Upload, Check } from 'lucide-react';
+import { Palette, Volume2, BookOpen, Sparkles, Upload, Check, Play } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
-import type { Locale } from '../types/index.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented } from '../components/ui/primitives.tsx';
+import { requestSpeak } from '../components/FloatingTTS.tsx';
 import { t } from '../lib/i18n.ts';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import PersonalImport from '../components/PersonalImport.tsx';
@@ -13,12 +13,16 @@ const ACCENT_COLORS: Record<Accent, string> = {
   emerald: '#1fa07a', berry: '#d94f86', indigo: '#5b6ee8', coral: '#f26d5b',
 };
 
+const PREVIEW_TEXT = 'Hello! This is how I sound. Let us learn English together.';
+
 export default function SettingsView() {
   const toast = useToastStore((s) => s.show);
-  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit, locale, setLocale, fontScale, setFontScale } = useAppStore();
+  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit, locale, fontScale, setFontScale } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
+
+  const preview = () => requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate);
 
   return (
     <div className="mx-auto max-w-[var(--max-read)] space-y-2.5 px-[var(--pad-x)] py-4">
@@ -26,30 +30,25 @@ export default function SettingsView() {
         <h2 className="text-[calc(clamp(20px,5vw,26px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('settingsTitle', locale)}</h2>
       </div>
 
-      <Section icon={theme === 'dark' ? Moon : Sun} title={t('appearance', locale)}>
-        <div className="flex items-center justify-between py-1">
-          <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('darkMode', locale)}</span>
-          <button onClick={() => { toggleTheme(); toast(theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', theme === 'dark' ? 'sun' : 'moon'); }} className="press relative h-7 w-12 rounded-full transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)' }}>
-            <span className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }} />
-          </button>
-        </div>
-        <div className="py-1">
-          <div className="mb-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('langSwitch', locale)}</div>
-          <Segmented options={[{ value: 'zh', label: t('langZh', locale) }, { value: 'en', label: t('langEn', locale) }]} value={locale} onChange={(v) => { setLocale(v as Locale); toast(v === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} />
-        </div>
-        <div className="py-1">
-          <div className="mb-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('themeColor', locale)}</div>
-          <div className="flex items-center gap-3">
+      {/* 外观：深色模式 + 主题色一行 */}
+      <Section icon={Palette} title={t('appearance', locale)}>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('darkMode', locale)}</span>
+            <button onClick={() => { toggleTheme(); toast(theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', theme === 'dark' ? 'sun' : 'moon'); }} className="press relative h-7 w-12 rounded-full transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)' }}>
+              <span className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }} />
+            </button>
+          </div>
+          <div className="flex items-center gap-2">
             {(Object.keys(ACCENT_META) as Accent[]).map((a) => (
               <button key={a} onClick={() => { setAccent(a); toast(t('toastThemeColor', locale, { name: ACCENT_META[a].name }), 'success', 'check'); }} title={ACCENT_META[a].name}
-                className="press relative flex h-10 w-10 items-center justify-center rounded-full transition"
-                style={{ background: ACCENT_COLORS[a], boxShadow: accent === a ? `0 0 0 2px var(--color-ground), 0 0 0 4px ${ACCENT_COLORS[a]}` : 'none', opacity: accent === a ? 1 : 0.75 }}
+                className="press relative flex h-8 w-8 items-center justify-center rounded-full transition"
+                style={{ background: ACCENT_COLORS[a], boxShadow: accent === a ? `0 0 0 2px var(--color-ground), 0 0 0 3px ${ACCENT_COLORS[a]}` : 'none', opacity: accent === a ? 1 : 0.75 }}
                 aria-label={ACCENT_META[a].name}>
-                {accent === a && <span className="text-white"><Check size={16} strokeWidth={3} /></span>}
+                {accent === a && <span className="text-white"><Check size={13} strokeWidth={3} /></span>}
               </button>
             ))}
           </div>
-          <div className="mt-1.5 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{ACCENT_META[accent].name}</div>
         </div>
         <div className="py-1">
           <div className="mb-1.5 flex items-center justify-between text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
@@ -82,6 +81,10 @@ export default function SettingsView() {
             ))}
           </div>
         </div>
+        <div className="py-1">
+          <div className="mb-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('voiceGender', locale)}</div>
+          <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
+        </div>
         <div className="mt-2 py-1">
           <div className="mb-1.5 flex items-center justify-between text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
             <span>{t('speed', locale)}</span>
@@ -91,14 +94,18 @@ export default function SettingsView() {
             type="range" min="0.8" max="2.0" step="0.1"
             value={dragRate}
             onChange={(e) => setDragRate(parseFloat(e.target.value))}
-            onMouseUp={() => { setTts({ rate: dragRate }); toast(t('toastSpeed', locale, { speed: dragRate.toFixed(1) }), 'info'); }}
-            onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastSpeed', locale, { speed: dragRate.toFixed(1) }), 'info'); }}
+            onMouseUp={() => { setTts({ rate: dragRate }); }}
+            onTouchEnd={() => { setTts({ rate: dragRate }); }}
             aria-label={t('speed', locale)}
             className="w-full cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
           <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('speedRangeMin', locale)}</span><span>{t('speedRangeMax', locale)}</span></div>
         </div>
+        {/* 试听当前口音 + 语速 */}
+        <button onClick={preview} className="press mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-accent)]">
+          <Play size={16} /> {t('previewVoice', locale)}
+        </button>
       </Section>
 
       <Section icon={BookOpen} title={t('textbook', locale)}>

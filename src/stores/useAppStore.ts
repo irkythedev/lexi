@@ -24,7 +24,7 @@ interface AppState {
   unit: Unit | null;
   studyItems: StudyItem[];
   aiReady: boolean;
-  tts: { accent: 'us' | 'uk'; rate: number };
+  tts: { accent: 'us' | 'uk'; rate: number; gender: 'female' | 'male' };
   fontScale: number;
 
   setTab: (t: Tab) => void;
@@ -33,7 +33,7 @@ interface AppState {
   toggleTheme: () => void;
   setAccent: (a: Accent) => void;
   setLocale: (l: Locale) => void;
-  setTts: (pref: Partial<{ accent: 'us' | 'uk'; rate: number }>) => void;
+  setTts: (pref: Partial<{ accent: 'us' | 'uk'; rate: number; gender: 'female' | 'male' }>) => void;
   setFontScale: (s: number) => void;
 }
 
@@ -52,7 +52,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   unit: null,
   studyItems: [],
   aiReady: !!loadConfig(),
-  tts: { accent: 'us', rate: 1.0 },
+  tts: { accent: 'us', rate: 1.0, gender: 'female' },
   fontScale: 1,
 
   setTab: (t) => set({ tab: t }),
@@ -101,7 +101,7 @@ export async function hydrateSettings() {
     getSetting<'light' | 'dark'>('theme', 'light'),
     getSetting<Accent>('accent', 'emerald'),
     getSetting<Locale>('locale', 'zh'),
-    getSetting<{ accent: 'us' | 'uk'; rate: number }>('tts', { accent: 'us', rate: 1.0 }),
+    getSetting<{ accent: 'us' | 'uk'; rate: number; gender: 'female' | 'male' }>('tts', { accent: 'us', rate: 1.0, gender: 'female' }),
     getSetting<AppState['selection']>('selection', null),
     getSetting<number>('fontScale', 1),
   ]);

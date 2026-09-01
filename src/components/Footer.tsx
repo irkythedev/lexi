@@ -6,9 +6,9 @@ import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { FOOTER } from '../lib/footer.ts';
 
-function GiteeIcon({ size = 14 }: { size?: number }) {
+function GiteeIcon({ size = 14, className = '' }: { size?: number; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="#C71D23" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
       <path d="M11.984 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.016 0zm6.09 5.333c.328 0 .593.266.592.593v1.482a.594.594 0 0 1-.593.592H9.777c-.982 0-1.778.796-1.778 1.778v5.63c0 .982.796 1.778 1.778 1.778h6.015c.982 0 1.778-.796 1.778-1.778v-2.37a.594.594 0 0 1 .593-.593h1.482a.594.594 0 0 1 .593.593v2.37c0 2.29-1.856 4.148-4.148 4.148H9.777c-2.29 0-4.148-1.857-4.148-4.148v-5.63c0-2.29 1.857-4.148 4.148-4.148h8.297z" />
     </svg>
   );
@@ -31,10 +31,8 @@ export default function Footer() {
   return (
     <footer className="mt-8 w-full border-t border-[var(--color-hairline)] px-[var(--pad-x)] py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
       <div className="mx-auto flex max-w-[var(--max-grid)] flex-col items-center gap-3 text-center text-[calc(11px*var(--type-scale))] leading-relaxed text-[var(--color-text-3)]">
-        {/* 品牌 + 作者 + 作品集 */}
+        {/* 作者 + 作品集 */}
         <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-          <span className="text-[calc(15px*var(--type-scale))] font-bold tracking-[-0.01em] text-[var(--color-text)]">Lexi</span>
-          <span className="text-[var(--color-text-4)]">·</span>
           <a href={FOOTER.authorLink} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 hover:text-[var(--color-text)] transition-colors">
             <img src={FOOTER.authorIcon} alt="" width="14" height="14" className="flex-shrink-0" />
             <span className="font-semibold text-[var(--color-text)]">{t('footerAuthor', locale, { name: authorName })}</span>
@@ -68,10 +66,10 @@ export default function Footer() {
         {/* 仓库链接 + 许可 */}
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
           <span className="inline-flex items-center gap-2">
-            <a href={FOOTER.giteeUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors" title={t('footerGitee', locale)}>
+            <a href={FOOTER.giteeUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-3)] transition-colors hover:text-[#C71D23]" title={t('footerGitee', locale)}>
               <GiteeIcon size={14} />
             </a>
-            <a href={FOOTER.githubUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors" title={t('footerGithub', locale)}>
+            <a href={FOOTER.githubUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-3)] transition-colors hover:text-[var(--color-text)]" title={t('footerGithub', locale)}>
               <GithubIcon size={14} />
             </a>
           </span>

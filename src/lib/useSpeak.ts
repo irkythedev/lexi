@@ -3,7 +3,8 @@
 // Ported lessons from stem_digt_labs: iOS audio unlock, base64/raw MP3 sniff,
 // pause via stop+offset rebuild, onended race guard.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { TTS_BASE, EDGE_VOICE } from './tts-config.ts';
+import { useAppStore } from '../stores/useAppStore.ts';
+import { TTS_BASE, getEdgeVoice } from './tts-config.ts';
 import { scfUrlWithToken } from './scf-token.ts';
 import { speak as webSpeak, type Accent, type SpeakHandle } from './tts.ts';
 
@@ -13,6 +14,7 @@ export type SpeakState = 'idle' | 'synthesizing' | 'playing' | 'paused' | 'error
 
 export interface SpeakOptions {
   accent?: 'us' | 'uk';
+  gender?: 'female' | 'male';
   rate?: number;
   /** Called as playback progresses; wordIndex is 0-based. */
   onWordChange?: (wordIndex: number, totalWords: number) => void;
@@ -153,7 +155,7 @@ export function useSpeak() {
       try {
         const parts = splitForTTS(text);
         const blobs: Blob[] = [];
-        const voice = EDGE_VOICE[accent] ?? EDGE_VOICE.us;
+        const voice = getEdgeVoice(accent, useAppStore.getState().tts.gender);
         for (const part of parts) {
           const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
           const res = await fetch(url, { cache: 'no-store' });

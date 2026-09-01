@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, Dumbbell, Brain, AlertTriangle, Sparkles, Sun, Moon, Settings } from 'lucide-react';
 import { useAppStore, type Tab } from '../stores/useAppStore.ts';
+import type { Locale } from '../types/index.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
 import { FOOTER } from '../lib/footer.ts';
@@ -15,7 +16,7 @@ const TABS: { id: Tab; icon: typeof BookOpen; path: string }[] = [
 ];
 
 export default function GlassNav() {
-  const { theme, toggleTheme, aiReady, unit, setTab, locale } = useAppStore();
+  const { theme, toggleTheme, aiReady, unit, setTab, locale, setLocale } = useAppStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
@@ -50,6 +51,10 @@ export default function GlassNav() {
             </span>
             <button onClick={() => { toggleTheme(); useToastStore.getState().show(useAppStore.getState().theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', useAppStore.getState().theme === 'dark' ? 'sun' : 'moon'); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('switchTheme', locale)}>
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+            </button>
+            {/* 语言切换：顶部 中/EN */}
+            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-11 items-center justify-center rounded-full px-2 text-[13px] font-bold text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('langSwitch', locale)}>
+              {locale === 'zh' ? 'EN' : '中文'}
             </button>
             <button onClick={() => navigate('/settings')} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('settings', locale)}>
               <Settings size={16} />
