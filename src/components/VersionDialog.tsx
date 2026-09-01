@@ -1,5 +1,5 @@
 // VersionDialog — 点击顶部版本号弹出的更新日志面板（面向用户，zh/en 双语）
-import { X, Sparkles } from 'lucide-react';
+import { X, Info } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { CHANGELOG, APP_VERSION } from '../lib/changelog.ts';
@@ -10,7 +10,7 @@ export default function VersionDialog({ onClose }: { onClose: () => void }) {
     <div className="fixed top-16 right-4 left-4 z-[80] max-h-[70vh] overflow-hidden rounded-[var(--radius-hero)] border border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)] sm:left-auto sm:w-[calc(100vw-2rem)] sm:max-w-sm" role="dialog" aria-modal="true" aria-label={t('changelogTitle', locale)}>
       <div className="flex items-center justify-between border-b border-[var(--color-hairline)] px-4 py-3">
         <h2 className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-bold tracking-[-0.01em] text-[var(--color-text)]">
-          <Sparkles size={16} style={{ color: 'var(--color-accent)' }} />
+          <Info size={16} style={{ color: 'var(--color-accent)' }} />
           {t('changelogTitle', locale)}
         </h2>
         <button type="button" onClick={onClose} aria-label={t('close', locale)} className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]"><X size={16} /></button>
