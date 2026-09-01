@@ -83,22 +83,22 @@ export default function SettingsView() {
       </Section>
 
       <Section icon={Volume2} title={t('ttsSettings', locale)}>
-        <div className="py-1">
-          <div className="mb-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('accent', locale)}</div>
-          {/* 大旗帜口音切换按钮 */}
-          <div className="flex gap-2">
+        {/* 口音（国旗）+ 音色（女/男声）同一行 */}
+        <div className="flex items-center gap-2 py-1">
+          <div className="flex flex-1 gap-2">
             {(['us', 'uk'] as const).map((v) => (
               <button key={v} onClick={() => { setTts({ accent: v }); toast(v === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); }}
-                className={`press flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}>
-                <span className="text-[2rem] leading-none">{v === 'us' ? '🇺🇸' : '🇬🇧'}</span>
-                <span>{v === 'us' ? t('accentUs', locale) : t('accentUk', locale)}</span>
+                className={`press flex flex-1 items-center justify-center rounded-xl border text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10' : 'border-[var(--color-hairline)]'}`}
+                style={{ height: '2.75rem' }}
+                aria-label={v === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
+                <span className="text-[1.75rem] leading-none">{v === 'us' ? '🇺🇸' : '🇬🇧'}</span>
               </button>
             ))}
           </div>
-        </div>
-        <div className="py-1">
-          <div className="mb-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('voiceGender', locale)}</div>
-          <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
+          <div className="flex flex-[1.2] flex-col gap-1">
+            <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('voiceGender', locale)}</span>
+            <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
+          </div>
         </div>
         <div className="mt-2 py-1">
           <div className="mb-1.5 flex items-center justify-between text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
