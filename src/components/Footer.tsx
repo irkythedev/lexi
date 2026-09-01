@@ -1,11 +1,12 @@
 // Footer — Lexi 页脚：品牌 + 版本、作者、作品集、仓库链接、许可
 // 参考 stem_digt_labs Footer 架构，适配 Lexi token 体系 + i18n
 import { useState } from 'react';
-import { Library, Mail } from 'lucide-react';
+import { Library, Mail, Share2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { FOOTER } from '../lib/footer.ts';
 import InstallAppButton from './InstallAppButton.tsx';
+import ShareDialog from './ShareDialog.tsx';
 
 function GiteeIcon({ size = 14, className = '' }: { size?: number; className?: string }) {
   return (
@@ -27,6 +28,7 @@ export default function Footer() {
   const locale = useAppStore((s) => s.locale);
   const [showWorks, setShowWorks] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const authorName = locale === 'en' ? 'Ricky' : 'Ricky';
 
   return (
@@ -80,9 +82,13 @@ export default function Footer() {
               <GithubIcon size={14} />
             </a>
           </span>
+          <span className="h-3 w-px bg-[var(--color-hairline)]" aria-hidden="true" />
+          <button type="button" onClick={() => setShowShare(true)} title={t('share', locale)} aria-label={t('share', locale)} className="inline-flex items-center text-[var(--color-text-3)] transition-colors hover:text-[var(--color-accent)]">
+            <Share2 size={14} />
+          </button>
         </div>
         {showDisclaimer && <span className="max-w-xs text-[var(--color-text-3)]">{t('footerDisclaimer', locale)}</span>}
-        <span className="text-[var(--color-text-3)]">{t('footerAppDesc', locale)}</span>
+        {showShare && <ShareDialog url={FOOTER.homepage} onClose={() => setShowShare(false)} />}
       </div>
     </footer>
   );

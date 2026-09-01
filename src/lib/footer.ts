@@ -22,5 +22,4 @@ export const FOOTER = {
   disclaimer: '本应用仅供学习参考，数据来自教材与用户自主导入，AI 生成内容请以学校教材为准。',
   disclaimerLabel: '免责声明',
   homepage: 'https://lexi.irky.dev/',
-  appDesc: 'Lexi · 英语词汇听说学习 · 数据保存在本机',
 };
