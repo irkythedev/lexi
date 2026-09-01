@@ -80,7 +80,7 @@ export default function SettingsView() {
             className="w-full thumb-rect cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
-          <Scale min={0.85} max={1.4} step={0.05} majorStep={0.1} />
+          <Scale min={0.85} max={1.4} step={0.05} majorStep={0.1} majorAnchor={0.9} />
           <div className="mt-1 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('fontSizeMin', locale)}</span><span>{t('fontSizeMax', locale)}</span></div>
         </div>
       </Section>
@@ -159,11 +159,11 @@ function snapToStep(v: number, min: number, step: number): number {
   return Math.min(1.4, Math.max(min, Math.round(r * 100) / 100));
 }
 
-/** 滑块刻度尺：三角形指向 + 精准百分比定位 */
-function Scale({ min, max, step, majorStep, inset }: { min: number; max: number; step: number; majorStep: number; inset?: number }) {
+/** 滑块刻度尺：主刻度向上三角+数字，次刻度短线；majorAnchor 指定主刻度起始锚点 */
+function Scale({ min, max, step, majorStep, majorAnchor = min, inset }: { min: number; max: number; step: number; majorStep: number; majorAnchor?: number; inset?: number }) {
   const ticks: { v: number; major: boolean }[] = [];
   for (let v = min; v <= max + 1e-9; v = Math.round((v + step) * 100) / 100) {
-    const major = Math.abs((v - min) / majorStep - Math.round((v - min) / majorStep)) < 1e-9;
+    const major = Math.abs((v - majorAnchor) / majorStep - Math.round((v - majorAnchor) / majorStep)) < 1e-9;
     ticks.push({ v, major });
   }
   const N = ticks.length;
