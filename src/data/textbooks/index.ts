@@ -2,9 +2,11 @@ import type { Edition, Unit, StudyItem } from '../../types/index.ts';
 import pepG7 from './pep_g7.ts';
 import pepG8 from './pep_g8.ts';
 import fltrG1 from './fltr_senior_g1.ts';
+import yilinG8a from './yilin_g8a.ts';
+import yilinG9a from './yilin_g9a.ts';
 
 // Bundled offline editions (instant preview, no network).
-export const BUNDLED_EDITIONS: Edition[] = [pepG7, pepG8, fltrG1];
+export const BUNDLED_EDITIONS: Edition[] = [pepG7, pepG8, fltrG1, yilinG8a, yilinG9a];
 
 export interface RegionNode { region: string; stages: StageNode[]; }
 export interface StageNode { stage: string; publishers: PublisherNode[]; }

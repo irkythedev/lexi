@@ -12,11 +12,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
       manifest: {
-        name: '智背单词 · 课本词汇冲刺',
-        short_name: '智背单词',
-        description: '初中/高中英语课本词汇、短语、句式与考点智能训练 PWA（Apple 2026 Liquid Glass）',
+        name: 'Lexi · 英语听说词汇',
+        short_name: 'Lexi',
+        description: '围绕江苏译林教材的英语单词、短语、句式听说学习工具。纯前端、本地优先、无需登录。',
         theme_color: '#0a84ff',
-        background_color: '#f5f5f7',
+        background_color: '#0d0d0f',
         display: 'standalone',
         start_url: '/',
         icons: [
