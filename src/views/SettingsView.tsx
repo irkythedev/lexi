@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Moon, Sun, Volume2, BookOpen, Sparkles, Upload, Check } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
+import type { Locale } from '../types/index.ts';
 import { useToastStore } from '../stores/toastStore.ts';
-import { Segmented, GhostButton } from '../components/ui/primitives.tsx';
+import { Segmented } from '../components/ui/primitives.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import PersonalImport from '../components/PersonalImport.tsx';
 
@@ -10,9 +11,9 @@ const ACCENT_COLORS: Record<Accent, string> = {
   emerald: '#1fa07a', berry: '#d94f86', indigo: '#5b6ee8', coral: '#f26d5b',
 };
 
-export default function SettingsView({ onClose }: { onClose: () => void }) {
+export default function SettingsView() {
   const toast = useToastStore((s) => s.show);
-  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit } = useAppStore();
+  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit, locale, setLocale } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
@@ -21,7 +22,6 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
     <div className="mx-auto max-w-[var(--max-read)] space-y-2.5 px-[var(--pad-x)] py-4">
       <div className="flex items-center justify-between">
         <h2 className="text-[clamp(20px,5vw,26px)] font-bold tracking-[-0.02em]">设置</h2>
-        {onClose && <GhostButton onClick={onClose}>完成</GhostButton>}
       </div>
 
       <Section icon={theme === 'dark' ? Moon : Sun} title="外观">
@@ -30,6 +30,10 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
           <button onClick={() => { toggleTheme(); toast(theme === 'dark' ? '已切换到浅色模式' : '已切换到深色模式', 'info', theme === 'dark' ? 'sun' : 'moon'); }} className="press relative h-7 w-12 rounded-full transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)' }}>
             <span className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }} />
           </button>
+        </div>
+        <div className="py-1">
+          <div className="mb-1.5 text-[13px] text-[var(--color-text-2)]">语言 / Language</div>
+          <Segmented options={[{ value: 'zh', label: '中文' }, { value: 'en', label: 'EN' }]} value={locale} onChange={(v) => { setLocale(v as Locale); toast(v === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} />
         </div>
         <div className="py-1">
           <div className="mb-2 text-[13px] text-[var(--color-text-2)]">主题色</div>
@@ -50,7 +54,7 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
       <Section icon={Volume2} title="朗读设置">
         <div className="py-1">
           <div className="mb-1.5 text-[13px] text-[var(--color-text-2)]">口音</div>
-          <Segmented options={[{ value: 'us', label: '美式 (en-US)' }, { value: 'uk', label: '英式 (en-GB)' }]} value={tts.accent} onChange={(v) => { setTts({ accent: v as 'us' | 'uk' }); toast(v === 'us' ? '已切换美式口音' : '已切换英式口音', 'info'); }} />
+          <Segmented options={[{ value: 'us', label: '🇺🇸' }, { value: 'uk', label: '🇬🇧' }]} value={tts.accent} onChange={(v) => { setTts({ accent: v as 'us' | 'uk' }); toast(v === 'us' ? '已切换美式口音' : '已切换英式口音', 'info'); }} />
         </div>
         <div className="mt-2 py-1">
           <div className="mb-1.5 flex items-center justify-between text-[13px] text-[var(--color-text-2)]">

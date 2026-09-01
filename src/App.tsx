@@ -40,7 +40,7 @@ function Home() {
 }
 
 function Shell() {
-  const { tab, setTab, theme, accent } = useAppStore();
+  const { tab, theme, accent } = useAppStore();
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     applyAccent(accent);
@@ -58,7 +58,7 @@ function Shell() {
           <Route path="/review" element={<ReviewView />} />
           <Route path="/errors" element={<ErrorsView />} />
           <Route path="/ai" element={<AiView />} />
-          <Route path="/settings" element={<SettingsView onClose={() => setTab('learn')} />} />
+          <Route path="/settings" element={<SettingsView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
