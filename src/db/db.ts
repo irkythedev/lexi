@@ -1,22 +1,38 @@
 import Dexie, { type Table } from 'dexie';
 import type { ProgressRecord, ErrorRecord, SrsState, Kind } from '../types/index.ts';
+import type { ImportEntry } from '../lib/import.ts';
 import { review } from './srs.ts';
 
-// IndexedDB schema (spec §5.2). Three tables:
+// IndexedDB schema (spec §5.2). Four tables:
 //  progress — per-item SRS + mastery
 //  errors   — error notebook
 //  settings — key/value (theme, tts prefs, ai config, remote editions)
+//  personalImports — user-imported word/phrase/pattern batches
+export interface PersonalBatch {
+  id: string;            // batch id
+  name: string;          // user label
+  entries: ImportEntry[]; // parsed entries
+  createdAt: number;
+}
+
 export class VocabDB extends Dexie {
   progress!: Table<ProgressRecord, string>;
   errors!: Table<ErrorRecord, number>;
   settings!: Table<{ key: string; value: unknown }, string>;
+  personalImports!: Table<PersonalBatch, string>;
 
   constructor() {
-    super('english-vocab-pwa');
+    super('lexi-pwa');
     this.version(1).stores({
       progress: 'key, editionId, itemId, kind, dueDate, lastReviewed',
       errors: '++id, key, kind, itemId, reason, createdAt, resolved',
       settings: 'key',
+    });
+    this.version(2).stores({
+      progress: 'key, editionId, itemId, kind, dueDate, lastReviewed',
+      errors: '++id, key, kind, itemId, reason, createdAt, resolved',
+      settings: 'key',
+      personalImports: 'id, createdAt',
     });
   }
 }
@@ -66,6 +82,17 @@ export async function markErrorResolved(id: number): Promise<void> {
 }
 export async function clearResolvedErrors(): Promise<void> {
   await db.errors.where('resolved').equals(1).delete();
+}
+
+// ── Personal import helpers ──
+export async function savePersonalBatch(batch: PersonalBatch): Promise<void> {
+  await db.personalImports.put(batch);
+}
+export async function getPersonalBatches(): Promise<PersonalBatch[]> {
+  return db.personalImports.orderBy('createdAt').reverse().toArray();
+}
+export async function deletePersonalBatch(id: string): Promise<void> {
+  await db.personalImports.delete(id);
 }
 
 // ── Settings helpers ──
