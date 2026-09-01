@@ -81,17 +81,25 @@ export default function SettingsView() {
             style={{ accentColor: 'var(--color-accent)' }}
           />
           {/* 字号档位：文本区间标注（无刻度），可点击选档 */}
-          <div className="mt-1.5 flex justify-between gap-1">
-            {t('fontSizeTiers', locale).split(',').map((label, i) => {
-              const v = 0.9 + i * 0.1;
-              const active = Math.abs(fontScale - v) < 1e-9;
-              return (
-                <button key={i} type="button" onClick={() => { setFontScale(v); toast(t('toastFontSize', locale, { scale: Math.round(v * 100) }), 'info'); }}
-                  className={`press flex-1 rounded-md px-1 py-1 text-center text-[calc(11px*var(--type-scale))] leading-tight transition ${active ? 'font-semibold text-[var(--color-accent)]' : 'text-[var(--color-text-3)] hover:text-[var(--color-text-2)]'}`}>
-                  {label}
-                </button>
-              );
-            })}
+          <div className="relative mt-1.5" style={{ height: '1.5rem' }}>
+            {(() => {
+              const tiers = t('fontSizeTiers', locale).split(',');
+              const values = [0.9, 1.0, 1.1, 1.2, 1.3, 1.4];
+              const N = values.length;
+              return values.map((v, i) => {
+                const pct = N > 1 ? (i / (N - 1)) * 100 : 50;
+                const active = Math.abs(fontScale - v) < 1e-9;
+                return (
+                  <button key={i} type="button" onClick={() => { setFontScale(v); toast(t('toastFontSize', locale, { scale: Math.round(v * 100) }), 'info'); }}
+                    className="absolute flex flex-col items-center"
+                    style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}>
+                    <span className={`whitespace-nowrap rounded px-1 py-0.5 text-[calc(11px*var(--type-scale))] leading-tight transition ${active ? 'font-semibold text-[var(--color-accent)]' : 'text-[var(--color-text-3)] hover:text-[var(--color-text-2)]'}`}>
+                      {tiers[i]}
+                    </span>
+                  </button>
+                );
+              });
+            })()}
           </div>
         </div>
       </Section>
