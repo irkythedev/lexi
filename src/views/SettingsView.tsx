@@ -173,17 +173,22 @@ function Scale({ min, max, step, majorStep, inset }: { min: number; max: number;
         const pct = N > 1 ? (i / (N - 1)) * 100 : 50;
         return (
           <div key={i} className="absolute" style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}>
-            {/* 三角形指向（向下箭头） */}
-            <div className="mx-auto" style={{
-              width: 0, height: 0,
-              borderLeft: t.major ? '5px solid transparent' : '3.5px solid transparent',
-              borderRight: t.major ? '5px solid transparent' : '3.5px solid transparent',
-              borderTop: t.major ? '8px solid var(--color-text-3)' : '5px solid var(--color-text-4)',
-            }} />
-            {t.major && (
-              <span className="tnum mt-0.5 block text-center text-[calc(9.5px*var(--type-scale))] text-[var(--color-text-3)]">
-                {t.v.toFixed(1)}
-              </span>
+            {t.major ? (
+              <>
+                {/* 主刻度：向上三角箭头 + 数字 */}
+                <div className="mx-auto" style={{
+                  width: 0, height: 0,
+                  borderLeft: '5px solid transparent',
+                  borderRight: '5px solid transparent',
+                  borderBottom: '8px solid var(--color-text-3)',
+                }} />
+                <span className="tnum mt-0.5 block text-center text-[calc(9.5px*var(--type-scale))] text-[var(--color-text-3)]">
+                  {t.v.toFixed(1)}
+                </span>
+              </>
+            ) : (
+              // 次刻度：短线
+              <div className="mx-auto h-2 w-px bg-[var(--color-text-4)]" />
             )}
           </div>
         );
