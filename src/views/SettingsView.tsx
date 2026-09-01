@@ -15,9 +15,10 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
   const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [dragRate, setDragRate] = useState(tts.rate);
 
   return (
-    <div className="mx-auto max-w-[var(--max-read)] space-y-4 px-[var(--pad-x)] py-4">
+    <div className="mx-auto max-w-[var(--max-read)] space-y-2.5 px-[var(--pad-x)] py-4">
       <div className="flex items-center justify-between">
         <h2 className="text-[clamp(20px,5vw,26px)] font-bold tracking-[-0.02em]">设置</h2>
         {onClose && <GhostButton onClick={onClose}>完成</GhostButton>}
@@ -52,8 +53,21 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
           <Segmented options={[{ value: 'us', label: '美式 (en-US)' }, { value: 'uk', label: '英式 (en-GB)' }]} value={tts.accent} onChange={(v) => { setTts({ accent: v as 'us' | 'uk' }); toast(v === 'us' ? '已切换美式口音' : '已切换英式口音', 'info'); }} />
         </div>
         <div className="mt-2 py-1">
-          <div className="mb-1.5 text-[13px] text-[var(--color-text-2)]">语速</div>
-          <Segmented options={[{ value: '0.8', label: '0.8x' }, { value: '1.0', label: '1.0x' }, { value: '1.2', label: '1.2x' }]} value={String(tts.rate)} onChange={(v) => { setTts({ rate: parseFloat(v) }); toast(`语速已调整为 ${v}x`, 'info'); }} />
+          <div className="mb-1.5 flex items-center justify-between text-[13px] text-[var(--color-text-2)]">
+            <span>语速</span>
+            <span className="tnum font-semibold text-[var(--color-accent)]">{dragRate.toFixed(1)}x</span>
+          </div>
+          <input
+            type="range" min="0.8" max="2.0" step="0.1"
+            value={dragRate}
+            onChange={(e) => setDragRate(parseFloat(e.target.value))}
+            onMouseUp={() => { setTts({ rate: dragRate }); toast(`语速已调整为 ${dragRate.toFixed(1)}x`, 'info'); }}
+            onTouchEnd={() => { setTts({ rate: dragRate }); toast(`语速已调整为 ${dragRate.toFixed(1)}x`, 'info'); }}
+            aria-label="语速"
+            className="w-full cursor-pointer"
+            style={{ accentColor: 'var(--color-accent)' }}
+          />
+          <div className="mt-0.5 flex justify-between text-[10.5px] text-[var(--color-text-3)]"><span>0.8x</span><span>2.0x</span></div>
         </div>
       </Section>
 
@@ -83,8 +97,6 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
         <p className="text-[12.5px] leading-relaxed text-[var(--color-text-2)]">配置您自己的服务商 API Key 后，即可使用智能造句批改、考点出题与情境对话。Key 仅存本机浏览器，对话不经任何服务器。</p>
       </Section>
 
-      <p className="px-1 text-center text-[12px] text-[var(--color-text-2)]">Lexi · 纯前端 PWA · 数据保存在本机 · v0.1.0</p>
-
       {showImport && <PersonalImport onClose={() => setShowImport(false)} />}
     </div>
   );
@@ -92,9 +104,9 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
 
 function Section({ icon: Icon, title, children }: { icon: typeof BookOpen; title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-[var(--radius-panel)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-panel)]">
-      <div className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-[var(--color-text-2)]"><Icon size={15} /> {title}</div>
-      {children}
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2 text-[13px] font-semibold text-[var(--color-text-2)]"><Icon size={15} /> {title}</div>
+      <div className="rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">{children}</div>
     </div>
   );
 }

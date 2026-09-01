@@ -5,6 +5,7 @@ import GlassNav from './components/GlassNav.tsx';
 import FloatingTTS from './components/FloatingTTS.tsx';
 import TextbookSwitcher from './components/TextbookSwitcher.tsx';
 import ToastHost from './components/ToastHost.tsx';
+import Footer from './components/Footer.tsx';
 import LearnView from './views/LearnView.tsx';
 import PracticeView from './views/PracticeView.tsx';
 import ReviewView from './views/ReviewView.tsx';
@@ -61,6 +62,7 @@ function Shell() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
+      <Footer />
       <FloatingTTS />
       <ToastHost />
     </div>
