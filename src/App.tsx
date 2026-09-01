@@ -40,11 +40,12 @@ function Home() {
 }
 
 function Shell() {
-  const { tab, theme, accent } = useAppStore();
+  const { tab, theme, accent, fontScale } = useAppStore();
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
     applyAccent(accent);
-  }, [tab, theme, accent]);
+    document.documentElement.style.setProperty('--type-scale', String(fontScale));
+  }, [tab, theme, accent, fontScale]);
 
   return (
     <div className="min-h-screen bg-[var(--color-ground)] text-[var(--color-text)]" style={{ paddingTop: '3.5rem', paddingBottom: '4.5rem' }}>

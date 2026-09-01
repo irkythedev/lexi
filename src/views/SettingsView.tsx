@@ -15,7 +15,7 @@ const ACCENT_COLORS: Record<Accent, string> = {
 
 export default function SettingsView() {
   const toast = useToastStore((s) => s.show);
-  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit, locale, setLocale } = useAppStore();
+  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit, locale, setLocale, fontScale, setFontScale } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
@@ -50,6 +50,21 @@ export default function SettingsView() {
             ))}
           </div>
           <div className="mt-1.5 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{ACCENT_META[accent].name}</div>
+        </div>
+        <div className="py-1">
+          <div className="mb-1.5 flex items-center justify-between text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
+            <span>{t('fontSize', locale)}</span>
+            <span className="tnum font-semibold text-[var(--color-accent)]">{t('fontSizeScale', locale, { scale: Math.round(fontScale * 100) })}</span>
+          </div>
+          <input
+            type="range" min="0.85" max="1.4" step="0.05"
+            value={fontScale}
+            onChange={(e) => { const v = parseFloat(e.target.value); setFontScale(v); }}
+            aria-label={t('fontSize', locale)}
+            className="w-full cursor-pointer"
+            style={{ accentColor: 'var(--color-accent)' }}
+          />
+          <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('fontSizeMin', locale)}</span><span>{t('fontSizeMax', locale)}</span></div>
         </div>
       </Section>
 

@@ -25,6 +25,7 @@ interface AppState {
   studyItems: StudyItem[];
   aiReady: boolean;
   tts: { accent: 'us' | 'uk'; rate: number };
+  fontScale: number;
 
   setTab: (t: Tab) => void;
   selectUnit: (sel: { editionId: string; grade: number; volume: number; unit: number }) => void;
@@ -33,6 +34,7 @@ interface AppState {
   setAccent: (a: Accent) => void;
   setLocale: (l: Locale) => void;
   setTts: (pref: Partial<{ accent: 'us' | 'uk'; rate: number }>) => void;
+  setFontScale: (s: number) => void;
 }
 
 function recompute(selection: AppState['selection']) {
@@ -51,6 +53,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   studyItems: [],
   aiReady: !!loadConfig(),
   tts: { accent: 'us', rate: 1.0 },
+  fontScale: 1,
 
   setTab: (t) => set({ tab: t }),
 
@@ -84,19 +87,26 @@ export const useAppStore = create<AppState>((set, get) => ({
     setSetting('tts', next);
     set({ tts: next });
   },
+
+  setFontScale: (s) => {
+    const v = Math.min(1.4, Math.max(0.85, Math.round(s * 100) / 100));
+    setSetting('fontScale', v);
+    set({ fontScale: v });
+  },
 }));
 
 // Initialize persisted settings (async) once at startup.
 export async function hydrateSettings() {
-  const [theme, accent, locale, tts, selection] = await Promise.all([
+  const [theme, accent, locale, tts, selection, fontScale] = await Promise.all([
     getSetting<'light' | 'dark'>('theme', 'light'),
     getSetting<Accent>('accent', 'emerald'),
     getSetting<Locale>('locale', 'zh'),
     getSetting<{ accent: 'us' | 'uk'; rate: number }>('tts', { accent: 'us', rate: 1.0 }),
     getSetting<AppState['selection']>('selection', null),
+    getSetting<number>('fontScale', 1),
   ]);
   const { unit, studyItems } = selection ? recompute(selection) : { unit: null, studyItems: [] };
-  useAppStore.setState({ theme, accent, locale, tts, selection, unit, studyItems });
+  useAppStore.setState({ theme, accent, locale, tts, selection, unit, studyItems, fontScale });
 }
 
 // Sync accent to <html data-accent> so CSS theme variants apply.
