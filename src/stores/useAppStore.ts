@@ -89,7 +89,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   setFontScale: (s) => {
-    const v = Math.min(1.4, Math.max(0.85, Math.round(s * 100) / 100));
+    const v = Math.min(1.4, Math.max(0.9, Math.round(s * 100) / 100));
     setSetting('fontScale', v);
     set({ fontScale: v });
   },

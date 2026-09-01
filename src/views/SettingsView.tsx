@@ -71,17 +71,18 @@ export default function SettingsView() {
             <span className="tnum font-semibold text-[var(--color-accent)]">{t('fontSizeScale', locale, { scale: Math.round(fontScale * 100) })}</span>
           </div>
           <input
-            type="range" min="0.85" max="1.4" step="0.05"
+            type="range" min="0.9" max="1.4" step="0.1"
             value={fontScale}
-            onChange={(e) => { setFontScale(snapToStep(parseFloat(e.target.value), 0.85, 0.05)); }}
+            onChange={(e) => { setFontScale(snapToStep(parseFloat(e.target.value), 0.9, 0.1)); }}
             onMouseUp={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
             onTouchEnd={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
             aria-label={t('fontSize', locale)}
-            className="w-full thumb-rect cursor-pointer"
+            className="w-full thumb-tick cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
-          <Scale min={0.85} max={1.4} step={0.05} majorStep={0.1} majorAnchor={0.9} />
-          <div className="mt-1 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('fontSizeMin', locale)}</span><span>{t('fontSizeMax', locale)}</span></div>
+          <Scale min={0.9} max={1.4} step={0.1} majorStep={0.1} majorAnchor={0.9}
+            captions={{ 0.9: t('fontSizeMin', locale), 1.0: t('fontSizeStandard', locale), 1.4: t('fontSizeMax', locale) }}
+            onSelect={(v) => { setFontScale(v); toast(t('toastFontSize', locale, { scale: Math.round(v * 100) }), 'info'); }} />
         </div>
       </Section>
 
@@ -126,7 +127,8 @@ export default function SettingsView() {
             className="w-full cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
-          <Scale min={0.8} max={2.0} step={0.1} majorStep={0.2} inset={8} />
+          <Scale min={0.8} max={2.0} step={0.1} majorStep={0.2} inset={8}
+            onSelect={(v) => { setDragRate(v); setTts({ rate: v }); toast(t('toastRate', locale, { rate: v.toFixed(1) }), 'info'); }} />
         </div>
       </Section>
 
@@ -159,8 +161,11 @@ function snapToStep(v: number, min: number, step: number): number {
   return Math.min(1.4, Math.max(min, Math.round(r * 100) / 100));
 }
 
-/** 滑块刻度尺：主刻度向上三角+数字，次刻度短线；majorAnchor 指定主刻度起始锚点 */
-function Scale({ min, max, step, majorStep, majorAnchor = min, inset }: { min: number; max: number; step: number; majorStep: number; majorAnchor?: number; inset?: number }) {
+/** 滑块刻度尺：主刻度向上三角+数字，次刻度短线；支持点击选档与档位标注 */
+function Scale({ min, max, step, majorStep, majorAnchor = min, inset, captions, onSelect }: {
+  min: number; max: number; step: number; majorStep: number; majorAnchor?: number; inset?: number;
+  captions?: Record<number, string>; onSelect?: (v: number) => void;
+}) {
   const ticks: { v: number; major: boolean }[] = [];
   for (let v = min; v <= max + 1e-9; v = Math.round((v + step) * 100) / 100) {
     const major = Math.abs((v - majorAnchor) / majorStep - Math.round((v - majorAnchor) / majorStep)) < 1e-9;
@@ -168,11 +173,15 @@ function Scale({ min, max, step, majorStep, majorAnchor = min, inset }: { min: n
   }
   const N = ticks.length;
   return (
-    <div className="relative mt-1.5" style={{ height: '1.75rem', marginLeft: inset ? `${inset}px` : 0, marginRight: inset ? `${inset}px` : 0 }}>
+    <div className="relative mt-1.5" style={{ height: '2.15rem', marginLeft: inset ? `${inset}px` : 0, marginRight: inset ? `${inset}px` : 0 }}>
       {ticks.map((t, i) => {
         const pct = N > 1 ? (i / (N - 1)) * 100 : 50;
+        const caption = captions?.[t.v];
         return (
-          <div key={i} className="absolute" style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}>
+          <button key={i} type="button" onClick={() => onSelect?.(t.v)} disabled={!onSelect}
+            className="absolute flex flex-col items-center disabled:cursor-default"
+            style={{ left: `${pct}%`, transform: 'translateX(-50%)', cursor: onSelect ? 'pointer' : 'default' }}
+            aria-label={t.v.toFixed(1)}>
             {t.major ? (
               <>
                 {/* 主刻度：向上三角箭头 + 数字 */}
@@ -188,9 +197,12 @@ function Scale({ min, max, step, majorStep, majorAnchor = min, inset }: { min: n
               </>
             ) : (
               // 次刻度：短线
-              <div className="mx-auto h-2 w-px bg-[var(--color-text-4)]" />
+              <div className="mx-auto mt-1.5 h-2 w-px bg-[var(--color-text-4)]" />
             )}
-          </div>
+            {caption && (
+              <span className="mt-0.5 block text-center text-[calc(10px*var(--type-scale))] text-[var(--color-text-2)]">{caption}</span>
+            )}
+          </button>
         );
       })}
     </div>

@@ -238,6 +238,34 @@ input[type='range'].thumb-rect::-moz-range-thumb {
   cursor: pointer;
 }
 
+/* 字号档位滑块：低矮矩形滑块（避免像音量推子） */
+input[type='range'].thumb-tick {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-track);
+  outline: none;
+}
+input[type='range'].thumb-tick::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+}
+input[type='range'].thumb-tick::-moz-range-thumb {
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+}
+
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-text) 16%, transparent); border-radius: 999px; }
 
