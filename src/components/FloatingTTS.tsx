@@ -1,14 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Pause, Play, Repeat, Globe, Gauge } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { speak, type Accent } from '../lib/tts.ts';
+import { useSpeak } from '../lib/useSpeak.ts';
+import type { SpeakOptions } from '../lib/useSpeak.ts';
 
-interface SpeakTarget { text: string; accent: Accent; rate: number; }
+interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; }
 
 const listeners = new Set<(t: SpeakTarget) => void>();
 let current: SpeakTarget | null = null;
 
-export function requestSpeak(text: string, accent: Accent = 'us', rate = 1.0): void {
+export function requestSpeak(text: string, accent: 'us' | 'uk' = 'us', rate = 1.0): void {
   if (!text) return;
   current = { text, accent, rate };
   const c = current;
@@ -20,30 +21,43 @@ export default function FloatingTTS() {
   const [active, setActive] = useState<SpeakTarget | null>(null);
   const [playing, setPlaying] = useState(false);
   const [loop, setLoop] = useState(false);
-  const cancelRef = useRef<() => void>(() => {});
+  const { speak, stop, resume, state } = useSpeak();
+  const playRef = useRef<(target: SpeakTarget, accent: 'us' | 'uk', rate: number) => void>(() => {});
 
-  const play = (target: SpeakTarget | null, accent: Accent = tts.accent, rate: number = tts.rate) => {
+  const play = useCallback((target: SpeakTarget | null, accent: 'us' | 'uk' = tts.accent, rate: number = tts.rate) => {
     if (!target?.text) return;
-    cancelRef.current();
-    const handle = speak(target.text, {
-      accent, rate,
+    stop();
+    const opts: SpeakOptions = {
+      accent,
+      rate,
       onEnd: () => {
-        if (loop) setTimeout(() => play(target, accent, rate), 600);
+        if (loopRef.current) setTimeout(() => playRef.current(target, accent, rate), 600);
         else setPlaying(false);
       },
-    });
-    cancelRef.current = handle.cancel;
+    };
+    playRef.current = play;
+    void speak(target.text, opts);
     setPlaying(true);
-  };
+  }, [speak, stop, tts.accent, tts.rate]);
+  const loopRef = useRef(loop);
+  loopRef.current = loop;
+
+  useEffect(() => {
+    playRef.current = play;
+  }, [play]);
 
   useEffect(() => {
     const fn = (t: SpeakTarget) => { setActive(t); play(t); };
     listeners.add(fn);
-    return () => { listeners.delete(fn); cancelRef.current(); };
+    return () => { listeners.delete(fn); stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const toggle = () => { if (playing) { cancelRef.current(); setPlaying(false); } else play(active); };
+  const toggle = () => {
+    if (state === 'playing' || playing) { stop(); setPlaying(false); }
+    else if (state === 'paused') { resume(); setPlaying(true); }
+    else play(active);
+  };
   if (!active) return null;
 
   return (
@@ -55,7 +69,7 @@ export default function FloatingTTS() {
       <button onClick={() => setLoop((v) => !v)} className="press flex h-11 w-11 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label="循环">
         <Repeat size={15} />
       </button>
-      <button onClick={() => { const a: Accent = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); play(active, a, tts.rate); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label="切换口音" title={tts.accent === 'us' ? '美式' : '英式'}>
+      <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); play(active, a, tts.rate); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label="切换口音" title={tts.accent === 'us' ? '美式' : '英式'}>
         <Globe size={15} />
       </button>
       <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); if (playing) play(active, tts.accent, next); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label="语速" title={`语速 ${tts.rate}x`}>
