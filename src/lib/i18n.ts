@@ -435,6 +435,7 @@ Object.assign(en, {
   tabLearn: 'Learn',
   tabPractice: 'Practice',
   tabReview: 'Review',
+  tabSettings: 'Settings',
   tabErrors: 'Mistakes',
   tabAi: 'AI',
   selectTextbook: 'Pick a textbook',
