@@ -1,13 +1,11 @@
 // SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + 性别(女/男声) + 试听 + i18n
 import { useState } from 'react';
-import { Palette, Volume2, BookOpen, Sparkles, Upload, Check, Play, Loader2 } from 'lucide-react';
+import { Palette, Volume2, BookOpen, Upload, Check, Play, Loader2 } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented } from '../components/ui/primitives.tsx';
 import { requestSpeak } from '../components/FloatingTTS.tsx';
 import { t } from '../lib/i18n.ts';
-import { loadConfig } from '../lib/ai.ts';
-import { SettingsViewInline } from './AiView.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import PersonalImport from '../components/PersonalImport.tsx';
 
@@ -19,17 +17,11 @@ const PREVIEW_TEXT = 'Hello! This is how I sound. Let us learn English together.
 
 export default function SettingsView() {
   const toast = useToastStore((s) => s.show);
-  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit, locale, fontScale, setFontScale } = useAppStore();
+  const { theme, toggleTheme, accent, setAccent, tts, setTts, unit, locale, fontScale, setFontScale } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
   const [previewState, setPreviewState] = useState<'idle' | 'loading'>('idle');
-  const [aiConfig, setAiConfig] = useState(() => loadConfig());
-
-  const onAiSaved = () => {
-    setAiConfig(loadConfig());
-    useAppStore.getState().refreshAiStatus();
-  };
 
   const preview = () => {
     setPreviewState('loading');
@@ -138,14 +130,6 @@ export default function SettingsView() {
           <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('personalImportDesc', locale)}</span>
           <button onClick={() => setShowImport(true)} className="press flex items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('personalImportOpen', locale)}</button>
         </div>
-      </Section>
-
-      <Section icon={Sparkles} title={t('aiSettings', locale)}>
-        <div className="flex items-center justify-between py-1">
-          <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStatus', locale)}</span>
-          <span className="flex items-center gap-1.5 text-[calc(13px*var(--type-scale))]" style={{ color: aiReady ? 'var(--color-vocab)' : 'var(--color-trap)' }}><span className="h-2 w-2 rounded-full" style={{ background: aiReady ? 'var(--color-vocab)' : 'var(--color-trap)' }} />{aiReady ? t('aiStatusReady', locale) : t('aiStatusNotReady', locale)}</span>
-        </div>
-        <SettingsViewInline onSaved={onAiSaved} initial={aiConfig} />
       </Section>
 
       {showImport && <PersonalImport onClose={() => setShowImport(false)} />}
