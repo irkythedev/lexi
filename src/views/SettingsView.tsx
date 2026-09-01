@@ -1,10 +1,10 @@
 // SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + 性别(女/男声) + 试听 + i18n
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Palette, Volume2, BookOpen, Upload, Check, Play, Loader2 } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented } from '../components/ui/primitives.tsx';
-import { requestSpeak } from '../components/FloatingTTS.tsx';
+import { requestSpeak, subscribeTtsState } from '../components/FloatingTTS.tsx';
 import { t } from '../lib/i18n.ts';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import PersonalImport from '../components/PersonalImport.tsx';
@@ -21,13 +21,22 @@ export default function SettingsView() {
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
-  const [previewState, setPreviewState] = useState<'idle' | 'loading'>('idle');
+  const [previewState, setPreviewState] = useState<'idle' | 'synthesizing' | 'playing'>('idle');
+
+  // 试听时订阅全局 TTS 状态：合成完成 → 自动切换为播放中显示
+  useEffect(() => {
+    if (previewState === 'idle') return;
+    const unsub = subscribeTtsState((s) => {
+      if (s === 'playing' && previewState === 'synthesizing') setPreviewState('playing');
+    });
+    // 8 秒超时兜底（防止 onEnd 未触发导致按钮卡在合成/播放态）
+    const t = setTimeout(() => setPreviewState('idle'), 8000);
+    return () => { unsub(); clearTimeout(t); };
+  }, [previewState]);
 
   const preview = () => {
-    setPreviewState('loading');
-    requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate);
-    // 试听约 3 秒，足够播放示例文本，超时后重置按钮状态
-    setTimeout(() => setPreviewState('idle'), 3000);
+    setPreviewState('synthesizing');
+    requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate, () => { setPreviewState('idle'); });
   };
 
   return (
@@ -100,8 +109,8 @@ export default function SettingsView() {
             type="range" min="0.8" max="2.0" step="0.1"
             value={dragRate}
             onChange={(e) => setDragRate(parseFloat(e.target.value))}
-            onMouseUp={() => { setTts({ rate: dragRate }); }}
-            onTouchEnd={() => { setTts({ rate: dragRate }); }}
+            onMouseUp={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
+            onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             aria-label={t('speed', locale)}
             className="w-full cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
@@ -109,8 +118,9 @@ export default function SettingsView() {
           <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('speedRangeMin', locale)}</span><span>{t('speedRangeMax', locale)}</span></div>
         </div>
         {/* 试听当前口音 + 语速 */}
-        <button onClick={preview} disabled={previewState === 'loading'} className="press mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
-          {previewState === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />} {previewState === 'loading' ? t('synthesizing', locale) : t('previewVoice', locale)}
+        <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
+          {previewState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={16} /> : <Play size={16} />}
+          {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('previewPlaying', locale) : t('previewVoice', locale)}
         </button>
       </Section>
 

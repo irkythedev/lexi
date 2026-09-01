@@ -5,18 +5,29 @@ import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
 import type { SpeakOptions } from '../lib/useSpeak.ts';
 
-interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; }
+interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; onEnd?: () => void; }
 
 const listeners = new Set<(t: SpeakTarget) => void>();
+const stateListeners = new Set<(s: 'idle' | 'synthesizing' | 'playing') => void>();
 let current: SpeakTarget | null = null;
 
-export function requestSpeak(text: string, accent?: 'us' | 'uk', rate?: number): void {
+export function requestSpeak(text: string, accent?: 'us' | 'uk', rate?: number, onEnd?: () => void): void {
   if (!text) return;
   // 默认取当前设置，避免任何调用点漏传时偏离用户配置。
   const tts = useAppStore.getState().tts;
-  current = { text, accent: accent ?? tts.accent, rate: rate ?? tts.rate };
+  current = { text, accent: accent ?? tts.accent, rate: rate ?? tts.rate, onEnd };
   const c = current;
   if (c) listeners.forEach((fn) => fn(c));
+}
+
+/** 订阅全局 TTS 播放状态（供设置页试听按钮等外部 UI 显示加载/播放态）。返回取消订阅函数。 */
+export function subscribeTtsState(fn: (s: 'idle' | 'synthesizing' | 'playing') => void): () => void {
+  stateListeners.add(fn);
+  return () => { stateListeners.delete(fn); };
+}
+
+function emitTtsState(s: 'idle' | 'synthesizing' | 'playing') {
+  stateListeners.forEach((fn) => fn(s));
 }
 
 export default function FloatingTTS() {
@@ -25,17 +36,17 @@ export default function FloatingTTS() {
   const [playing, setPlaying] = useState(false);
   const [loop, setLoop] = useState(false);
   const { speak, stop, resume, state } = useSpeak();
-  const playRef = useRef<(target: SpeakTarget, accent: 'us' | 'uk', rate: number) => void>(() => {});
+  const playRef = useRef<(target: SpeakTarget, accent: 'us' | 'uk', rate: number, onEnd?: () => void) => void>(() => {});
 
-  const play = useCallback((target: SpeakTarget | null, accent: 'us' | 'uk' = tts.accent, rate: number = tts.rate) => {
+  const play = useCallback((target: SpeakTarget | null, accent: 'us' | 'uk' = tts.accent, rate: number = tts.rate, onEnd?: () => void) => {
     if (!target?.text) return;
     stop();
     const opts: SpeakOptions = {
       accent,
       rate,
       onEnd: () => {
-        if (loopRef.current) setTimeout(() => playRef.current(target, accent, rate), 600);
-        else setPlaying(false);
+        if (loopRef.current) setTimeout(() => playRef.current(target, accent, rate, onEnd), 600);
+        else { setPlaying(false); onEnd?.(); }
       },
     };
     playRef.current = play;
@@ -49,10 +60,13 @@ export default function FloatingTTS() {
     playRef.current = play;
   }, [play]);
 
+  // 广播播放状态给订阅者（设置页试听等外部 UI）
+  useEffect(() => { emitTtsState(state === 'playing' || state === 'paused' ? 'playing' : state === 'synthesizing' ? 'synthesizing' : 'idle'); }, [state]);
+
   useEffect(() => {
     // 用 playRef.current 而非闭包 play：play 会随 tts.accent/rate 重建，
     // 闭包捕获首次渲染的 play 会导致口音/语速切换不生效（陈旧默认值）。
-    const fn = (t: SpeakTarget) => { setActive(t); playRef.current(t, t.accent, t.rate); };
+    const fn = (t: SpeakTarget) => { setActive(t); playRef.current(t, t.accent, t.rate, t.onEnd); };
     listeners.add(fn);
     return () => { listeners.delete(fn); stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
