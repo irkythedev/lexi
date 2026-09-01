@@ -80,9 +80,19 @@ export default function SettingsView() {
             className="w-full thumb-tick cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
-          <Scale min={0.9} max={1.4} step={0.1} majorStep={0.1} majorAnchor={0.9}
-            captions={{ 0.9: t('fontSizeMin', locale), 1.0: t('fontSizeStandard', locale), 1.4: t('fontSizeMax', locale) }}
-            onSelect={(v) => { setFontScale(v); toast(t('toastFontSize', locale, { scale: Math.round(v * 100) }), 'info'); }} />
+          {/* 字号档位：文本区间标注（无刻度），可点击选档 */}
+          <div className="mt-1.5 flex justify-between gap-1">
+            {t('fontSizeTiers', locale).split(',').map((label, i) => {
+              const v = 0.9 + i * 0.1;
+              const active = Math.abs(fontScale - v) < 1e-9;
+              return (
+                <button key={i} type="button" onClick={() => { setFontScale(v); toast(t('toastFontSize', locale, { scale: Math.round(v * 100) }), 'info'); }}
+                  className={`press flex-1 rounded-md px-1 py-1 text-center text-[calc(11px*var(--type-scale))] leading-tight transition ${active ? 'font-semibold text-[var(--color-accent)]' : 'text-[var(--color-text-3)] hover:text-[var(--color-text-2)]'}`}>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </Section>
 
