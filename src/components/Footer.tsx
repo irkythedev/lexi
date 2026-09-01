@@ -40,12 +40,12 @@ export default function Footer() {
           </a>
           <span className="hidden sm:inline text-[var(--color-text-4)]">·</span>
           <span className="hidden sm:inline">{t('footerRole', locale)}</span>
-          <a href={`mailto:${FOOTER.email}`} aria-label={t('footerContact', locale)} className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors"><Mail size={12} /></a>
+          <a href={`mailto:${FOOTER.email}`} aria-label={t('footerContact', locale)} className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors"><Mail size={14} /></a>
           {/* 其他作品：icon + 数字角标，点击展开 */}
-          <span className="relative">
+          <span className="relative inline-flex items-center">
             <button type="button" onClick={() => setShowWorks((v) => !v)} aria-expanded={showWorks} aria-label={t('footerMoreWorks', locale)}
-              className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors p-1 -m-1">
-              <span className="relative inline-flex">
+              className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors">
+              <span className="relative inline-flex items-center">
                 <Library size={14} />
                 <span className="absolute -right-2 -top-1.5 flex h-[0.85rem] min-w-[0.85rem] items-center justify-center rounded-[0.25rem] px-0.5 text-[calc(8px*var(--type-scale))] font-bold leading-none text-white" style={{ background: 'var(--color-accent)' }}>{FOOTER.works.length}</span>
               </span>
