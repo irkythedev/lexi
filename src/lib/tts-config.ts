@@ -1,12 +1,15 @@
 // TTS URL configuration — edge-tts + SCF proxy
-// Dev: localhost:3100 (local-server.mjs from stem-tts-fn)
+// Dev: port 3100 via same host (works for localhost and LAN IP)
 // Prod: VITE_TTS_URL (e.g. SCF function URL)
 // Web Speech API is the fallback when edge-tts is unreachable.
 
-const DEV_URL = 'http://localhost:3100';
+const DEV_PORT = 3100;
 const PROD_URL = import.meta.env.VITE_TTS_URL ?? '';
 
-export const TTS_BASE = import.meta.env.DEV ? DEV_URL : PROD_URL;
+// Use current hostname so LAN access (192.168.x.x) reaches the same server.
+export const TTS_BASE = import.meta.env.DEV
+  ? `http://${globalThis.location?.hostname ?? 'localhost'}:${DEV_PORT}`
+  : PROD_URL;
 
 export const edgeTtsEnabled = Boolean(TTS_BASE);
 
