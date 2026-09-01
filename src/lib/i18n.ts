@@ -37,6 +37,7 @@ const zh: Record<string, string> = {
   tabLearn: '学习',
   tabPractice: '练习',
   tabReview: '复习',
+  tabSettings: '设置',
   tabErrors: '错题',
   tabAi: 'AI',
 

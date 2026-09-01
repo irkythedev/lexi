@@ -12,7 +12,7 @@ const TABS: { id: Tab; icon: typeof BookOpen; path: string }[] = [
   { id: 'practice', icon: Dumbbell, path: '/practice' },
   { id: 'review', icon: Brain, path: '/review' },
   { id: 'errors', icon: AlertTriangle, path: '/errors' },
-  { id: 'ai', icon: Sparkles, path: '/ai' },
+  { id: 'settings', icon: Settings, path: '/settings' },
 ];
 
 export default function GlassNav() {
@@ -52,16 +52,14 @@ export default function GlassNav() {
             <button onClick={() => { toggleTheme(); useToastStore.getState().show(useAppStore.getState().theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', useAppStore.getState().theme === 'dark' ? 'sun' : 'moon'); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('switchTheme', locale)}>
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
-            {/* AI 配置入口：放主题前 */}
-            <button onClick={() => navigate('/ai')} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('aiConfigure', locale)}>
+            {/* AI 配置入口：未配置时显示红点 */}
+            <button onClick={() => navigate('/ai')} className="press relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('aiConfigure', locale)}>
               <Sparkles size={16} />
+              {!aiReady && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--color-trap)]" />}
             </button>
-            {/* 语言切换：顶部 中/EN */}
+            {/* 语言切换 */}
             <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-11 items-center justify-center rounded-full px-2 text-[13px] font-bold text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('langSwitch', locale)}>
               {locale === 'zh' ? 'EN' : '中文'}
-            </button>
-            <button onClick={() => navigate('/settings')} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('settings', locale)}>
-              <Settings size={16} />
             </button>
           </div>
         </div>
@@ -71,12 +69,11 @@ export default function GlassNav() {
         <div className="mx-auto flex max-w-[var(--max-grid)] items-center justify-around px-2">
           {TABS.map((tabItem) => {
             const Icon = tabItem.icon;
-            const isActive = activeTab === tabItem.id || (!activeTab && tabItem.id === 'learn');
+            const isActive = activeTab === tabItem.id || (location.pathname === '/' && tabItem.id === 'learn');
             return (
               <button key={tabItem.id} onClick={() => go(tabItem.id)} className="press relative flex flex-1 flex-col items-center gap-0.5 py-2" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <span className="relative">
                   <Icon size={22} className={isActive ? '' : 'opacity-50'} style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-2)' }} />
-                  {tabItem.id === 'ai' && !aiReady && <span className="absolute -right-1.5 -top-1.5 h-2 w-2 rounded-full bg-[var(--color-trap)]" />}
                 </span>
                 <span className="text-[calc(11px*var(--type-scale))] font-medium" style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-2)' }}>{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
               </button>
