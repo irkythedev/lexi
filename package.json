@@ -1,0 +1,31 @@
+{
+  "name": "lexi",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Lexi — 英语单词/短语/句式听说学习 PWA（江苏译林教材）。纯前端本地优先：React 18 + Vite + TypeScript + Tailwind v4 + Zustand + Dexie。",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b --noEmit",
+    "preview": "vite preview --host"
+  },
+  "dependencies": {
+    "dexie": "^4.0.8",
+    "framer-motion": "^11.5.4",
+    "lucide-react": "^0.441.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "tailwindcss": "^4.0.0",
+    "typescript": "^5.5.4",
+    "vite": "^5.4.8",
+    "vite-plugin-pwa": "^0.20.5"
+  }
+}
