@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { Moon, Sun, Volume2, BookOpen, Sparkles, Upload } from 'lucide-react';
-import { useAppStore } from '../stores/useAppStore.ts';
+import { Moon, Sun, Volume2, BookOpen, Sparkles, Upload, Check } from 'lucide-react';
+import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
 import { Segmented, GhostButton } from '../components/ui/primitives.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import PersonalImport from '../components/PersonalImport.tsx';
 
+const ACCENT_COLORS: Record<Accent, string> = {
+  emerald: '#1fa07a', berry: '#d94f86', indigo: '#5b6ee8', coral: '#f26d5b',
+};
+
 export default function SettingsView({ onClose }: { onClose: () => void }) {
-  const { theme, toggleTheme, tts, setTts, aiReady, unit } = useAppStore();
+  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
 
@@ -23,6 +27,20 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
           <button onClick={toggleTheme} className="press relative h-7 w-12 rounded-full transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)' }}>
             <span className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }} />
           </button>
+        </div>
+        <div className="py-1">
+          <div className="mb-2 text-[13px] text-[var(--color-text-2)]">主题色</div>
+          <div className="flex items-center gap-3">
+            {(Object.keys(ACCENT_META) as Accent[]).map((a) => (
+              <button key={a} onClick={() => setAccent(a)} title={ACCENT_META[a].name}
+                className="press relative flex h-10 w-10 items-center justify-center rounded-full transition"
+                style={{ background: ACCENT_COLORS[a], boxShadow: accent === a ? `0 0 0 2px var(--color-ground), 0 0 0 4px ${ACCENT_COLORS[a]}` : 'none', opacity: accent === a ? 1 : 0.75 }}
+                aria-label={ACCENT_META[a].name}>
+                {accent === a && <span className="text-white"><Check size={16} strokeWidth={3} /></span>}
+              </button>
+            ))}
+          </div>
+          <div className="mt-1.5 text-[12px] text-[var(--color-text-3)]">{ACCENT_META[accent].name}</div>
         </div>
       </Section>
 

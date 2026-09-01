@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAppStore, hydrateSettings } from './stores/useAppStore.ts';
+import { useAppStore, hydrateSettings, applyAccent } from './stores/useAppStore.ts';
 import GlassNav from './components/GlassNav.tsx';
 import FloatingTTS from './components/FloatingTTS.tsx';
 import TextbookSwitcher from './components/TextbookSwitcher.tsx';
@@ -37,8 +37,11 @@ function Home() {
 }
 
 function Shell() {
-  const { tab, setTab } = useAppStore();
-  useEffect(() => { document.documentElement.classList.toggle('dark', useAppStore.getState().theme === 'dark'); }, [tab]);
+  const { tab, setTab, accent } = useAppStore();
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', useAppStore.getState().theme === 'dark');
+    applyAccent(accent);
+  }, [tab, accent]);
 
   return (
     <div className="min-h-screen bg-[var(--color-ground)] text-[var(--color-text)]" style={{ paddingTop: '3.5rem', paddingBottom: '4.5rem' }}>

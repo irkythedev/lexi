@@ -36,14 +36,14 @@
   --color-trap-border: #fecdd3;
   --color-trap-deep: #be123c;
 
-  /* Warm accent — not理科, education-friendly */
-  --color-accent: #0891b2;
-  --color-accent-2: #7c3aed;
+  /* Brand accent — theme-driven, default emerald. No AI gradient. */
+  --color-accent: #1fa07a;
+  --color-accent-2: #3ac99c;
   --color-live: #22c55e;
   --color-heat: #ea580c;
 
-  /* Gradients (warm-teal + violet) */
-  --grad-cta: linear-gradient(135deg, #0891b2 0%, #7c3aed 100%);
+  /* CTA is solid accent (user rejected gradient) */
+  --grad-cta: var(--color-accent);
   --grad-warm: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
   --grad-green: linear-gradient(135deg, #22c55e 0%, #0891b2 100%);
 
@@ -102,10 +102,17 @@
   --color-pattern-border: rgba(139, 92, 246, 0.45);
   --color-trap-soft: rgba(244, 63, 94, 0.14);
   --color-trap-border: rgba(244, 63, 94, 0.4);
-  --color-accent: #06b6d4;
+  /* accent is theme-driven; dark uses same theme accent (set below) */
   --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.3), 0 14px 40px rgba(0, 0, 0, 0.45);
 }
+
+/* ── Theme color variants — user-selectable, override --color-accent ──
+   Applied via data-accent on <html>. Default emerald (matches @theme). */
+:root[data-accent='emerald'] { --color-accent: #1fa07a; --color-accent-2: #3ac99c; }
+:root[data-accent='berry']   { --color-accent: #d94f86; --color-accent-2: #ef7fae; }
+:root[data-accent='indigo']  { --color-accent: #5b6ee8; --color-accent-2: #8190f4; }
+:root[data-accent='coral']   { --color-accent: #f26d5b; --color-accent-2: #ff927f; }
 
 * { -webkit-tap-highlight-color: transparent; }
 html { font-optical-sizing: auto; }
