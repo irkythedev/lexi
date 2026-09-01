@@ -74,6 +74,8 @@ export default function SettingsView() {
             type="range" min="0.85" max="1.4" step="0.05"
             value={fontScale}
             onChange={(e) => { setFontScale(snapToStep(parseFloat(e.target.value), 0.85, 0.05)); }}
+            onMouseUp={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
+            onTouchEnd={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
             aria-label={t('fontSize', locale)}
             className="w-full thumb-rect cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
@@ -124,7 +126,7 @@ export default function SettingsView() {
             className="w-full cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
-          <Scale min={0.8} max={2.0} step={0.1} majorStep={0.2} />
+          <Scale min={0.8} max={2.0} step={0.1} majorStep={0.2} inset={8} />
         </div>
       </Section>
 
@@ -157,25 +159,35 @@ function snapToStep(v: number, min: number, step: number): number {
   return Math.min(1.4, Math.max(min, Math.round(r * 100) / 100));
 }
 
-/** 滑块刻度尺：min→max 按 step 布点，主刻度（majorStep 间隔）加数字标签 */
-function Scale({ min, max, step, majorStep }: { min: number; max: number; step: number; majorStep: number }) {
+/** 滑块刻度尺：三角形指向 + 精准百分比定位 */
+function Scale({ min, max, step, majorStep, inset }: { min: number; max: number; step: number; majorStep: number; inset?: number }) {
   const ticks: { v: number; major: boolean }[] = [];
   for (let v = min; v <= max + 1e-9; v = Math.round((v + step) * 100) / 100) {
     const major = Math.abs((v - min) / majorStep - Math.round((v - min) / majorStep)) < 1e-9;
     ticks.push({ v, major });
   }
+  const N = ticks.length;
   return (
-    <div className="mt-1.5 flex justify-between px-0.5">
-      {ticks.map((t, i) => (
-        <div key={i} className="flex flex-1 flex-col items-center">
-          <span className={`w-px ${t.major ? 'h-2.5 bg-[var(--color-text-3)]' : 'h-1.5 bg-[var(--color-text-4)]'}`} />
-          {t.major && (
-            <span className="tnum mt-0.5 text-[calc(9.5px*var(--type-scale))] text-[var(--color-text-3)]">
-              {t.v.toFixed(1)}
-            </span>
-          )}
-        </div>
-      ))}
+    <div className="relative mt-1.5" style={{ height: '1.75rem', marginLeft: inset ? `${inset}px` : 0, marginRight: inset ? `${inset}px` : 0 }}>
+      {ticks.map((t, i) => {
+        const pct = N > 1 ? (i / (N - 1)) * 100 : 50;
+        return (
+          <div key={i} className="absolute" style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}>
+            {/* 三角形指向（向下箭头） */}
+            <div className="mx-auto" style={{
+              width: 0, height: 0,
+              borderLeft: t.major ? '5px solid transparent' : '3.5px solid transparent',
+              borderRight: t.major ? '5px solid transparent' : '3.5px solid transparent',
+              borderTop: t.major ? '8px solid var(--color-text-3)' : '5px solid var(--color-text-4)',
+            }} />
+            {t.major && (
+              <span className="tnum mt-0.5 block text-center text-[calc(9.5px*var(--type-scale))] text-[var(--color-text-3)]">
+                {t.v.toFixed(1)}
+              </span>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
