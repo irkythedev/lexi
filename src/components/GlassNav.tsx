@@ -52,8 +52,8 @@ export default function GlassNav() {
             <button onClick={() => { toggleTheme(); useToastStore.getState().show(useAppStore.getState().theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', useAppStore.getState().theme === 'dark' ? 'sun' : 'moon'); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('switchTheme', locale)}>
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
-            {/* AI 配置入口：未配置时显示红点 */}
-            <button onClick={() => navigate('/ai')} className="press relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('aiConfigure', locale)}>
+            {/* AI 配置入口：跳转设置页 AI 区块；未配置时显示红点 */}
+            <button onClick={() => navigate('/settings#ai')} className="press relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('aiConfigure', locale)}>
               <Sparkles size={16} />
               {!aiReady && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--color-trap)]" />}
             </button>
