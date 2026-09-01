@@ -1,9 +1,10 @@
 {
   "name": "lexi",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.2.2",
   "type": "module",
-  "description": "Lexi — 英语单词/短语/句式听说学习 PWA（江苏译林教材）。纯前端本地优先：React 18 + Vite + TypeScript + Tailwind v4 + Zustand + Dexie。",
+  "license": "AGPL-3.0",
+  "description": "Lexi — 英语词汇听说学习 PWA（江苏译林教材）。纯前端本地优先：React 18 + Vite + TypeScript + Tailwind v4 + Zustand + Dexie。",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
