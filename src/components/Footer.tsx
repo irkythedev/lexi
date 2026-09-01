@@ -64,10 +64,14 @@ export default function Footer() {
           </span>
         </div>
 
-        {/* 仓库链接 + 许可 + 安装引导 + 免责声明 */}
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+        {/* 安装引导 · 许可 · 免责声明 · 仓库 */}
+        <div className="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1">
           <InstallAppButton />
-          <span className="text-[var(--color-text-4)]">·</span>
+          <span className="h-3 w-px bg-[var(--color-hairline)]" aria-hidden="true" />
+          <a href={FOOTER.licenseUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-text)] transition-colors">{t('footerLicense', locale)}</a>
+          <span className="h-3 w-px bg-[var(--color-hairline)]" aria-hidden="true" />
+          <button type="button" onClick={() => setShowDisclaimer((v) => !v)} aria-expanded={showDisclaimer} className="underline hover:text-[var(--color-text)] transition-colors">{t('footerDisclaimerLabel', locale)}</button>
+          <span className="h-3 w-px bg-[var(--color-hairline)]" aria-hidden="true" />
           <span className="inline-flex items-center gap-2">
             <a href={FOOTER.giteeUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-3)] transition-colors hover:text-[#C71D23]" title={t('footerGitee', locale)}>
               <GiteeIcon size={14} />
@@ -76,10 +80,6 @@ export default function Footer() {
               <GithubIcon size={14} />
             </a>
           </span>
-          <span className="text-[var(--color-text-4)]">·</span>
-          <a href={FOOTER.licenseUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-text)] transition-colors">{t('footerLicense', locale)}</a>
-          <span className="text-[var(--color-text-4)]">·</span>
-          <button type="button" onClick={() => setShowDisclaimer((v) => !v)} aria-expanded={showDisclaimer} className="underline hover:text-[var(--color-text)] transition-colors">{t('footerDisclaimerLabel', locale)}</button>
         </div>
         {showDisclaimer && <span className="max-w-xs text-[var(--color-text-3)]">{t('footerDisclaimer', locale)}</span>}
         <span className="text-[var(--color-text-3)]">{t('footerAppDesc', locale)}</span>
