@@ -6,6 +6,7 @@ import type { Locale } from '../types/index.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
 import { FOOTER } from '../lib/footer.ts';
+import VersionDialog from './VersionDialog.tsx';
 
 const TABS: { id: Tab; icon: typeof BookOpen; path: string }[] = [
   { id: 'learn', icon: BookOpen, path: '/learn' },
@@ -20,6 +21,7 @@ export default function GlassNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -41,7 +43,7 @@ export default function GlassNav() {
             </span>
             <span className="flex items-baseline gap-1">
               <span className="text-[calc(15px*var(--type-scale))] font-semibold tracking-[-0.01em] text-[var(--color-text)]">Lexi</span>
-              <span className="tnum text-[calc(10px*var(--type-scale))] font-medium text-[var(--color-text-3)]">v{FOOTER.version}</span>
+              <button type="button" onClick={() => setShowChangelog(true)} title={t('changelogTitle', locale)} className="tnum press text-[calc(10px*var(--type-scale))] font-medium text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors">v{FOOTER.version}</button>
             </span>
           </button>
           <div className="flex items-center gap-1.5">
@@ -81,6 +83,7 @@ export default function GlassNav() {
           })}
         </div>
       </nav>
+      {showChangelog && <VersionDialog onClose={() => setShowChangelog(false)} />}
     </>
   );
 }
