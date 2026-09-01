@@ -96,28 +96,26 @@ export default function SettingsView() {
             ))}
           </div>
         </div>
-        <div className="flex items-start gap-3 py-1">
-          <div className="flex-1 min-w-0">
-            <div className="mb-1 flex items-center justify-between text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
-              <span>{t('speed', locale)}</span>
-              <span className="tnum font-semibold text-[var(--color-accent)]">{t('speedLabel', locale, { speed: dragRate.toFixed(1) })}</span>
-            </div>
-            <input
-              type="range" min="0.8" max="2.0" step="0.1"
-              value={dragRate}
-              onChange={(e) => setDragRate(parseFloat(e.target.value))}
-              onMouseUp={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
-              onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
-              aria-label={t('speed', locale)}
-              className="w-full cursor-pointer"
-              style={{ accentColor: 'var(--color-accent)' }}
-            />
-            <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('speedRangeMin', locale)}</span><span>{t('speedRangeMax', locale)}</span></div>
+        <div className="py-1">
+          <div className="mb-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('voiceGender', locale)}</div>
+          <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
+        </div>
+        <div className="mt-2 py-1">
+          <div className="mb-1.5 flex items-center justify-between text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
+            <span>{t('speed', locale)}</span>
+            <span className="tnum font-semibold text-[var(--color-accent)]">{t('speedLabel', locale, { speed: dragRate.toFixed(1) })}</span>
           </div>
-          <div className="shrink-0" style={{ minWidth: '7rem' }}>
-            <div className="mb-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('voiceGender', locale)}</div>
-            <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
-          </div>
+          <input
+            type="range" min="0.8" max="2.0" step="0.1"
+            value={dragRate}
+            onChange={(e) => setDragRate(parseFloat(e.target.value))}
+            onMouseUp={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
+            onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
+            aria-label={t('speed', locale)}
+            className="w-full cursor-pointer"
+            style={{ accentColor: 'var(--color-accent)' }}
+          />
+          <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('speedRangeMin', locale)}</span><span>{t('speedRangeMax', locale)}</span></div>
         </div>
         {/* 试听当前口音 + 语速 */}
         <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
