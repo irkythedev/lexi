@@ -121,7 +121,7 @@ export default function SettingsView() {
             onMouseUp={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             aria-label={t('speed', locale)}
-            className="w-full thumb-rect cursor-pointer"
+            className="w-full cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
           <Scale min={0.8} max={2.0} step={0.1} majorStep={0.2} />
