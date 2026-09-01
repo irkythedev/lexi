@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Layers, Puzzle, Zap, Volume2, Eye, EyeOff, BookText } from 'lucide-react';
+import { Layers, Puzzle, Zap, ChevronDown, Volume2, Eye, EyeOff, BookText, ArrowRight } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -15,6 +15,7 @@ export default function LearnView() {
   const [mode, setMode] = useState<null | 'flash' | 'connector' | 'sprint'>(null);
   const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'pattern'>('all');
   const [hideCn, setHideCn] = useState(false);
+  const [modesOpen, setModesOpen] = useState(false);
 
   const MODES = [
     { id: 'flash', title: t('flashcard', locale), desc: t('flashcardDesc', locale), icon: Layers, grad: 'var(--grad-cta)' },
@@ -50,14 +51,27 @@ export default function LearnView() {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {MODES.map((m) => { const Icon = m.icon; return (
-          <button key={m.id} onClick={() => setMode(m.id as 'flash')} className="press card flex flex-col items-start p-4 text-left">
-            <span className="flex h-10 w-10 items-center justify-center rounded-[12px] text-white" style={{ background: m.grad }}><Icon size={20} /></span>
-            <span className="mt-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{m.title}</span>
-            <span className="mt-1 text-[calc(12.5px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{m.desc}</span>
-          </button>
-        ); })}
+      {/* 练习入口：合并为一个可展开卡片 */}
+      <div className="mt-4 overflow-hidden rounded-[var(--radius-hero)] border border-[var(--color-hairline)]">
+        <button onClick={() => setModesOpen((v) => !v)} className="press flex w-full items-center gap-3 p-4 text-left">
+          <span className="text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('practiceModes', locale)}</span>
+          <span className="ml-auto text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{t('tapToExpand', locale)}</span>
+          <ChevronDown size={18} className="text-[var(--color-text-3)] transition-transform duration-200" style={{ transform: modesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+        </button>
+        <div className="overflow-hidden transition-all duration-200" style={{ maxHeight: modesOpen ? '400px' : '0px' }}>
+          <div className="border-t border-[var(--color-hairline)] p-3 space-y-2">
+            {MODES.map((m) => { const Icon = m.icon; return (
+              <div key={m.id} className="flex items-center gap-3 rounded-[var(--radius-card)] border border-[var(--color-hairline)] p-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-white" style={{ background: m.grad }}><Icon size={20} /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{m.title}</span>
+                  <span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{m.desc}</span>
+                </span>
+                <button onClick={() => setMode(m.id as 'flash')} className="press flex items-center gap-1 rounded-full bg-[var(--color-accent)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white"><span>{t('enter', locale)}</span><ArrowRight size={14} /></button>
+              </div>
+            ); })}
+          </div>
+        </div>
       </div>
 
       <div className="mt-5 flex items-center justify-between">

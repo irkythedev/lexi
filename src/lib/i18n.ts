@@ -109,6 +109,8 @@ const zh: Record<string, string> = {
   modeConnectorDesc: '动词 + 介词 / 形式配对',
   modeSprint: '5 步微冲刺',
   modeSprintDesc: '输入→跟读→练习→AI→小测',
+  practiceModes: '练习入口',
+  tapToExpand: '点击展开',
   enter: '进入',
 
   // 闪卡
@@ -493,6 +495,8 @@ Object.assign(en, {
   modeConnectorDesc: 'Match verbs with prepositions',
   modeSprint: '5-Step Sprint',
   modeSprintDesc: 'Input → Read → Practice → AI → Quiz',
+  practiceModes: 'Practice modes',
+  tapToExpand: 'Tap to expand',
   enter: 'Start',
   cardFront: 'Front',
   cardBack: 'Back',
