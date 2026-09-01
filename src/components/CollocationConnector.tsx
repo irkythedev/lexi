@@ -3,6 +3,7 @@ import { Check, Trophy, RefreshCw } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { Unit } from '../types/index.ts';
 import { shuffle } from '../lib/utils.ts';
+import { t } from '../lib/i18n.ts';
 import { addError, recordReview } from '../db/db.ts';
 
 function buildPairs(unit: Unit | null): { id: string; left: string; right: string }[] {
@@ -16,6 +17,7 @@ function buildPairs(unit: Unit | null): { id: string; left: string; right: strin
 
 export default function CollocationConnector({ onExit }: { onExit: () => void }) {
   const { unit, selection } = useAppStore();
+  const locale = useAppStore(s => s.locale);
   const pairs = useMemo(() => buildPairs(unit), [unit]);
   const rights = useMemo(() => shuffle(pairs.map((p) => ({ id: p.id, text: p.right }))), [pairs]);
   const [selectedLeft, setSelectedLeft] = useState<{ id: string; left: string; right: string } | null>(null);
@@ -23,7 +25,7 @@ export default function CollocationConnector({ onExit }: { onExit: () => void })
   const [wrong, setWrong] = useState<{ leftId: string; rightId: string } | null>(null);
   const [done, setDone] = useState(false);
 
-  if (!pairs.length) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-8 text-center text-[var(--color-text-2)]">本单元暂无可用于搭配拼接的短语结构。</div>;
+  if (!pairs.length) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-8 text-center text-[var(--color-text-2)]">{t('connectorNoPairs', locale)}</div>;
 
   const pickLeft = (p: { id: string; left: string; right: string }) => { if (matched[p.id]) return; setSelectedLeft(p); setWrong(null); };
 
@@ -46,8 +48,8 @@ export default function CollocationConnector({ onExit }: { onExit: () => void })
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
       <div className="mb-3 flex items-center justify-between">
-        <button onClick={onExit} className="press flex items-center gap-1 text-[15px] text-[var(--color-text-2)]"><span>←</span> 返回</button>
-        <button onClick={reset} className="press flex items-center gap-1 text-[13px] text-[var(--color-text-2)]"><RefreshCw size={15} /> 重玩</button>
+        <button onClick={onExit} className="press flex items-center gap-1 text-[15px] text-[var(--color-text-2)]"><span>←</span> {t('back', locale)}</button>
+        <button onClick={reset} className="press flex items-center gap-1 text-[13px] text-[var(--color-text-2)]"><RefreshCw size={15} /> {t('connectorReset', locale)}</button>
       </div>
       <h2 className="text-[20px] font-bold tracking-[-0.01em]">搭配拼图</h2>
       <p className="mt-1 text-[13px] text-[var(--color-text-2)]">点击左侧词干，再点右侧正确搭配，组成完整结构。错误会自动记入错题本。</p>

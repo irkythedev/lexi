@@ -3,13 +3,13 @@
 
 export const FOOTER = {
   version: '0.1.1',
-  author: '作者：Ricky',
   authorRole: '英语词汇听说学习 PWA',
   authorLink: 'https://irky.dev/',
+  authorIcon: '/icons/pubg-helmet.png',
   email: 'king4g@yeah.net',
   moreWorksLabel: '其他作品',
   works: [
-    { name: 'STEM 数字探究实验室', url: 'https://stem.irky.dev/', icon: '/favicon.svg' },
+    { name: 'STEM 数字探究实验室', url: 'https://stem.irky.dev/', icon: 'https://stem.irky.dev/favicon.svg' },
     { name: 'AquaInsight · 水气研判', url: 'https://wsa.irky.dev/', icon: 'https://wsa.irky.dev/water-sci4_new.png' },
     { name: '百年回响 · 江海潮声', url: 'https://100ye.irky.dev/', icon: 'https://100ye.irky.dev/favicon.svg' },
   ],

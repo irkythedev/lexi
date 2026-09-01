@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Pause, Play, Repeat, Globe, Gauge, Loader2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
+import { t } from '../lib/i18n.ts';
 import type { SpeakOptions } from '../lib/useSpeak.ts';
 
 interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; }
@@ -17,7 +18,7 @@ export function requestSpeak(text: string, accent: 'us' | 'uk' = 'us', rate = 1.
 }
 
 export default function FloatingTTS() {
-  const { tts, setTts } = useAppStore();
+  const { tts, setTts, locale } = useAppStore();
   const [active, setActive] = useState<SpeakTarget | null>(null);
   const [playing, setPlaying] = useState(false);
   const [loop, setLoop] = useState(false);
@@ -62,17 +63,17 @@ export default function FloatingTTS() {
 
   return (
     <div className="glass-overlay fixed bottom-[4.7rem] left-4 z-40 flex items-center gap-0.5 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 px-1.5 py-1 shadow-[var(--shadow-overlay)]">
-      <span className="max-w-[120px] truncate px-2 text-[12px] font-medium text-[var(--color-text-2)]">{active.text}</span>
-      <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? '合成中' : '播放/暂停'}>
+      <span className="max-w-[120px] truncate px-2 text-[calc(12px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{active.text}</span>
+      <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
         {state === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : playing ? <Pause size={16} /> : <Play size={16} />}
       </button>
-      <button onClick={() => setLoop((v) => !v)} className="press flex h-11 w-11 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label="循环">
+      <button onClick={() => setLoop((v) => !v)} className="press flex h-11 w-11 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
         <Repeat size={15} />
       </button>
-      <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); play(active, a, tts.rate); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label="切换口音" title={tts.accent === 'us' ? '美式' : '英式'}>
+      <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); play(active, a, tts.rate); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('switchAccent', locale)} title={tts.accent === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
         <Globe size={15} />
       </button>
-      <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); if (playing) play(active, tts.accent, next); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label="语速" title={`语速 ${tts.rate}x`}>
+      <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); if (playing) play(active, tts.accent, next); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('speed', locale)} title={t('speedTitle', locale, { speed: tts.rate })}>
         <Gauge size={15} />
       </button>
     </div>

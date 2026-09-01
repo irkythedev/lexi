@@ -76,6 +76,9 @@
   /* Motion */
   --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+
+  /* 全局字体缩放（默认 1 = 100%），由设置页滑杆驱动 */
+  --type-scale: 1;
 }
 
 /* Dark mode tokens — stemlab-inspired dark ground (#111210) */

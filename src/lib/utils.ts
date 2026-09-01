@@ -60,13 +60,3 @@ export function shuffle<T>(arr: T[]): T[] {
 export function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
-
-// i18n helper (lightweight; zh default).
-export const I18N: Record<string, Record<Locale, string>> = {
-  learn: { zh: '学习', en: 'Learn' },
-  practice: { zh: '练习', en: 'Practice' },
-  review: { zh: '复习', en: 'Review' },
-  errors: { zh: '错题', en: 'Mistakes' },
-  ai: { zh: 'AI', en: 'AI' },
-  selectTextbook: { zh: '先选一本教材', en: 'Pick a textbook' },
-};

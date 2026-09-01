@@ -64,19 +64,19 @@ export default function TextbookSwitcher({ onSelected }: { onSelected?: () => vo
   if (picking) {
     return (
       <div className="space-y-3">
-        <button onClick={() => setPicking(null)} className="press text-[13px] text-[var(--color-text-2)]">&larr; 返回教材列表</button>
-        <div className="text-[15px] font-semibold text-[var(--color-text)]">{picking.editionName}</div>
-        <div className="text-[12px] text-[var(--color-text-2)]">{picking.units.length} 个单元</div>
+        <button onClick={() => setPicking(null)} className="press text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">&larr; 返回教材列表</button>
+        <div className="text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{picking.editionName}</div>
+        <div className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{picking.units.length} 个单元</div>
         <Panel>
           {picking.units.map((u, i) => {
             const c = (u.vocabularies?.length ?? 0) + (u.phrases?.length ?? 0) + (u.sentencePatterns?.length ?? 0);
             return (
               <button key={u.unit} onClick={() => handleUnit(i)}
                 className="press flex w-full items-center gap-3 border-b border-[var(--color-hairline)] px-4 py-3 text-left last:border-b-0 hover:bg-[var(--color-surface-2)]">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface-2)] text-[12px] font-bold text-[var(--color-text-2)]">{u.unit}</span>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface-2)] text-[calc(12px*var(--type-scale))] font-bold text-[var(--color-text-2)]">{u.unit}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="text-[15px] font-semibold text-[var(--color-text)]">{u.title}</div>
-                  <div className="text-[12px] text-[var(--color-text-2)]">{c} 项</div>
+                  <div className="text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{u.title}</div>
+                  <div className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{c} 项</div>
                 </div>
                 <ChevronRight size={16} className="text-[var(--color-text-3)]" />
               </button>
@@ -101,9 +101,9 @@ export default function TextbookSwitcher({ onSelected }: { onSelected?: () => vo
                 <BookOpen size={20} />
               </span>
               <div className="min-w-0 flex-1">
-                <div className="text-[15px] font-semibold text-[var(--color-text)]">{ed.editionName}</div>
-                <div className="mt-0.5 text-[12px] text-[var(--color-text-2)]">{tag}</div>
-                <div className="mt-1.5 text-[12px] font-medium text-[var(--color-accent)]">{total} 个单元</div>
+                <div className="text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{ed.editionName}</div>
+                <div className="mt-0.5 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{tag}</div>
+                <div className="mt-1.5 text-[calc(12px*var(--type-scale))] font-medium text-[var(--color-accent)]">{total} 个单元</div>
               </div>
               <ChevronRight size={16} className="mt-1 shrink-0 text-[var(--color-text-3)]" />
             </button>
@@ -113,15 +113,15 @@ export default function TextbookSwitcher({ onSelected }: { onSelected?: () => vo
 
       <Panel>
         <div className="px-4 py-3">
-          <div className="flex items-center gap-2 text-[13px] font-semibold text-[var(--color-text-2)]"><ExternalLink size={14} /> 加载外部教材</div>
-          <p className="mt-1 text-[12px] text-[var(--color-text-2)]">粘贴教材 JSON 链接，可扩展更多单元。</p>
+          <div className="flex items-center gap-2 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]"><ExternalLink size={14} /> 加载外部教材</div>
+          <p className="mt-1 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">粘贴教材 JSON 链接，可扩展更多单元。</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <input value={remoteUrl} onChange={(e) => setRemoteUrl(e.target.value)} placeholder="https://example.com/edition.json"
-              className="flex-1 rounded-[12px] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] px-4 py-2 text-[15px] outline-none focus:border-[var(--color-accent)]" />
+              className="flex-1 rounded-[12px] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] px-4 py-2 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
             <GhostButton onClick={handleRemoteLoad}>加载</GhostButton>
           </div>
-          {remoteMsg && <p className="mt-2 text-[12px] text-[var(--color-vocab)]">{remoteMsg}</p>}
-          {loadError && <p className="mt-2 text-[12px] text-[var(--color-trap)]">{loadError}</p>}
+          {remoteMsg && <p className="mt-2 text-[calc(12px*var(--type-scale))] text-[var(--color-vocab)]">{remoteMsg}</p>}
+          {loadError && <p className="mt-2 text-[calc(12px*var(--type-scale))] text-[var(--color-trap)]">{loadError}</p>}
         </div>
       </Panel>
     </div>

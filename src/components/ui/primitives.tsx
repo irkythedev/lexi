@@ -30,7 +30,7 @@ export function Tag({ kind, locale = 'zh', children }: { kind: Kind; locale?: Lo
   const c = KIND_META[kind];
   return (
     <span style={{ background: c.soft, border: '1px solid var(--color-hairline)', color: c.text }}
-      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold">
+      className="inline-flex items-center rounded-full px-2.5 py-0.5 text-[calc(11px*var(--type-scale))] font-semibold">
       {children ?? c.label[locale]}
     </span>
   );
@@ -39,7 +39,7 @@ export function Tag({ kind, locale = 'zh', children }: { kind: Kind; locale?: Lo
 export function PrimaryButton({ children, onClick, type = 'button', className = '', disabled }: { children: ReactNode; onClick?: () => void; type?: 'button' | 'submit'; className?: string; disabled?: boolean }) {
   return (
     <button type={type} onClick={onClick} disabled={disabled}
-      className={`press inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] px-5 py-2.5 text-[15px] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 disabled:opacity-50 ${className}`}>
+      className={`press inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 disabled:opacity-50 ${className}`}>
       {children}
     </button>
   );
@@ -48,7 +48,7 @@ export function PrimaryButton({ children, onClick, type = 'button', className = 
 export function GhostButton({ children, onClick, className = '', active }: { children: ReactNode; onClick?: () => void; className?: string; active?: boolean }) {
   return (
     <button onClick={onClick}
-      className={`press inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-4 py-2 text-[15px] font-medium transition ${
+      className={`press inline-flex min-h-11 items-center justify-center gap-2 rounded-full border px-4 py-2 text-[calc(15px*var(--type-scale))] font-medium transition ${
         active ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]'} ${className}`}>
       {children}
     </button>
@@ -77,15 +77,15 @@ export function PageHeader({ eyebrow, title, subtitle, right }: { eyebrow?: stri
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] pt-6 pb-3">
       {eyebrow && (
-        <div className="flex items-center gap-2 text-[12px] font-semibold tracking-[0.14em] text-[var(--color-text-2)]">
+        <div className="flex items-center gap-2 text-[calc(12px*var(--type-scale))] font-semibold tracking-[0.14em] text-[var(--color-text-2)]">
           <span className="h-1.5 w-1.5 rounded-full bg-[var(--color-live)] pulse-dot" /> {eyebrow}
         </div>
       )}
       <div className="mt-2 flex items-end justify-between gap-3">
-        <h1 className="text-[clamp(24px,5vw,34px)] font-bold tracking-[-0.02em] text-[var(--color-text)]">{title}</h1>
+        <h1 className="text-[calc(clamp(24px,5vw,34px)*var(--type-scale))] font-bold tracking-[-0.02em] text-[var(--color-text)]">{title}</h1>
         {right}
       </div>
-      {subtitle && <p className="mt-1 text-[15px] text-[var(--color-text-2)]">{subtitle}</p>}
+      {subtitle && <p className="mt-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{subtitle}</p>}
     </div>
   );
 }

@@ -66,7 +66,7 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}>
 
         <div className="flex items-center justify-between border-b border-[var(--color-hairline)] px-5 py-3.5">
-          <div className="flex items-center gap-2 text-[15px] font-semibold"><Upload size={17} style={{ color: 'var(--color-accent)' }} /> 个人导入</div>
+          <div className="flex items-center gap-2 text-[calc(15px*var(--type-scale))] font-semibold"><Upload size={17} style={{ color: 'var(--color-accent)' }} /> 个人导入</div>
           <button onClick={onClose} className="press flex h-9 w-9 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]" aria-label="关闭"><X size={17} /></button>
         </div>
 
@@ -78,24 +78,24 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
               onChange={(e) => setText(e.target.value)}
               placeholder={PLACEHOLDER}
               rows={10}
-              className="w-full resize-y rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-ground)] px-4 py-3 text-[13px] leading-relaxed outline-none focus:border-[var(--color-accent)]"
+              className="w-full resize-y rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-ground)] px-4 py-3 text-[calc(13px*var(--type-scale))] leading-relaxed outline-none focus:border-[var(--color-accent)]"
             />
             <div className="flex items-center justify-between">
-              <span className="text-[12px] text-[var(--color-text-3)]">支持 TSV（word|meaning|phonetic|example）与 JSON</span>
+              <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">支持 TSV（word|meaning|phonetic|example）与 JSON</span>
               <PrimaryButton onClick={parse} disabled={!text.trim()}>解析预览</PrimaryButton>
             </div>
             {batches.length > 0 && (
               <div className="mt-1">
-                <div className="mb-1.5 text-[13px] font-semibold text-[var(--color-text-2)]">已导入清单</div>
+                <div className="mb-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">已导入清单</div>
                 <div className="max-h-40 space-y-1.5 overflow-y-auto">
                   {batches.map((b) => {
                     const c = countByKind(b.entries);
                     return (
                       <div key={b.id} className="flex items-center justify-between rounded-xl border border-[var(--color-hairline)] px-3 py-2">
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2 text-[14px] font-medium">
+                          <div className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-medium">
                             <span className="truncate">{b.name}</span>
-                            <span className="flex shrink-0 items-center gap-1 text-[11px] text-[var(--color-text-3)]">
+                            <span className="flex shrink-0 items-center gap-1 text-[calc(11px*var(--type-scale))] text-[var(--color-text-3)]">
                               {c.vocab}词 {c.phrase}短 {c.pattern}句
                             </span>
                           </div>
@@ -113,23 +113,23 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
         {/* Step 1: review */}
         {step === 1 && result && (
           <div className="flex flex-col gap-3 p-5">
-            <div className="flex flex-wrap items-center gap-2 text-[13px]">
+            <div className="flex flex-wrap items-center gap-2 text-[calc(13px*var(--type-scale))]">
               <span className="rounded-full px-3 py-1" style={{ background: 'var(--color-vocab-soft)', color: 'var(--color-vocab)' }}>可导入 {result.ok.length}</span>
               <span className="rounded-full px-3 py-1" style={{ background: 'var(--color-trap-soft)', color: 'var(--color-trap)' }}>待修正 {result.errors.length}</span>
             </div>
             <div className="max-h-48 overflow-y-auto rounded-2xl border border-[var(--color-hairline)]">
               {result.ok.map((e, i) => (
-                <div key={i} className="flex items-center gap-2 border-b border-[var(--color-hairline)] px-3 py-1.5 text-[13px] last:border-b-0">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold" style={{ background: KIND_META[e.type].soft, color: KIND_META[e.type].text }}>{KIND_META[e.type].label.zh.slice(0, 1)}</span>
+                <div key={i} className="flex items-center gap-2 border-b border-[var(--color-hairline)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] last:border-b-0">
+                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[calc(10px*var(--type-scale))] font-bold" style={{ background: KIND_META[e.type].soft, color: KIND_META[e.type].text }}>{KIND_META[e.type].label.zh.slice(0, 1)}</span>
                   <span className="min-w-0 flex-1 truncate font-medium">{e.label}</span>
                   <span className="max-w-[40%] truncate text-[var(--color-text-3)]">{e.meaning}</span>
                 </div>
               ))}
               {result.errors.map((er, i) => (
-                <div key={`e${i}`} className="flex items-center gap-2 border-b border-[var(--color-hairline)] px-3 py-1.5 text-[13px] text-[var(--color-trap)] last:border-b-0">
+                <div key={`e${i}`} className="flex items-center gap-2 border-b border-[var(--color-hairline)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-trap)] last:border-b-0">
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-trap)]" />
                   <span className="min-w-0 flex-1 truncate">{er.text}</span>
-                  <span className="shrink-0 text-[11px]">{er.reason}</span>
+                  <span className="shrink-0 text-[calc(11px*var(--type-scale))]">{er.reason}</span>
                 </div>
               ))}
             </div>
@@ -138,7 +138,7 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
               onChange={(e) => setName(e.target.value)}
               placeholder="清单名称（可选）"
               maxLength={40}
-              className="w-full rounded-xl border border-[var(--color-hairline)] bg-[var(--color-ground)] px-4 py-2.5 text-[14px] outline-none focus:border-[var(--color-accent)]"
+              className="w-full rounded-xl border border-[var(--color-hairline)] bg-[var(--color-ground)] px-4 py-2.5 text-[calc(14px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]"
             />
             <div className="flex justify-end gap-2">
               <GhostButton onClick={() => setStep(0)}>返回修改</GhostButton>

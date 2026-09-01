@@ -25,7 +25,7 @@ export default function ToastHost() {
       {toasts.map((t) => {
         const s = TYPE_STYLE[t.type];
         return (
-          <div key={t.id} role="status" className="pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2 text-[13.5px] font-medium shadow-[var(--shadow-lift)]"
+          <div key={t.id} role="status" className="pointer-events-auto flex items-center gap-2 rounded-full px-4 py-2 text-[calc(13.5px*var(--type-scale))] font-medium shadow-[var(--shadow-lift)]"
             style={{ background: s.bg, color: s.color, border: '0.5px solid var(--color-hairline)', backdropFilter: 'blur(12px)' }}>
             <ToastIcon item={t} />
             <span>{t.msg}</span>
