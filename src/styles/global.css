@@ -130,6 +130,11 @@ body {
   line-height: 1.6;
 }
 
+/* iOS PWA 独立模式：html 也铺背景，避免 100vh 之外露出默认白边 */
+html {
+  background: var(--color-ground);
+}
+
 .tnum { font-variant-numeric: tabular-nums; }
 
 /* Keyboard focus (WCAG 2.4.7) */

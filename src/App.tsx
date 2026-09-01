@@ -48,7 +48,7 @@ function Shell() {
   }, [tab, theme, accent, fontScale]);
 
   return (
-    <div className="min-h-screen bg-[var(--color-ground)] text-[var(--color-text)]" style={{ paddingTop: '3.5rem', paddingBottom: '4.5rem' }}>
+    <div className="min-h-dvh bg-[var(--color-ground)] text-[var(--color-text)]" style={{ paddingTop: '3.5rem', paddingBottom: 'calc(4.5rem + env(safe-area-inset-bottom, 0px))' }}>
       <GlassNav />
       <main>
         <Routes>
