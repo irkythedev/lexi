@@ -73,12 +73,13 @@ export default function SettingsView() {
           <input
             type="range" min="0.85" max="1.4" step="0.05"
             value={fontScale}
-            onChange={(e) => { const v = parseFloat(e.target.value); setFontScale(v); }}
+            onChange={(e) => { setFontScale(snapToStep(parseFloat(e.target.value), 0.85, 0.05)); }}
             aria-label={t('fontSize', locale)}
             className="w-full thumb-rect cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
-          <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('fontSizeMin', locale)}</span><span>{t('fontSizeMax', locale)}</span></div>
+          <Scale min={0.85} max={1.4} step={0.05} majorStep={0.1} />
+          <div className="mt-1 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('fontSizeMin', locale)}</span><span>{t('fontSizeMax', locale)}</span></div>
         </div>
       </Section>
 
@@ -116,14 +117,14 @@ export default function SettingsView() {
           <input
             type="range" min="0.8" max="2.0" step="0.1"
             value={dragRate}
-            onChange={(e) => setDragRate(parseFloat(e.target.value))}
+            onChange={(e) => setDragRate(snapToStep(parseFloat(e.target.value), 0.8, 0.1))}
             onMouseUp={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             aria-label={t('speed', locale)}
             className="w-full thumb-rect cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
-          <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('speedRangeMin', locale)}</span><span>{t('speedRangeMax', locale)}</span></div>
+          <Scale min={0.8} max={2.0} step={0.1} majorStep={0.2} />
         </div>
       </Section>
 
@@ -146,6 +147,35 @@ export default function SettingsView() {
       </Section>
 
       {showImport && <PersonalImport onClose={() => setShowImport(false)} />}
+    </div>
+  );
+}
+
+/** 吸附到步进值：把任意输入取整到最近的 step 倍数（用于滑块档位吸附） */
+function snapToStep(v: number, min: number, step: number): number {
+  const r = Math.round((v - min) / step) * step + min;
+  return Math.min(1.4, Math.max(min, Math.round(r * 100) / 100));
+}
+
+/** 滑块刻度尺：min→max 按 step 布点，主刻度（majorStep 间隔）加数字标签 */
+function Scale({ min, max, step, majorStep }: { min: number; max: number; step: number; majorStep: number }) {
+  const ticks: { v: number; major: boolean }[] = [];
+  for (let v = min; v <= max + 1e-9; v = Math.round((v + step) * 100) / 100) {
+    const major = Math.abs((v - min) / majorStep - Math.round((v - min) / majorStep)) < 1e-9;
+    ticks.push({ v, major });
+  }
+  return (
+    <div className="mt-1.5 flex justify-between px-0.5">
+      {ticks.map((t, i) => (
+        <div key={i} className="flex flex-1 flex-col items-center">
+          <span className={`w-px ${t.major ? 'h-2.5 bg-[var(--color-text-3)]' : 'h-1.5 bg-[var(--color-text-4)]'}`} />
+          {t.major && (
+            <span className="tnum mt-0.5 text-[calc(9.5px*var(--type-scale))] text-[var(--color-text-3)]">
+              {t.v.toFixed(1)}
+            </span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
