@@ -53,7 +53,7 @@ function ConsentView({ onAgree }: { onAgree: () => void }) {
   );
 }
 
-function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig) => void; initial: AiConfig | null }) {
+export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig) => void; initial: AiConfig | null }) {
   const locale = useAppStore((s) => s.locale);
   const [provider, setProvider] = useState<AiProviderId>(initial?.provider ?? 'deepseek');
   const [baseUrl, setBaseUrl] = useState(initial?.baseUrl ?? AI_PROVIDERS[0].baseUrl);

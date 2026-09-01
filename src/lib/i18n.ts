@@ -229,6 +229,10 @@ const zh: Record<string, string> = {
   footerGitee: 'Gitee',
   footerGithub: 'GitHub',
   footerHomepage: 'lexi.irky.dev',
+  installApp: '安装应用',
+  installIosHint: '点击浏览器工具栏「分享」→ 选择「添加到主屏幕」即可从桌面打开。',
+  installWebviewHint: '当前为内置浏览器，请在系统浏览器中打开本站后，再通过浏览器菜单安装。',
+  installMenuHint: '点击浏览器右上角菜单「⋮」→ 选择「添加到主屏幕 / 安装应用」即可从桌面打开。',
 
   // 导入
   importLabelMissing: '缺少 label 字段',
@@ -600,6 +604,10 @@ Object.assign(en, {
   footerGitee: 'Gitee',
   footerGithub: 'GitHub',
   footerHomepage: 'lexi.irky.dev',
+  installApp: 'Install App',
+  installIosHint: 'Tap the Share icon in the browser toolbar, then select "Add to Home Screen".',
+  installWebviewHint: 'Open this site in your system browser, then install via the browser menu.',
+  installMenuHint: 'Tap the browser menu (⋮) and select "Add to Home Screen" or "Install App".',
   importLabelMissing: 'Missing label field',
   importJsonError: 'JSON parse error',
   importWordMissing: 'Missing word/phrase',

@@ -5,6 +5,7 @@ import { Library, Mail } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { FOOTER } from '../lib/footer.ts';
+import InstallAppButton from './InstallAppButton.tsx';
 
 function GiteeIcon({ size = 14, className = '' }: { size?: number; className?: string }) {
   return (
@@ -77,8 +78,12 @@ export default function Footer() {
           <a href={FOOTER.licenseUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-text)] transition-colors">{t('footerLicense', locale)}</a>
         </div>
 
-        {/* 免责声明 */}
-        <button type="button" onClick={() => setShowDisclaimer((v) => !v)} aria-expanded={showDisclaimer} className="underline hover:text-[var(--color-text)] transition-colors">{t('footerDisclaimerLabel', locale)}</button>
+        {/* 安装引导 + 免责声明 */}
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
+          <InstallAppButton />
+          <span className="text-[var(--color-text-4)]">·</span>
+          <button type="button" onClick={() => setShowDisclaimer((v) => !v)} aria-expanded={showDisclaimer} className="underline hover:text-[var(--color-text)] transition-colors">{t('footerDisclaimerLabel', locale)}</button>
+        </div>
         {showDisclaimer && <span className="max-w-xs text-[var(--color-text-3)]">{t('footerDisclaimer', locale)}</span>}
         <span className="text-[var(--color-text-3)]">{t('footerAppDesc', locale)}</span>
       </div>
