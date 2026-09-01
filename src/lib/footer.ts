@@ -9,7 +9,7 @@ export const FOOTER = {
   email: 'king4g@yeah.net',
   moreWorksLabel: '其他作品',
   works: [
-    { name: 'STEM 数字探究实验室', url: 'https://stem.irky.dev/', icon: 'https://stem.irky.dev/favicon.svg' },
+    { name: 'STEM 数理化数字实验室', url: 'https://stem.irky.dev/', icon: '/icons/stem-icon.svg' },
     { name: 'AquaInsight · 水气研判', url: 'https://wsa.irky.dev/', icon: 'https://wsa.irky.dev/water-sci4_new.png' },
     { name: '百年回响 · 江海潮声', url: 'https://100ye.irky.dev/', icon: 'https://100ye.irky.dev/favicon.svg' },
   ],
@@ -22,5 +22,5 @@ export const FOOTER = {
   disclaimer: '本应用仅供学习参考，数据来自教材与用户自主导入，AI 生成内容请以学校教材为准。',
   disclaimerLabel: '免责声明',
   homepage: 'https://lexi.irky.dev/',
-  appDesc: 'Lexi · 纯前端 PWA · 英语词汇听说学习 · 数据保存在本机',
+  appDesc: 'Lexi · 英语词汇听说学习 · 数据保存在本机',
 };
