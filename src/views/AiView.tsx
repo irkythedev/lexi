@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { Sparkles, Settings2, X, Send, AlertCircle, Eye, EyeOff } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import type { AiConfig, AiProviderId, CorrectionResult, ExamPointResult } from '../types/index.ts';
@@ -13,45 +12,43 @@ import {
 type Cap = 'correction' | 'exam' | 'roleplay';
 
 export default function AiView() {
-  const { unit, refreshAiStatus, aiConsent, locale } = useAppStore();
-  const navigate = useNavigate();
+  const { unit, refreshAiStatus, locale } = useAppStore();
   const [cfg, setCfg] = useState<AiConfig | null>(null);
-  const [view, setView] = useState<'terms' | 'chat'>('terms');
+  const [view, setView] = useState<'terms' | 'settings' | 'chat'>('terms');
 
   useEffect(() => { const c = loadConfig(); setCfg(c); setView(c ? 'chat' : 'terms'); }, []);
-  useEffect(() => { refreshAiStatus(); }, [refreshAiStatus]);
+
+  const onSaved = (c: AiConfig) => { setCfg(c); refreshAiStatus(); setView('chat'); };
 
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
       <div className="mb-3 flex items-center justify-between">
         <h2 className="flex items-center gap-2 text-[calc(clamp(20px,5vw,28px)*var(--type-scale))] font-bold tracking-[-0.02em]"><Sparkles size={22} style={{ color: 'var(--color-accent)' }} /> {t('aiTitle', locale)}</h2>
-        {cfg && <button onClick={() => navigate('/settings#ai')} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><Settings2 size={15} /> {t('aiConfigure', locale)}</button>}
+        {cfg && <button onClick={() => setView('settings')} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><Settings2 size={15} /> {t('aiConfigure', locale)}</button>}
       </div>
-      {view === 'terms' && !aiConsent && <ConsentGate onGoSettings={() => navigate('/settings#ai')} />}
-      {view === 'terms' && aiConsent && <EmptyGate onGoSettings={() => navigate('/settings#ai')} />}
+      {view === 'terms' && <ConsentView onAgree={() => setView('settings')} />}
+      {view === 'settings' && <SettingsViewInline onSaved={onSaved} initial={cfg} />}
       {view === 'chat' && cfg && <ChatView cfg={cfg} />}
       {!unit && view === 'chat' && <div className="mt-3 rounded-[var(--radius-card)] border border-[var(--color-hairline)] p-3 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiNoUnitHint', locale)}</div>}
     </div>
   );
 }
 
-function ConsentGate({ onGoSettings }: { onGoSettings: () => void }) {
+function ConsentView({ onAgree }: { onAgree: () => void }) {
   const locale = useAppStore((s) => s.locale);
+  const TERMS = [
+    { tk: 'aiTermNature', bk: 'aiTermNatureDesc' },
+    { tk: 'aiTermPrivacy', bk: 'aiTermPrivacyDesc' },
+    { tk: 'aiTermStudy', bk: 'aiTermStudyDesc' },
+    { tk: 'aiTermCompliance', bk: 'aiTermComplianceDesc' },
+  ];
   return (
     <div className="rounded-[var(--radius-hero)] border p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
       <div className="flex items-center gap-2 text-[calc(15px*var(--type-scale))] font-bold text-[var(--color-text)]"><AlertCircle size={18} style={{ color: 'var(--color-accent)' }} /> {t('aiNoticeTitle', locale)}</div>
-      <p className="mt-3 text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{t('aiConsentPrompt', locale)}</p>
-      <button onClick={onGoSettings} className="press mt-5 w-full rounded-full bg-[var(--color-accent)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiGoSettings', locale)}</button>
-    </div>
-  );
-}
-
-function EmptyGate({ onGoSettings }: { onGoSettings: () => void }) {
-  const locale = useAppStore((s) => s.locale);
-  return (
-    <div className="rounded-[var(--radius-hero)] border p-6 text-center shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
-      <p className="text-[calc(14px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiNotConfigured', locale)}</p>
-      <button onClick={onGoSettings} className="press mt-4 rounded-full bg-[var(--color-accent)] px-6 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiGoSettings', locale)}</button>
+      <ol className="mt-4 space-y-3">
+        {TERMS.map((x, i) => <li key={i} className="text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]"><span className="font-semibold text-[var(--color-text)]">{i + 1}. {t(x.tk, locale)}：</span>{t(x.bk, locale)}</li>)}
+      </ol>
+      <button onClick={onAgree} className="press mt-5 w-full rounded-full bg-[var(--color-accent)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiAgree', locale)}</button>
     </div>
   );
 }

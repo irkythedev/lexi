@@ -396,9 +396,6 @@ const zh: Record<string, string> = {
   aiInputPlaceholder: '输入内容…',
   aiModelPlaceholder: '或手动输入模型名，如 deepseek-chat',
   aiNoticeTitle: '使用须知',
-  aiConsentPrompt: '先阅读并同意使用须知，即可配置 AI 服务商',
-  aiNotConfigured: '已同意使用说明，但尚未配置 AI 服务商。请先在设置中填写 API Key 完成配置。',
-  aiGoSettings: '去设置',
 };
 
 const en: Record<string, string> = {};
@@ -535,9 +532,6 @@ Object.assign(en, {
   aiNotice: 'Notice',
   aiNoticeText: 'The AI assistant calls LLMs via your API Key. Data stays on your device; conversations never reach any server.',
   aiAgree: 'I agree, continue →',
-  aiConsentPrompt: 'Read and agree to the notice first, then configure an AI provider',
-  aiNotConfigured: 'You have agreed to the notice, but no AI provider is configured yet. Go to Settings to fill in your API Key.',
-  aiGoSettings: 'Go to Settings',
   aiStatus: 'Status',
   aiStatusReady: 'Configured',
   aiStatusNotReady: 'Not configured',

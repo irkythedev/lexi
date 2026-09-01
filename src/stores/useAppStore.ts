@@ -24,14 +24,12 @@ interface AppState {
   unit: Unit | null;
   studyItems: StudyItem[];
   aiReady: boolean;
-  aiConsent: boolean;
   tts: { accent: 'us' | 'uk'; rate: number; gender: 'female' | 'male' };
   fontScale: number;
 
   setTab: (t: Tab) => void;
   selectUnit: (sel: { editionId: string; grade: number; volume: number; unit: number }) => void;
   refreshAiStatus: () => void;
-  setAiConsent: (v: boolean) => void;
   toggleTheme: () => void;
   setAccent: (a: Accent) => void;
   setLocale: (l: Locale) => void;
@@ -54,7 +52,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   unit: null,
   studyItems: [],
   aiReady: !!loadConfig(),
-  aiConsent: false,
   tts: { accent: 'us', rate: 1.0, gender: 'female' },
   fontScale: 1,
 
@@ -91,8 +88,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     set({ tts: next });
   },
 
-  setAiConsent: (v) => { setSetting('aiConsent', v); set({ aiConsent: v }); },
-
   setFontScale: (s) => {
     const v = Math.min(1.4, Math.max(0.85, Math.round(s * 100) / 100));
     setSetting('fontScale', v);
@@ -102,17 +97,16 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 // Initialize persisted settings (async) once at startup.
 export async function hydrateSettings() {
-  const [theme, accent, locale, tts, selection, fontScale, aiConsent] = await Promise.all([
+  const [theme, accent, locale, tts, selection, fontScale] = await Promise.all([
     getSetting<'light' | 'dark'>('theme', 'light'),
     getSetting<Accent>('accent', 'emerald'),
     getSetting<Locale>('locale', 'zh'),
     getSetting<{ accent: 'us' | 'uk'; rate: number; gender: 'female' | 'male' }>('tts', { accent: 'us', rate: 1.0, gender: 'female' }),
     getSetting<AppState['selection']>('selection', null),
     getSetting<number>('fontScale', 1),
-    getSetting<boolean>('aiConsent', false),
   ]);
   const { unit, studyItems } = selection ? recompute(selection) : { unit: null, studyItems: [] };
-  useAppStore.setState({ theme, accent, locale, tts, selection, unit, studyItems, fontScale, aiConsent });
+  useAppStore.setState({ theme, accent, locale, tts, selection, unit, studyItems, fontScale });
 }
 
 // Sync accent to <html data-accent> so CSS theme variants apply.

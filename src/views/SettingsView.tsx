@@ -1,5 +1,5 @@
 // SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + 性别(女/男声) + 试听 + i18n
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Palette, Volume2, BookOpen, Sparkles, Upload, Check, Play, Loader2 } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
@@ -19,20 +19,12 @@ const PREVIEW_TEXT = 'Hello! This is how I sound. Let us learn English together.
 
 export default function SettingsView() {
   const toast = useToastStore((s) => s.show);
-  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, aiConsent, setAiConsent, unit, locale, fontScale, setFontScale } = useAppStore();
+  const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit, locale, fontScale, setFontScale } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
   const [previewState, setPreviewState] = useState<'idle' | 'loading'>('idle');
   const [aiConfig, setAiConfig] = useState(() => loadConfig());
-
-  // #ai 锚点：从顶部 AI 图标跳入时滚动到 AI 配置区块
-  useEffect(() => {
-    if (window.location.hash === '#ai') {
-      const t = setTimeout(() => document.getElementById('ai')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
-      return () => clearTimeout(t);
-    }
-  }, []);
 
   const onAiSaved = () => {
     setAiConfig(loadConfig());
@@ -148,21 +140,12 @@ export default function SettingsView() {
         </div>
       </Section>
 
-      <Section id="ai" icon={Sparkles} title={t('aiSettings', locale)}>
-        {!aiConsent ? (
-          <div className="space-y-3 p-1">
-            <p className="text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{t('aiConsentPrompt', locale)}</p>
-            <button onClick={() => setAiConsent(true)} className="press w-full rounded-full bg-[var(--color-accent)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiAgree', locale)}</button>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center justify-between py-1">
-              <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStatus', locale)}</span>
-              <span className="flex items-center gap-1.5 text-[calc(13px*var(--type-scale))]" style={{ color: aiReady ? 'var(--color-vocab)' : 'var(--color-trap)' }}><span className="h-2 w-2 rounded-full" style={{ background: aiReady ? 'var(--color-vocab)' : 'var(--color-trap)' }} />{aiReady ? t('aiStatusReady', locale) : t('aiStatusNotReady', locale)}</span>
-            </div>
-            <SettingsViewInline onSaved={onAiSaved} initial={aiConfig} />
-          </>
-        )}
+      <Section icon={Sparkles} title={t('aiSettings', locale)}>
+        <div className="flex items-center justify-between py-1">
+          <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStatus', locale)}</span>
+          <span className="flex items-center gap-1.5 text-[calc(13px*var(--type-scale))]" style={{ color: aiReady ? 'var(--color-vocab)' : 'var(--color-trap)' }}><span className="h-2 w-2 rounded-full" style={{ background: aiReady ? 'var(--color-vocab)' : 'var(--color-trap)' }} />{aiReady ? t('aiStatusReady', locale) : t('aiStatusNotReady', locale)}</span>
+        </div>
+        <SettingsViewInline onSaved={onAiSaved} initial={aiConfig} />
       </Section>
 
       {showImport && <PersonalImport onClose={() => setShowImport(false)} />}
@@ -170,9 +153,9 @@ export default function SettingsView() {
   );
 }
 
-function Section({ icon: Icon, title, id, children }: { icon: typeof BookOpen; title: string; id?: string; children: React.ReactNode }) {
+function Section({ icon: Icon, title, children }: { icon: typeof BookOpen; title: string; children: React.ReactNode }) {
   return (
-    <div id={id} className="space-y-1.5">
+    <div className="space-y-1.5">
       <div className="flex items-center gap-2 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]"><Icon size={15} /> {title}</div>
       <div className="rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">{children}</div>
     </div>
