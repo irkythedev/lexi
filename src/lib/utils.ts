@@ -64,7 +64,7 @@ export function clamp(n: number, min: number, max: number): number {
 // i18n helper (lightweight; zh default).
 export const I18N: Record<string, Record<Locale, string>> = {
   learn: { zh: '学习', en: 'Learn' },
-  practice: { zh: '冲刺', en: 'Practice' },
+  practice: { zh: '练习', en: 'Practice' },
   review: { zh: '复习', en: 'Review' },
   errors: { zh: '错题', en: 'Mistakes' },
   ai: { zh: 'AI', en: 'AI' },

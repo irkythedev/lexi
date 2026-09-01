@@ -28,7 +28,7 @@ export default function SessionView() {
 
   const words = useMemo(() => studyItems, [studyItems]);
 
-  const { current: task, pos, total, stats, mark, skip } = useSessionEngine({
+  const { current: task, pos, total, stats, mark, skip, reset } = useSessionEngine({
     items: words,
     editionId: selection?.editionId ?? '',
     onComplete: () => setReviewDone(true),
@@ -51,20 +51,27 @@ export default function SessionView() {
   const recognizeOptions = useMemo(() => {
     if (!task || task.type !== 'recognize') return [];
     const correct = task.item.meaning;
-    const distractors = shuffle(words.filter((w) => w.id !== task.item.id && w.meaning)).slice(0, 3).map((w) => w.meaning);
-    while (distractors.length < 3) distractors.push('常见搭配');
+    const pool = words.filter((w) => w.id !== task.item.id && w.meaning && w.meaning !== correct);
+    const distractors = [...new Set(shuffle(pool).map((w) => w.meaning))].slice(0, 3);
+    // Pad with distinctive placeholders when the pool is small; dedupe first
+    // so identical fillers never appear twice in one row.
+    const fillers = shuffle(['常见搭配', '固定短语', '固定用法', '重点句式']);
+    let fi = 0;
+    while (distractors.length < 3) distractors.push(fillers[fi++ % fillers.length]);
     return shuffle([correct, ...distractors]);
   }, [task, words]);
 
   const grade = useCallback(async (result: TaskResult, extra?: string) => {
     if (!task) return;
     const ok = result === 'correct' || result === 'hesitant';
-    setFeedback({ ok, msg: extra ?? '' });
     setSpellInput('');
-    setTimeout(async () => {
-      setFeedback(null);
-      await mark(result);
-    }, 500);
+    // Feedback duration: quick on success, prolonged on failure so the student
+    // can actually read the correct answer before it advances.
+    const delayMs = ok ? 500 : 1600;
+    setFeedback({ ok, msg: extra ?? (ok ? '' : `正确答案：${task.item.label}`) });
+    await new Promise((r) => setTimeout(r, delayMs));
+    setFeedback(null);
+    await mark(result);
   }, [task, mark]);
 
   const checkSpell = useCallback(() => {
@@ -86,7 +93,7 @@ export default function SessionView() {
         <p className="mt-2 text-[15px] text-[var(--color-text-2)]">共 {stats.total} 步 · 答对 {stats.correct} · 待巩固 {stats.wrong}</p>
         <div className="mt-6 flex gap-3">
           <button onClick={() => navigate('/')} className="press rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-[15px] font-medium">回到首页</button>
-          <button onClick={() => window.location.reload()} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[15px] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>
+          <button onClick={() => { setReviewDone(false); reset(); }} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[15px] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>
             <RotateCcw size={16} /> 再来一轮
           </button>
         </div>
@@ -151,7 +158,9 @@ export default function SessionView() {
             <div className="mt-6 grid grid-cols-1 gap-2.5">
               {recognizeOptions.map((opt, i) => (
                 <button key={i} disabled={!!feedback} onClick={() => void grade(opt === task.item.meaning ? 'correct' : 'wrong')}
-                  className="press rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 py-3.5 text-left text-[15px] font-medium">{opt}</button>
+                  className={`press rounded-2xl border bg-[var(--color-surface)] px-4 py-3.5 text-left text-[15px] font-medium ${feedback && !feedback.ok && opt === task.item.meaning ? 'border-[var(--color-vocab-border)] ring-1 ring-[var(--color-vocab)]' : 'border-[var(--color-hairline)]'}`}>
+                  {opt}
+                </button>
               ))}
             </div>
           </div>

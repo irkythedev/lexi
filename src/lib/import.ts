@@ -1,6 +1,19 @@
 // Personal import — parse, validate, and store user-imported word/phrase/pattern lists.
 // Supports: TSV (word|meaning|phonetic|example), JSON array, and raw text paste.
 
+// Field length caps (data hygiene: prevent oversized entries from bloating
+// IndexedDB, TTS requests, and AI prompts). Applied on every import path.
+const MAX_LABEL = 200;
+const MAX_MEANING = 300;
+const MAX_PHONETIC = 80;
+const MAX_EXAMPLE = 600;
+const MAX_ENTRIES = 500;
+
+function clampField(v: string | undefined, max: number): string {
+  if (!v) return '';
+  return v.slice(0, max);
+}
+
 export interface ImportEntry {
   label: string;
   type: 'vocab' | 'phrase' | 'pattern';
@@ -25,7 +38,7 @@ function detectType(label: string): 'vocab' | 'phrase' | 'pattern' {
   return 'vocab';
 }
 
-function normalizeType(t: string): 'vocab' | 'phrase' | 'pattern' {
+function normalizeType(t: unknown): 'vocab' | 'phrase' | 'pattern' {
   if (t === 'phrase') return 'phrase';
   if (t === 'pattern' || t === 'sentence') return 'pattern';
   return 'vocab';
@@ -45,17 +58,18 @@ export function parseImport(text: string): ImportResult {
       try {
         const parsed = JSON.parse(raw);
         const items = Array.isArray(parsed) ? parsed : [parsed];
-        items.forEach((item: Record<string, string>) => {
+        for (const item of items as Record<string, string>[]) {
+          if (ok.length >= MAX_ENTRIES) { errors.push({ line: i + 1, text: raw.slice(0, 60), reason: `超过 ${MAX_ENTRIES} 条上限` }); break; }
           const label = item.word || item.phrase || item.pattern || item.label || '';
-          if (!label) { errors.push({ line: i + 1, text: raw.slice(0, 60), reason: '缺少 label 字段' }); return; }
+          if (!label) { errors.push({ line: i + 1, text: raw.slice(0, 60), reason: '缺少 label 字段' }); continue; }
           ok.push({
-            label: label.trim(),
-            type: item.type ? normalizeType(item.type) : detectType(label),
-            meaning: item.meaning || item.释义 || '',
-            phonetic: item.phonetic || item.音标 || '',
-            example: item.example || item.例句 || item.exampleEn || '',
+            label: clampField(label, MAX_LABEL).trim(),
+            type: normalizeType(item.type),
+            meaning: clampField(item.meaning || item.释义, MAX_MEANING),
+            phonetic: clampField(item.phonetic || item.音标, MAX_PHONETIC),
+            example: clampField(item.example || item.例句 || item.exampleEn, MAX_EXAMPLE),
           });
-        });
+        }
       } catch { errors.push({ line: i + 1, text: raw.slice(0, 60), reason: 'JSON 解析失败' }); }
       continue;
     }
@@ -65,12 +79,13 @@ export function parseImport(text: string): ImportResult {
     if (parts.length >= 2) {
       const label = parts[0].trim();
       if (!label) { errors.push({ line: i + 1, text: raw.slice(0, 60), reason: '缺少单词/短语' }); continue; }
+      if (ok.length >= MAX_ENTRIES) { errors.push({ line: i + 1, text: raw.slice(0, 60), reason: `超过 ${MAX_ENTRIES} 条上限` }); continue; }
       ok.push({
-        label,
+        label: clampField(label, MAX_LABEL).trim(),
         type: detectType(label),
-        meaning: parts[1].trim(),
-        phonetic: (parts[2] || '').trim(),
-        example: (parts[3] || '').trim(),
+        meaning: clampField(parts[1], MAX_MEANING),
+        phonetic: clampField(parts[2], MAX_PHONETIC),
+        example: clampField(parts[3], MAX_EXAMPLE),
       });
       continue;
     }

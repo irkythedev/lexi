@@ -49,6 +49,20 @@ function splitForTTS(text: string, max = 800): string[] {
   return out;
 }
 
+// Resolve a blob's duration (ms). Falls back to 0 on failure so callers can
+// fall through to the per-chunk `audio.duration` estimate.
+function blobDurationMs(blob: Blob): Promise<number> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(blob);
+    const el = new Audio();
+    el.preload = 'metadata';
+    const done = (ms: number) => { URL.revokeObjectURL(url); resolve(ms); };
+    el.onloadedmetadata = () => done(Number.isFinite(el.duration) ? el.duration * 1000 : 0);
+    el.onerror = () => done(0);
+    el.src = url;
+  });
+}
+
 export function useSpeak() {
   const [state, setState] = useState<SpeakState>('idle');
   const [error, setError] = useState('');
@@ -57,6 +71,7 @@ export function useSpeak() {
   const idxRef = useRef(0);
   const wordsRef = useRef<string[]>([]);
   const timerRef = useRef<number | null>(null);
+  const totalMsRef = useRef(0); // measured total playback ms across all chunks
   const wasStoppedRef = useRef(false);
   const optsRef = useRef<SpeakOptions>({});
   const webHandleRef = useRef<SpeakHandle | null>(null);
@@ -112,9 +127,11 @@ export function useSpeak() {
     audio.onerror = () => { setError('播放失败'); setState('error'); };
     audio.play().then(() => {
       setState('playing');
-      // estimate total duration for word timing (first chunk)
-      if (idx === 0 && audio.duration && Number.isFinite(audio.duration)) {
-        startWordTimer(wordsRef.current, audio.duration * 1000);
+      // Word-timing should span the WHOLE utterance: use measured cumulative
+      // duration (all chunks) when available, else fall back to this chunk.
+      const totalMs = totalMsRef.current > 0 ? totalMsRef.current : (audio.duration ? audio.duration * 1000 : 0);
+      if (idx === 0 && totalMs > 0) {
+        startWordTimer(wordsRef.current, totalMs);
       }
     }).catch((e) => { setError('播放失败：' + (e?.message || e)); setState('error'); });
     idxRef.current = idx;
@@ -142,6 +159,10 @@ export function useSpeak() {
           blobs.push(toMp3Blob(await res.arrayBuffer()));
         }
         chunksRef.current = blobs;
+        // Measure cumulative playback time across ALL chunks so per-word
+        // highlight pacing matches the real audio, not just the first chunk.
+        const measured = await Promise.all(blobs.map(blobDurationMs));
+        totalMsRef.current = measured.reduce((a, b) => a + b, 0);
         playEdgeChunk(0);
         return;
       } catch (e) {

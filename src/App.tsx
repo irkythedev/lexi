@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useAppStore, hydrateSettings, applyAccent } from './stores/useAppStore.ts';
 import GlassNav from './components/GlassNav.tsx';
 import FloatingTTS from './components/FloatingTTS.tsx';
@@ -14,6 +14,7 @@ import SessionView from './views/SessionView.tsx';
 
 function Home() {
   const { unit } = useAppStore();
+  const navigate = useNavigate();
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">
       {!unit && (
@@ -28,7 +29,7 @@ function Home() {
             <div className="text-[12px] font-semibold tracking-[0.14em] opacity-80">{unit.editionName} · Unit {unit.unit}</div>
             <h2 className="mt-1 text-[clamp(20px,4vw,26px)] font-bold tracking-[-0.02em]">{unit.title}</h2>
           </div>
-          <a href={`/session/${unit.unit}`} className="press rounded-full bg-white/20 px-5 py-2.5 text-[15px] font-semibold backdrop-blur">继续学习 →</a>
+          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press rounded-full bg-white/20 px-5 py-2.5 text-[15px] font-semibold backdrop-blur">继续学习 →</button>
         </div>
       )}
       <div className="mt-4"><TextbookSwitcher onSelected={() => {}} /></div>

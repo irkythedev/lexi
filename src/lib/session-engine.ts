@@ -111,5 +111,13 @@ export function useSessionEngine(opts: {
 
   const skip = useCallback(() => { void mark('skip'); }, [mark]);
 
-  return { current, pos, total: queue.length, stats, mark, skip };
+  const reset = useCallback(() => {
+    failedRef.current.clear();
+    const fresh = buildQueue(items, includeSpell);
+    setQueue(fresh);
+    setPos(0);
+    setStats({ total: fresh.length, done: 0, correct: 0, wrong: 0, skipped: 0 });
+  }, [items, includeSpell]);
+
+  return { current, pos, total: queue.length, stats, mark, skip, reset };
 }

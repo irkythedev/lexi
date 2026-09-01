@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Brain, AlertTriangle, Flame, Volume2, X } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem, Kind } from '../types/index.ts';
@@ -84,12 +84,20 @@ function FilterTab({ active, onClick, icon: Icon, label, count }: { active: bool
 
 function QuickReview({ item, onClose, onGraded, selection }: { item: StudyItem; onClose: () => void; onGraded: () => void; selection: { editionId: string } | null }) {
   const [flip, setFlip] = useState(false);
+  const closeRef = useRef<HTMLButtonElement>(null);
   const meta = KIND_META[item.kind];
   const grade = async (q: number) => { if (selection) await recordReview({ key: `${selection.editionId}:${item.id}`, editionId: selection.editionId, itemId: item.id, kind: item.kind, q }); onGraded(); onClose(); };
+  // Esc closes; focus lands on dismiss button on open.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    closeRef.current?.focus();
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4" onClick={onClose} role="dialog" aria-modal="true" aria-label={item.label}>
       <div className="w-full max-w-sm rounded-[var(--radius-hero)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-overlay)]" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between"><Tag kind={item.kind}>{meta.label[useAppStore.getState().locale]}</Tag><button onClick={onClose} className="text-[var(--color-text-2)]">✕</button></div>
+        <div className="flex items-center justify-between"><Tag kind={item.kind}>{meta.label[useAppStore.getState().locale]}</Tag><button ref={closeRef} onClick={onClose} aria-label="关闭" className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]">✕</button></div>
         <h3 className="mt-4 text-center text-[28px] font-bold tracking-[-0.02em]">{item.label}</h3>
         {item.phonetic && <p className="text-center font-mono text-[15px] text-[var(--color-text-2)]">{item.phonetic}</p>}
         {flip && <p className="mt-3 text-center text-[16px] font-semibold text-[var(--color-text)]">{item.meaning}</p>}
