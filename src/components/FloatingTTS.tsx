@@ -48,7 +48,9 @@ export default function FloatingTTS() {
   }, [play]);
 
   useEffect(() => {
-    const fn = (t: SpeakTarget) => { setActive(t); play(t); };
+    // 用 playRef.current 而非闭包 play：play 会随 tts.accent/rate 重建，
+    // 闭包捕获首次渲染的 play 会导致口音/语速切换不生效（陈旧默认值）。
+    const fn = (t: SpeakTarget) => { setActive(t); playRef.current(t, t.accent, t.rate); };
     listeners.add(fn);
     return () => { listeners.delete(fn); stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

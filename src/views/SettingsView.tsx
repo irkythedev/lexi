@@ -1,6 +1,6 @@
 // SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + 性别(女/男声) + 试听 + i18n
 import { useState } from 'react';
-import { Palette, Volume2, BookOpen, Sparkles, Upload, Check, Play } from 'lucide-react';
+import { Palette, Volume2, BookOpen, Sparkles, Upload, Check, Play, Loader2 } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented } from '../components/ui/primitives.tsx';
@@ -21,8 +21,14 @@ export default function SettingsView() {
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
+  const [previewState, setPreviewState] = useState<'idle' | 'loading'>('idle');
 
-  const preview = () => requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate);
+  const preview = () => {
+    setPreviewState('loading');
+    requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate);
+    // 试听约 3 秒，足够播放示例文本，超时后重置按钮状态
+    setTimeout(() => setPreviewState('idle'), 3000);
+  };
 
   return (
     <div className="mx-auto max-w-[var(--max-read)] space-y-2.5 px-[var(--pad-x)] py-4">
@@ -103,8 +109,8 @@ export default function SettingsView() {
           <div className="mt-0.5 flex justify-between text-[calc(10.5px*var(--type-scale))] text-[var(--color-text-3)]"><span>{t('speedRangeMin', locale)}</span><span>{t('speedRangeMax', locale)}</span></div>
         </div>
         {/* 试听当前口音 + 语速 */}
-        <button onClick={preview} className="press mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-accent)]">
-          <Play size={16} /> {t('previewVoice', locale)}
+        <button onClick={preview} disabled={previewState === 'loading'} className="press mt-1 flex w-full items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
+          {previewState === 'loading' ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />} {previewState === 'loading' ? t('synthesizing', locale) : t('previewVoice', locale)}
         </button>
       </Section>
 
