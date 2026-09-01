@@ -10,9 +10,11 @@ interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; }
 const listeners = new Set<(t: SpeakTarget) => void>();
 let current: SpeakTarget | null = null;
 
-export function requestSpeak(text: string, accent: 'us' | 'uk' = 'us', rate = 1.0): void {
+export function requestSpeak(text: string, accent?: 'us' | 'uk', rate?: number): void {
   if (!text) return;
-  current = { text, accent, rate };
+  // 默认取当前设置，避免任何调用点漏传时偏离用户配置。
+  const tts = useAppStore.getState().tts;
+  current = { text, accent: accent ?? tts.accent, rate: rate ?? tts.rate };
   const c = current;
   if (c) listeners.forEach((fn) => fn(c));
 }

@@ -155,7 +155,8 @@ export function useSpeak() {
       try {
         const parts = splitForTTS(text);
         const blobs: Blob[] = [];
-        const voice = getEdgeVoice(accent, useAppStore.getState().tts.gender);
+        const gender = useAppStore.getState().tts.gender;
+        const voice = getEdgeVoice(accent, gender);
         for (const part of parts) {
           const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
           const res = await fetch(url, { cache: 'no-store' });
@@ -176,8 +177,10 @@ export function useSpeak() {
     }
 
     // Web Speech fallback
+    const fallbackGender = useAppStore.getState().tts.gender;
     const handle = webSpeak(text, {
       accent: accent as Accent,
+      gender: fallbackGender,
       rate,
       onEnd: () => { optsRef.current.onWordChange?.(wordsRef.current.length - 1, wordsRef.current.length); onEnd?.(); setState('idle'); },
       onError: (err) => { setError(String(err)); setState('error'); },
