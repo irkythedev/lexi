@@ -4,6 +4,7 @@
 // pause via stop+offset rebuild, onended race guard.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { TTS_BASE, EDGE_VOICE } from './tts-config.ts';
+import { scfUrlWithToken } from './scf-token.ts';
 import { speak as webSpeak, type Accent, type SpeakHandle } from './tts.ts';
 
 export const edgeTtsEnabled = Boolean(TTS_BASE);
@@ -154,7 +155,8 @@ export function useSpeak() {
         const blobs: Blob[] = [];
         const voice = EDGE_VOICE[accent] ?? EDGE_VOICE.us;
         for (const part of parts) {
-          const res = await fetch(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`, { cache: 'no-store' });
+          const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
+          const res = await fetch(url, { cache: 'no-store' });
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           blobs.push(toMp3Blob(await res.arrayBuffer()));
         }
