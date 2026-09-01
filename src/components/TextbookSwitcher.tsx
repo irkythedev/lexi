@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { ChevronRight, Check, RefreshCw } from 'lucide-react';
 import { buildCatalog, getEdition, type RegionNode } from '../data/textbooks/index.ts';
 import { useAppStore } from '../stores/useAppStore.ts';
+import { useToastStore } from '../stores/toastStore.ts';
 import { Panel, Row, PrimaryButton, GhostButton } from './ui/primitives.tsx';
 import { getSetting, setSetting } from '../db/db.ts';
 
@@ -38,6 +39,7 @@ export default function TextbookSwitcher({ onSelected }: { onSelected?: () => vo
   const handleConfirm = () => {
     if (!canConfirm || !publisher) return;
     selectUnit({ editionId: publisher.editionId, grade: path.grade!, volume: path.volume!, unit: path.unit! });
+    useToastStore.getState().show('已切换教材', 'success', 'check');
     onSelected?.();
   };
 

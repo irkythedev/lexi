@@ -4,6 +4,7 @@ import { useAppStore, hydrateSettings, applyAccent } from './stores/useAppStore.
 import GlassNav from './components/GlassNav.tsx';
 import FloatingTTS from './components/FloatingTTS.tsx';
 import TextbookSwitcher from './components/TextbookSwitcher.tsx';
+import ToastHost from './components/ToastHost.tsx';
 import LearnView from './views/LearnView.tsx';
 import PracticeView from './views/PracticeView.tsx';
 import ReviewView from './views/ReviewView.tsx';
@@ -38,11 +39,11 @@ function Home() {
 }
 
 function Shell() {
-  const { tab, setTab, accent } = useAppStore();
+  const { tab, setTab, theme, accent } = useAppStore();
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', useAppStore.getState().theme === 'dark');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
     applyAccent(accent);
-  }, [tab, accent]);
+  }, [tab, theme, accent]);
 
   return (
     <div className="min-h-screen bg-[var(--color-ground)] text-[var(--color-text)]" style={{ paddingTop: '3.5rem', paddingBottom: '4.5rem' }}>
@@ -61,6 +62,7 @@ function Shell() {
         </Routes>
       </main>
       <FloatingTTS />
+      <ToastHost />
     </div>
   );
 }

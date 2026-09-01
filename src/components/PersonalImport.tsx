@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { X, Upload, FileText, Trash2 } from 'lucide-react';
 import { parseImport, generateImportId, type ImportResult, type ImportEntry } from '../lib/import.ts';
 import { savePersonalBatch, getPersonalBatches, deletePersonalBatch, type PersonalBatch } from '../db/db.ts';
+import { useToastStore } from '../stores/toastStore.ts';
 import { KIND_META } from '../lib/utils.ts';
 import { GhostButton, PrimaryButton } from './ui/primitives.tsx';
 
@@ -42,12 +43,14 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
     };
     await savePersonalBatch(batch);
     setBatches(await getPersonalBatches());
+    useToastStore.getState().show(`已保存 ${result.ok.length} 条到「${batch.name}」`, 'success', 'check');
     // Reset to step 0 for another import.
     setStep(0); setText(''); setResult(null);
   };
 
   const remove = async (id: string) => {
     await deletePersonalBatch(id);
+    useToastStore.getState().show('已删除该清单', 'info', 'alert');
     setBatches(await getPersonalBatches());
   };
 

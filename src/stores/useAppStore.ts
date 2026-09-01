@@ -57,6 +57,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   selectUnit: (sel) => {
     const { unit, studyItems } = recompute(sel);
     set({ selection: sel, unit, studyItems });
+    void setSetting('selection', sel);
   },
 
   refreshAiStatus: () => set({ aiReady: !!loadConfig() }),
@@ -87,13 +88,15 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 // Initialize persisted settings (async) once at startup.
 export async function hydrateSettings() {
-  const [theme, accent, locale, tts] = await Promise.all([
+  const [theme, accent, locale, tts, selection] = await Promise.all([
     getSetting<'light' | 'dark'>('theme', 'light'),
     getSetting<Accent>('accent', 'emerald'),
     getSetting<Locale>('locale', 'zh'),
     getSetting<{ accent: 'us' | 'uk'; rate: number }>('tts', { accent: 'us', rate: 1.0 }),
+    getSetting<AppState['selection']>('selection', null),
   ]);
-  useAppStore.setState({ theme, accent, locale, tts });
+  const { unit, studyItems } = selection ? recompute(selection) : { unit: null, studyItems: [] };
+  useAppStore.setState({ theme, accent, locale, tts, selection, unit, studyItems });
 }
 
 // Sync accent to <html data-accent> so CSS theme variants apply.

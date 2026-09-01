@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Moon, Sun, Volume2, BookOpen, Sparkles, Upload, Check } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
+import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented, GhostButton } from '../components/ui/primitives.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import PersonalImport from '../components/PersonalImport.tsx';
@@ -10,6 +11,7 @@ const ACCENT_COLORS: Record<Accent, string> = {
 };
 
 export default function SettingsView({ onClose }: { onClose: () => void }) {
+  const toast = useToastStore((s) => s.show);
   const { theme, toggleTheme, accent, setAccent, tts, setTts, aiReady, unit } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -24,7 +26,7 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
       <Section icon={theme === 'dark' ? Moon : Sun} title="外观">
         <div className="flex items-center justify-between py-1">
           <span className="text-[15px] text-[var(--color-text-2)]">深色模式</span>
-          <button onClick={toggleTheme} className="press relative h-7 w-12 rounded-full transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)' }}>
+          <button onClick={() => { toggleTheme(); toast(theme === 'dark' ? '已切换到浅色模式' : '已切换到深色模式', 'info', theme === 'dark' ? 'sun' : 'moon'); }} className="press relative h-7 w-12 rounded-full transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)' }}>
             <span className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }} />
           </button>
         </div>
@@ -32,7 +34,7 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
           <div className="mb-2 text-[13px] text-[var(--color-text-2)]">主题色</div>
           <div className="flex items-center gap-3">
             {(Object.keys(ACCENT_META) as Accent[]).map((a) => (
-              <button key={a} onClick={() => setAccent(a)} title={ACCENT_META[a].name}
+              <button key={a} onClick={() => { setAccent(a); toast(`已切换主题色：${ACCENT_META[a].name}`, 'success', 'check'); }} title={ACCENT_META[a].name}
                 className="press relative flex h-10 w-10 items-center justify-center rounded-full transition"
                 style={{ background: ACCENT_COLORS[a], boxShadow: accent === a ? `0 0 0 2px var(--color-ground), 0 0 0 4px ${ACCENT_COLORS[a]}` : 'none', opacity: accent === a ? 1 : 0.75 }}
                 aria-label={ACCENT_META[a].name}>
@@ -47,11 +49,11 @@ export default function SettingsView({ onClose }: { onClose: () => void }) {
       <Section icon={Volume2} title="朗读设置">
         <div className="py-1">
           <div className="mb-1.5 text-[13px] text-[var(--color-text-2)]">口音</div>
-          <Segmented options={[{ value: 'us', label: '美式 (en-US)' }, { value: 'uk', label: '英式 (en-GB)' }]} value={tts.accent} onChange={(v) => setTts({ accent: v as 'us' | 'uk' })} />
+          <Segmented options={[{ value: 'us', label: '美式 (en-US)' }, { value: 'uk', label: '英式 (en-GB)' }]} value={tts.accent} onChange={(v) => { setTts({ accent: v as 'us' | 'uk' }); toast(v === 'us' ? '已切换美式口音' : '已切换英式口音', 'info'); }} />
         </div>
         <div className="mt-2 py-1">
           <div className="mb-1.5 text-[13px] text-[var(--color-text-2)]">语速</div>
-          <Segmented options={[{ value: '0.8', label: '0.8x' }, { value: '1.0', label: '1.0x' }, { value: '1.2', label: '1.2x' }]} value={String(tts.rate)} onChange={(v) => setTts({ rate: parseFloat(v) })} />
+          <Segmented options={[{ value: '0.8', label: '0.8x' }, { value: '1.0', label: '1.0x' }, { value: '1.2', label: '1.2x' }]} value={String(tts.rate)} onChange={(v) => { setTts({ rate: parseFloat(v) }); toast(`语速已调整为 ${v}x`, 'info'); }} />
         </div>
       </Section>
 

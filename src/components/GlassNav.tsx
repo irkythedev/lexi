@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { BookOpen, Layers, Brain, AlertTriangle, Sparkles, Sun, Moon, Settings } from 'lucide-react';
 import { useAppStore, type Tab } from '../stores/useAppStore.ts';
+import { useToastStore } from '../stores/toastStore.ts';
 import { I18N } from '../lib/utils.ts';
 
 const TABS: { id: Tab; icon: typeof BookOpen; path: string }[] = [
@@ -43,7 +44,7 @@ export default function GlassNav() {
             <span className="hidden max-w-[200px] truncate text-[12px] text-[var(--color-text-2)] sm:inline">
               {unit ? `${unit.editionName} · ${unit.title}` : '未选择教材'}
             </span>
-            <button onClick={toggleTheme} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label="切换主题">
+            <button onClick={() => { toggleTheme(); useToastStore.getState().show(useAppStore.getState().theme === 'dark' ? '已切换到浅色模式' : '已切换到深色模式', 'info', useAppStore.getState().theme === 'dark' ? 'sun' : 'moon'); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label="切换主题">
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             <button onClick={() => navigate('/settings')} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label="设置">
