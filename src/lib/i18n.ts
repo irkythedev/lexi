@@ -565,7 +565,7 @@ Object.assign(en, {
   fontSizeMin: 'Small',
   fontSizeMax: 'Large',
   fontSizeStandard: 'Standard',
-  fontSizeTiers: 'Smaller,Standard,Slightly Large,Large,Very Large,Largest',
+  fontSizeTiers: 'Small,Std,Big,Large,XL,Max',
   ttsSettings: 'TTS Settings',
   accent: 'Accent',
   accentUs: 'US',
