@@ -7,6 +7,7 @@ import Flashcard from '../components/Flashcard.tsx';
 import CollocationConnector from '../components/CollocationConnector.tsx';
 import Sprint from '../components/Sprint.tsx';
 import { requestSpeak } from '../components/FloatingTTS.tsx';
+import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 
 const MODES = [
   { id: 'flash', title: '3D 闪卡', desc: '单词 / 短语 / 句式 正面识别、背面释义与考点', icon: Layers, grad: 'var(--grad-cta)' },
@@ -20,7 +21,7 @@ export default function LearnView() {
   const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'pattern'>('all');
   const [hideCn, setHideCn] = useState(false);
 
-  if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-10 text-center"><BookText size={42} className="mx-auto text-[var(--color-text-3)]" /><p className="mt-3 text-[15px] text-[var(--color-text-2)]">请先在底部「学习」页选择教材单元。</p></div>;
+  if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-6"><BookText size={42} className="mx-auto text-[var(--color-text-3)]" /><p className="mt-3 mb-4 text-center text-[15px] text-[var(--color-text-2)]">请先选择教材单元。</p><TextbookSwitcher onSelected={() => {}} /></div>;
   if (mode === 'flash') return <Flashcard items={studyItems} onExit={() => setMode(null)} />;
   if (mode === 'connector') return <CollocationConnector onExit={() => setMode(null)} />;
   if (mode === 'sprint') return <Sprint onExit={() => setMode(null)} />;
