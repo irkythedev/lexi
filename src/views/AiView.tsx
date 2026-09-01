@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Sparkles, Settings2, X, Send, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
+import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
 import type { AiConfig, AiProviderId, CorrectionResult, ExamPointResult } from '../types/index.ts';
 import {
@@ -83,8 +84,9 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
     if (!apiKey.trim() || !baseUrl.trim() || !model.trim()) { setError(t('aiSaveHint', locale)); return; }
     const c: AiConfig = { provider, baseUrl: normalizeBaseUrl(baseUrl), key: apiKey.trim(), model: model.trim(), agreed: true };
     saveConfig(c); onSaved(c);
+    useToastStore.getState().show(t('aiSavedToast', locale), 'success', 'check');
   };
-  const clearAll = () => { clearConfig(); setApiKey(''); setModel(''); setLiveModels([]); };
+  const clearAll = () => { clearConfig(); setApiKey(''); setModel(''); setLiveModels([]); useToastStore.getState().show(t('aiClearedToast', locale), 'info', 'alert'); };
 
   const currentProvider = AI_PROVIDERS.find((p) => p.id === provider);
 

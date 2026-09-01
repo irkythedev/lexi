@@ -5,23 +5,25 @@ import { useAppStore } from '../stores/useAppStore.ts';
 import { getErrors, markErrorResolved, clearResolvedErrors } from '../db/db.ts';
 import { KIND_META } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
+import { useToastStore } from '../stores/toastStore.ts';
 import { requestSpeak } from '../components/FloatingTTS.tsx';
 import { Panel, Row, Tag, GhostButton } from '../components/ui/primitives.tsx';
 
 export default function ErrorsView() {
   const { unit, studyItems, selection, tts, locale } = useAppStore();
+  const toast = useToastStore((s) => s.show);
   const [errors, setErrors] = useState<Awaited<ReturnType<typeof getErrors>>>([]);
   const load = async () => setErrors(await getErrors());
   useEffect(() => { load(); }, []);
 
   const unitErrors = errors.filter((e) => e.editionId === selection?.editionId);
-  const resolve = async (id: number) => { await markErrorResolved(id); load(); };
+  const resolve = async (id: number) => { await markErrorResolved(id); load(); toast(t('errorsResolvedToast', locale), 'success', 'check'); };
 
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">
       <div className="mb-3 flex items-end justify-between">
         <div><h2 className="text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('errorsTitle', locale)}</h2><p className="mt-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{unit ? `${unit.editionName} · ${unit.title}` : t('errorsFilterHint', locale)} · {t('errorsCount', locale, { count: unitErrors.length })}</p></div>
-        {unitErrors.length > 0 && <GhostButton onClick={async () => { await clearResolvedErrors(); load(); }}>{t('errorsClear', locale)}</GhostButton>}
+        {unitErrors.length > 0 && <GhostButton onClick={async () => { await clearResolvedErrors(); load(); toast(t('errorsClearedToast', locale), 'success', 'check'); }}>{t('errorsClear', locale)}</GhostButton>}
       </div>
 
       {unitErrors.length === 0 ? <Panel><div className="flex flex-col items-center p-10 text-center"><CheckCircle2 size={40} className="text-[var(--color-vocab)]" /><p className="mt-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('errorsEmptyUnit', locale)}</p><p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('errorsEmptyDesc', locale)}</p></div></Panel>
