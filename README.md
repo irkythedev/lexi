@@ -34,6 +34,7 @@
 - [项目结构](#项目结构)
 - [许可](#许可)
 - [免责条款](#免责条款)
+- [版权声明](#版权声明)
 
 ### 简介
 
@@ -113,6 +114,12 @@ src/
 - AI 生成内容仅供参考，请以学校教材与老师讲解为准。
 - 数据保存在您自己的设备上，请自行负责本机内容安全。
 
+### 版权声明
+
+- 本应用引用的教材内容（课文、词汇、短语、句式等）版权归**教材出版方及相关权利人**所有，仅供个人学习、非商业使用。
+- 应用代码本身采用 AGPL-3.0 许可；教材内容与代码是两套独立的法律关系。
+- 如相关权利人认为本应用的使用构成侵权，请联系作者删除相关内容。
+
 ---
 
 ## English
@@ -124,7 +131,8 @@ src/
 - [Usage](#usage)
 - [Project Structure](#project-structure-1)
 - [License](#license-1)
-- [Disclaimer](#disclaimer-1)
+- [Disclaimer](#disclaimer)
+- [Copyright Notice](#copyright-notice)
 
 ### Introduction
 
@@ -203,3 +211,9 @@ This project is open-sourced under the **GNU Affero General Public License v3 (A
 - Textbook vocabulary has been carefully proofread but is **not guaranteed to be error-free**; teaching should defer to authoritative textbooks.
 - AI-generated content is for reference only — defer to your textbook and teacher.
 - Data is stored on your own device; you are responsible for its safety.
+
+### Copyright Notice
+
+- The textbook content referenced by this app (reading passages, vocabulary, phrases, sentence patterns, etc.) is the property of the **textbook publisher and related rights holders**, provided for personal, non-commercial study only.
+- The application code is licensed under AGPL-3.0; textbook content and code are separate legal relationships.
+- If you believe any content infringes your rights, please contact the author for removal.

@@ -19,7 +19,7 @@ export const FOOTER = {
   githubUrl: 'https://github.com/irkythedev/lexi',
   licenseLabel: 'AGPL-3.0',
   licenseUrl: 'https://www.gnu.org/licenses/agpl-3.0.html',
-  disclaimer: '本应用仅供学习参考，数据来自教材与用户自主导入，AI 生成内容请以学校教材为准。',
+  disclaimer: '本应用为学习工具，所含教材内容（课文、词汇、短语等）版权归教材出版方及相关权利人所有，仅限个人学习、非商业使用。数据与 AI 生成内容仅供参考，请以学校教材和老师讲解为准。',
   disclaimerLabel: '免责声明',
   homepage: 'https://lexi.irky.dev/',
 };
