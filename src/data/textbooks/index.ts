@@ -41,7 +41,7 @@ export function findUnit(sel: { editionId: string; grade: number; volume: number
 export function flattenUnit(unit: Unit): StudyItem[] {
   const items: StudyItem[] = [];
   for (const v of unit.vocabularies) {
-    items.push({ id: v.id, kind: 'vocab', label: v.word, phonetic: v.phonetic, pos: v.pos, meaning: v.meaning, collocations: v.collocations, examTips: v.examTips });
+    items.push({ id: v.id, kind: 'vocab', label: v.word, phonetic: v.phonetic, pos: v.pos, meaning: v.meaning, collocations: v.collocations, examTips: v.examTips, exampleEn: v.exampleEn, exampleCn: v.exampleCn });
   }
   for (const p of unit.phrases) {
     items.push({ id: p.id, kind: 'phrase', label: p.phrase, meaning: p.meaning, fixedPatterns: p.fixedPatterns, exampleEn: p.exampleEn, exampleCn: p.exampleCn });

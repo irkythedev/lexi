@@ -12,6 +12,8 @@ export interface Vocabulary {
   meaning: string;
   collocations: string[];
   examTips: string;
+  exampleEn?: string;
+  exampleCn?: string;
 }
 
 export interface Phrase {
