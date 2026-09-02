@@ -120,13 +120,11 @@ export default function LearnView() {
         </div>
       </div>
 
-      <div className="mt-5 flex items-center justify-between">
-        <div className="flex gap-2">
-          <div className="seg">
-            {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
-              <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
-            ))}
-          </div>
+      <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+        <div className="seg">
+          {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
+            <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
+          ))}
         </div>
         <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} /> : <Eye size={15} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
       </div>
