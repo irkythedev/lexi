@@ -1,11 +1,16 @@
 // SessionView — fullscreen learning session driven by useSessionEngine.
 // Task chain per word: listen → recognize → recall → spell.
 // Word-by-word highlight during TTS playback (听步骤的随字符跳动).
-import { useCallback, useMemo, useState } from 'react';
+// Session state is snapshotted to a module-level cache on unmount, so
+// navigating away (e.g. to Settings) and back preserves progress.
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { useSessionEngine, type TaskResult } from '../lib/session-engine.ts';
+import {
+  useSessionEngine, type TaskResult,
+  getSessionSnapshot, saveSessionSnapshot, clearSessionSnapshot,
+} from '../lib/session-engine.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { KIND_META, shuffle } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
@@ -30,11 +35,59 @@ export default function SessionView() {
 
   const words = useMemo(() => studyItems, [studyItems]);
 
-  const { current: task, pos, total, stats, mark, skip, reset } = useSessionEngine({
+  // Snapshot key: tied to the unit so returning to the same unitId resumes
+  // the session; a different unitId starts fresh.
+  const snapshotKey = `session:${unitId}`;
+
+  const {
+    current: task, queue, pos, total, stats, mark, skip, reset, failedEntries,
+  } = useSessionEngine({
     items: words,
     editionId: selection?.editionId ?? '',
     onComplete: () => setReviewDone(true),
+    restoreKey: snapshotKey,
   });
+
+  // Track latest state for the unmount snapshot. Refs are read at cleanup
+  // time, so the snapshot always captures the newest values even though the
+  // effect closure only runs once on mount.
+  const queueRef = useRef(queue);
+  const posRef = useRef(pos);
+  const statsRef = useRef(stats);
+  const failedRef = useRef(failedEntries);
+  const reviewDoneRef = useRef(reviewDone);
+  useEffect(() => { queueRef.current = queue; });
+  useEffect(() => { posRef.current = pos; });
+  useEffect(() => { statsRef.current = stats; });
+  useEffect(() => { failedRef.current = failedEntries; });
+  useEffect(() => { reviewDoneRef.current = reviewDone; }, [reviewDone]);
+
+  // Restore reviewDone (completion screen) when a finished session is reopened.
+  useEffect(() => {
+    const snap = getSessionSnapshot(snapshotKey);
+    if (snap?.reviewDone) setReviewDone(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Save snapshot on unmount (route navigation away).
+  useEffect(() => {
+    return () => {
+      saveSessionSnapshot(snapshotKey, {
+        queue: queueRef.current,
+        pos: posRef.current,
+        stats: statsRef.current,
+        failedEntries: [...failedRef.current.entries()],
+        reviewDone: reviewDoneRef.current,
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleReset = useCallback(() => {
+    clearSessionSnapshot(snapshotKey);
+    setReviewDone(false);
+    reset();
+  }, [snapshotKey, reset]);
 
   // Build recognition options (correct + 3 distractors).
   const recognizeOptions = useMemo(() => {
@@ -42,8 +95,6 @@ export default function SessionView() {
     const correct = task.item.meaning;
     const pool = words.filter((w) => w.id !== task.item.id && w.meaning && w.meaning !== correct);
     const distractors = [...new Set(shuffle(pool).map((w) => w.meaning))].slice(0, 3);
-    // Pad with distinctive placeholders when the pool is small; dedupe first
-    // so identical fillers never appear twice in one row.
     const fillers = shuffle([t('recogDistractor1', locale), t('recogDistractor2', locale), t('recogDistractor3', locale), t('recogDistractor4', locale)]);
     let fi = 0;
     while (distractors.length < 3) distractors.push(fillers[fi++ % fillers.length]);
@@ -82,7 +133,7 @@ export default function SessionView() {
         <p className="mt-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sessionStats', locale, { total: stats.total, correct: stats.correct, wrong: stats.wrong })}</p>
         <div className="mt-6 flex gap-3">
           <button onClick={() => navigate('/')} className="press rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium">{t('backToHome', locale)}</button>
-          <button onClick={() => { setReviewDone(false); reset(); }} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>
+          <button onClick={handleReset} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>
             <RotateCcw size={16} /> {t('anotherRound', locale)}
           </button>
         </div>

@@ -1,6 +1,7 @@
 // SessionEngine — unified learning session state machine.
 // Queue builds per-word task chains (listen → recognize → recall → spell),
 // failure re-queue logic, progress persistence to IndexedDB.
+// Module-level snapshot cache: survives SPA route navigation (unmount → remount).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { StudyItem } from '../types/index.ts';
 import { recordReview, addError } from '../db/db.ts';
@@ -12,7 +13,7 @@ export interface Task {
   id: string;
   type: TaskType;
   item: StudyItem;
-  index: number; // position in the original queue
+  index: number;
 }
 
 export interface SessionStats {
@@ -23,9 +24,31 @@ export interface SessionStats {
   skipped: number;
 }
 
+export interface SessionSnapshot {
+  queue: Task[];
+  pos: number;
+  stats: SessionStats;
+  failedEntries: [string, number][];
+  reviewDone: boolean;
+}
+
 const TASK_CHAIN: TaskType[] = ['listen', 'recognize', 'recall', 'spell'];
 
-// Build the full task queue: each item gets the chain once.
+// Module-level snapshot cache — survives SPA navigation (component unmount).
+const _snapshots = new Map<string, SessionSnapshot>();
+
+export function saveSessionSnapshot(key: string, snap: SessionSnapshot): void {
+  _snapshots.set(key, snap);
+}
+
+export function getSessionSnapshot(key: string): SessionSnapshot | undefined {
+  return _snapshots.get(key);
+}
+
+export function clearSessionSnapshot(key: string): void {
+  _snapshots.delete(key);
+}
+
 export function buildQueue(items: StudyItem[], includeSpell = true): Task[] {
   const chain = includeSpell ? TASK_CHAIN : TASK_CHAIN.slice(0, 3);
   const tasks: Task[] = [];
@@ -37,7 +60,6 @@ export function buildQueue(items: StudyItem[], includeSpell = true): Task[] {
   return tasks;
 }
 
-// q mapping: correct=5, hesitant=4, wrong=2, skip=1 (SM-2: <3 = fail)
 export function resultToQ(result: TaskResult): number {
   switch (result) {
     case 'correct': return 5;
@@ -52,12 +74,23 @@ export function useSessionEngine(opts: {
   editionId: string;
   includeSpell?: boolean;
   onComplete?: (stats: SessionStats) => void;
+  restoreKey?: string;
 }) {
-  const { items, editionId, includeSpell = true, onComplete } = opts;
-  const [queue, setQueue] = useState<Task[]>(() => buildQueue(items, includeSpell));
-  const [pos, setPos] = useState(0);
-  const [stats, setStats] = useState<SessionStats>(() => ({ total: buildQueue(items, includeSpell).length, done: 0, correct: 0, wrong: 0, skipped: 0 }));
-  const failedRef = useRef<Map<string, number>>(new Map());
+  const { items, editionId, includeSpell = true, onComplete, restoreKey } = opts;
+
+  // Restore from module-level cache if present (SPA navigation round-trip).
+  const saved = restoreKey ? getSessionSnapshot(restoreKey) : undefined;
+
+  const [queue, setQueue] = useState<Task[]>(() => {
+    if (saved) return saved.queue;
+    return buildQueue(items, includeSpell);
+  });
+  const [pos, setPos] = useState(() => saved?.pos ?? 0);
+  const [stats, setStats] = useState<SessionStats>(() => {
+    if (saved) return saved.stats;
+    return { total: buildQueue(items, includeSpell).length, done: 0, correct: 0, wrong: 0, skipped: 0 };
+  });
+  const failedRef = useRef<Map<string, number>>(saved ? new Map(saved.failedEntries) : new Map());
   const statsRef = useRef(stats);
   statsRef.current = stats;
 
@@ -70,10 +103,8 @@ export function useSessionEngine(opts: {
     const q = resultToQ(result);
     const key = `${editionId}:${task.item.id}`;
 
-    // Persist SRS review immediately (per-item).
     await recordReview({ key, editionId, itemId: task.item.id, kind: task.item.kind, q });
 
-    // Error notebook for wrong/skip results.
     if (result === 'wrong' || result === 'skip') {
       await addError({
         key, editionId, itemId: task.item.id, kind: task.item.kind,
@@ -90,7 +121,6 @@ export function useSessionEngine(opts: {
       skipped: s.skipped + (result === 'skip' ? 1 : 0),
     }));
 
-    // Failure re-queue: fail×2 → insert listen replay before next task.
     const fails = (failedRef.current.get(task.item.id) ?? 0) + (result === 'wrong' ? 1 : 0);
     failedRef.current.set(task.item.id, fails);
     if (fails === 2 && task.type !== 'listen') {
@@ -101,7 +131,6 @@ export function useSessionEngine(opts: {
     setPos((p) => p + 1);
   }, [queue, pos, editionId]);
 
-  // Completion detection.
   useEffect(() => {
     if (pos >= queue.length && queue.length > 0) {
       onComplete?.(statsRef.current);
@@ -119,5 +148,8 @@ export function useSessionEngine(opts: {
     setStats({ total: fresh.length, done: 0, correct: 0, wrong: 0, skipped: 0 });
   }, [items, includeSpell]);
 
-  return { current, pos, total: queue.length, stats, mark, skip, reset };
+  return {
+    current, queue, pos, total: queue.length, stats, mark, skip, reset,
+    failedEntries: failedRef.current,
+  };
 }
