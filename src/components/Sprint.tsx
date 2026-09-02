@@ -141,7 +141,7 @@ function StepPractice({ items, selection, onNext, onPrev }: { items: StudyItem[]
             <p className="text-[calc(15px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{q.masked}</p>
             {q.item.exampleCn && <p className="mt-0.5 text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{q.item.exampleCn}</p>}
             <input value={answers[q.item.id] || ''} disabled={checked} onChange={(e) => setAnswers((a) => ({ ...a, [q.item.id]: e.target.value }))} placeholder="填入原词 / 短语"
-              className={`mt-2 w-full rounded-[12px] border px-4 py-2 text-[calc(15px*var(--type-scale))] outline-none ${checked ? (answers[q.item.id] || '').trim().toLowerCase() === q.answer.toLowerCase() ? 'border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)]' : 'border-[var(--color-trap-border)] bg-[var(--color-trap-soft)]' : 'border-[var(--color-hairline)] bg-[var(--color-surface-2)] focus:border-[var(--color-accent)]'}`} />
+              className={`mt-2 w-full rounded-[12px] border px-4 py-2 text-[calc(15px*var(--type-scale))] outline-none ${checked ? (answers[q.item.id] || '').trim().toLowerCase() === q.answer.toLowerCase() ? 'border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)]' : 'border-[var(--color-trap-border)] bg-[var(--color-trap-soft)]' : 'border-[var(--color-input-border)] bg-[var(--color-input-bg)] focus:border-[var(--color-accent)]'}`} />
             {checked && (answers[q.item.id] || '').trim().toLowerCase() !== q.answer.toLowerCase() && <p className="mt-1 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap-deep)]">正确答案：{q.answer}</p>}
           </div>
         ))}
@@ -188,7 +188,7 @@ function StepAI({ items, unit, onPrev }: { items: StudyItem[]; unit: Unit; onPre
         ))}
       </div>
       <textarea value={sentence} onChange={(e) => setSentence(e.target.value)} rows={3} placeholder={`用「${target?.label}」写一句英语，例如：${target?.exampleEn ?? ''}`}
-        className="mt-3 w-full resize-none rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+        className="mt-3 w-full resize-none rounded-[var(--radius-card)] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
       <div className="mt-3 flex items-center justify-between">
         <button onClick={onPrev} className="press rounded-full border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))]">上一步</button>
         <button onClick={run} disabled={loading} className="press flex items-center gap-1.5 rounded-full bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-50">{loading ? '批改中…' : <>批改 <Send size={15} /></>}</button>

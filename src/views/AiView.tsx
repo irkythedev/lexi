@@ -100,12 +100,12 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiApiKeyLabel', locale)}</div>
       <div className="relative mt-2">
-        <input type={showKey ? 'text' : 'password'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="sk-..." className="w-full rounded-[12px] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] py-2.5 pl-4 pr-11 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+        <input type={showKey ? 'text' : 'password'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="sk-..." className="w-full rounded-[12px] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] py-2.5 pl-4 pr-11 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
         <button onClick={() => setShowKey((v) => !v)} className="press absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[var(--color-text-2)]" aria-label={t('aiToggleKey', locale)}>{showKey ? <EyeOff size={16} /> : <Eye size={16} />}</button>
       </div>
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiBaseUrlLabel', locale)}</div>
-      <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={t('aiBaseUrlPlaceholder', locale)} className="mt-2 w-full rounded-[12px] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+      <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={t('aiBaseUrlPlaceholder', locale)} className="mt-2 w-full rounded-[12px] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiModelLabel', locale)}</div>
       {liveModels.length > 0 ? (
@@ -113,7 +113,7 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
           {liveModels.map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
       ) : (
-        <input value={model} onChange={(e) => setModel(e.target.value)} placeholder={t('aiModelPlaceholder', locale)} className="mt-2 w-full rounded-[12px] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+        <input value={model} onChange={(e) => setModel(e.target.value)} placeholder={t('aiModelPlaceholder', locale)} className="mt-2 w-full rounded-[12px] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
       )}
       <p className="mt-1 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiTestHint', locale)}</p>
 
@@ -201,7 +201,7 @@ function ChatView({ cfg }: { cfg: AiConfig }) {
       <div className="border-t border-[var(--color-hairline)] p-3">
         {error && <p className="mb-2 text-[calc(12px*var(--type-scale))] text-[var(--color-trap)]">{error}</p>}
         <div className="flex items-end gap-2">
-          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder={cap === 'roleplay' ? t('aiRoleplayInput', locale) : t('aiInputPlaceholder', locale)} className="flex-1 resize-none rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+          <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} rows={1} placeholder={cap === 'roleplay' ? t('aiRoleplayInput', locale) : t('aiInputPlaceholder', locale)} className="flex-1 resize-none rounded-[var(--radius-card)] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
           {loading ? <button onClick={stop} className="press flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-trap)] text-white"><X size={18} /></button>
             : <button onClick={() => send()} className="press flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-accent)] text-white"><Send size={18} /></button>}
         </div>

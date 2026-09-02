@@ -117,7 +117,7 @@ export default function TextbookSwitcher({ onSelected }: { onSelected?: () => vo
           <p className="mt-1 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">粘贴教材 JSON 链接，可扩展更多单元。</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <input value={remoteUrl} onChange={(e) => setRemoteUrl(e.target.value)} placeholder="https://example.com/edition.json"
-              className="flex-1 rounded-[12px] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] px-4 py-2 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+              className="flex-1 rounded-[12px] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-2 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
             <GhostButton onClick={handleRemoteLoad}>加载</GhostButton>
           </div>
           {remoteMsg && <p className="mt-2 text-[calc(12px*var(--type-scale))] text-[var(--color-vocab)]">{remoteMsg}</p>}

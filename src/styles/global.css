@@ -16,6 +16,8 @@
   --color-text-3: #86868b;
   --color-text-4: #aeaeb2;
   --color-hairline: rgba(0, 0, 0, 0.08);
+  --color-input-border: #c9c9ce;
+  --color-input-bg: #ffffff;
   --color-track: #e8e8ed;
 
   /* ── Semantic accents (education) ── */
@@ -91,6 +93,8 @@
   --color-text-2: #9a9c96;
   --color-text-3: #6f716c;
   --color-hairline: rgba(255, 255, 255, 0.1);
+  --color-input-border: #3d3f3a;
+  --color-input-bg: #222421;
   --color-track: #2a2c28;
   /* semantic text lightened for dark backgrounds */
   --color-vocab-deep: #34d399;
@@ -142,6 +146,13 @@ html {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* Inputs already have focus:border-accent as their focus indicator;
+   suppress the global :focus-visible outline to avoid double accent ring. */
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
 }
 
 /* ── Liquid Glass (nav / overlays / controls only) ── */

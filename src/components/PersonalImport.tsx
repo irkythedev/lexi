@@ -78,7 +78,7 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
               onChange={(e) => setText(e.target.value)}
               placeholder={PLACEHOLDER}
               rows={10}
-              className="w-full resize-y rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-ground)] px-4 py-3 text-[calc(13px*var(--type-scale))] leading-relaxed outline-none focus:border-[var(--color-accent)]"
+              className="w-full resize-y rounded-2xl border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-3 text-[calc(13px*var(--type-scale))] leading-relaxed outline-none focus:border-[var(--color-accent)]"
             />
             <div className="flex items-center justify-between">
               <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">支持 TSV（word|meaning|phonetic|example）与 JSON</span>
@@ -138,7 +138,7 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
               onChange={(e) => setName(e.target.value)}
               placeholder="清单名称（可选）"
               maxLength={40}
-              className="w-full rounded-xl border border-[var(--color-hairline)] bg-[var(--color-ground)] px-4 py-2.5 text-[calc(14px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]"
+              className="w-full rounded-xl border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(14px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]"
             />
             <div className="flex justify-end gap-2">
               <GhostButton onClick={() => setStep(0)}>返回修改</GhostButton>

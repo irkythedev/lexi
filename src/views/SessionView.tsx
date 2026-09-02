@@ -228,7 +228,7 @@ export default function SessionView() {
               <input autoFocus value={spellInput} onChange={(e) => setSpellInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') checkSpell(); }}
                 placeholder={t('spellInput', locale)}
-                className="w-full rounded-2xl border border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 py-3.5 text-center text-[calc(18px*var(--type-scale))] font-medium outline-none focus:border-[var(--color-accent)]" />
+                className="w-full rounded-2xl border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-3.5 text-center text-[calc(18px*var(--type-scale))] font-medium outline-none focus:border-[var(--color-accent)]" />
               <button onClick={checkSpell} className="press mt-3 w-full rounded-full px-6 py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('spellSubmit', locale)}</button>
             </div>
           </div>
