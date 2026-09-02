@@ -96,7 +96,10 @@ export const useAppStore = create<AppState>((set, get) => ({
 }));
 
 // Initialize persisted settings (async) once at startup.
+let _hydrated = false;
 export async function hydrateSettings() {
+  if (_hydrated) return;
+  _hydrated = true;
   const [theme, accent, locale, tts, selection, fontScale] = await Promise.all([
     getSetting<'light' | 'dark'>('theme', 'light'),
     getSetting<Accent>('accent', 'emerald'),

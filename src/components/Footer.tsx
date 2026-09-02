@@ -88,7 +88,7 @@ export default function Footer() {
           </button>
         </div>
         {showDisclaimer && <span className="max-w-xs text-[var(--color-text-3)]">{t('footerDisclaimer', locale)}</span>}
-        {showShare && <ShareDialog url={FOOTER.homepage} onClose={() => setShowShare(false)} />}
+        {showShare && <ShareDialog url={typeof window !== 'undefined' ? window.location.href : FOOTER.homepage} onClose={() => setShowShare(false)} />}
       </div>
     </footer>
   );

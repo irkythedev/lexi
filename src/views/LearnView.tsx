@@ -23,6 +23,15 @@ export default function LearnView() {
   const [hideCn, setHideCn] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
 
+  const groups = [
+    { kind: 'vocab', items: studyItems.filter((i) => i.kind === 'vocab') },
+    { kind: 'phrase', items: studyItems.filter((i) => i.kind === 'phrase') },
+    { kind: 'pattern', items: studyItems.filter((i) => i.kind === 'pattern') },
+  ];
+  const visible = filter === 'all' ? studyItems : studyItems.filter((i) => i.kind === filter);
+  const pager = usePagination(visible, 20);
+  const pagedItems = pager.slice;
+
   const MODES = [
     { id: 'flash', title: t('flashcard', locale), desc: t('flashcardDesc', locale), icon: Layers, grad: 'var(--grad-cta)' },
     { id: 'connector', title: t('connector', locale), desc: t('connectorDesc', locale), icon: Puzzle, grad: 'var(--grad-cta)' },
@@ -34,15 +43,6 @@ export default function LearnView() {
   if (mode === 'connector') return <CollocationConnector onExit={() => setMode(null)} />;
   if (mode === 'sprint') return <Sprint onExit={() => setMode(null)} />;
   if (mode === 'reading' && unit) return <ReadingView unit={unit.unit} onExit={() => setMode(null)} />;
-
-  const groups = [
-    { kind: 'vocab', items: studyItems.filter((i) => i.kind === 'vocab') },
-    { kind: 'phrase', items: studyItems.filter((i) => i.kind === 'phrase') },
-    { kind: 'pattern', items: studyItems.filter((i) => i.kind === 'pattern') },
-  ];
-  const visible = filter === 'all' ? studyItems : studyItems.filter((i) => i.kind === filter);
-  const pager = usePagination(visible, 20);
-  const pagedItems = pager.slice;
 
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">

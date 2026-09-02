@@ -5,6 +5,7 @@ import GlassNav from './components/GlassNav.tsx';
 import FloatingTTS from './components/FloatingTTS.tsx';
 import ToastHost from './components/ToastHost.tsx';
 import Footer from './components/Footer.tsx';
+import ErrorBoundary from './components/ErrorBoundary.tsx';
 import LearnView from './views/LearnView.tsx';
 import PracticeView from './views/PracticeView.tsx';
 import ReviewView from './views/ReviewView.tsx';
@@ -50,7 +51,8 @@ function Shell() {
     <div className="min-h-dvh bg-[var(--color-ground)] text-[var(--color-text)] pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0" style={{ paddingTop: '3.5rem' }}>
       <GlassNav />
       <main>
-        <Routes>
+        <ErrorBoundary>
+          <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/session/:unitId" element={<SessionView />} />
           <Route path="/learn" element={<LearnView />} />
@@ -61,6 +63,7 @@ function Shell() {
           <Route path="/settings" element={<SettingsView />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </ErrorBoundary>
       </main>
       <Footer />
       <FloatingTTS />
