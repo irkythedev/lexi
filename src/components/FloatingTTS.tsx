@@ -43,22 +43,31 @@ export default function FloatingTTS() {
   const [loop, setLoop] = useState(false);
   const { speak, stop, resume, state } = useSpeak();
   const playRef = useRef<(target: SpeakTarget, accent: 'us' | 'uk', rate: number, onEnd?: () => void) => void>(() => {});
+  const loopTimerRef = useRef<number | null>(null);
+
+  const clearLoopTimer = useCallback(() => {
+    if (loopTimerRef.current !== null) { clearTimeout(loopTimerRef.current); loopTimerRef.current = null; }
+  }, []);
 
   const play = useCallback((target: SpeakTarget | null, accent: 'us' | 'uk' = tts.accent, rate: number = tts.rate, onEnd?: () => void) => {
     if (!target?.text) return;
+    clearLoopTimer();
     stop();
     const opts: SpeakOptions = {
       accent,
       rate,
       onEnd: () => {
-        if (loopRef.current) setTimeout(() => playRef.current(target, accent, rate, onEnd), 600);
-        else { setPlaying(false); onEnd?.(); }
+        if (loopRef.current) {
+          loopTimerRef.current = window.setTimeout(() => playRef.current(target, accent, rate, onEnd), 600);
+        } else {
+          setPlaying(false); onEnd?.();
+        }
       },
     };
     playRef.current = play;
     void speak(target.text, opts);
     setPlaying(true);
-  }, [speak, stop, tts.accent, tts.rate]);
+  }, [speak, stop, clearLoopTimer, tts.accent, tts.rate]);
   const loopRef = useRef(loop);
   loopRef.current = loop;
 
@@ -83,7 +92,7 @@ export default function FloatingTTS() {
   }, []);
 
   const toggle = () => {
-    if (state === 'playing' || playing) { stop(); setPlaying(false); }
+    if (state === 'playing' || playing) { clearLoopTimer(); stop(); setPlaying(false); }
     else if (state === 'paused') { resume(); setPlaying(true); }
     else play(active);
   };
@@ -95,10 +104,10 @@ export default function FloatingTTS() {
       <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
         {state === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : playing ? <Pause size={16} /> : <Play size={16} />}
       </button>
-      <button onClick={() => setLoop((v) => !v)} className="press flex h-11 w-11 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
+      <button onClick={() => { clearLoopTimer(); setLoop((v) => !v); }} className="press flex h-11 w-11 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
         <Repeat size={15} />
       </button>
-      <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); play(active, a, tts.rate); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('switchAccent', locale)} title={tts.accent === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
+      <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); if (state === 'playing' || playing) play(active, a, tts.rate); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('switchAccent', locale)} title={tts.accent === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
         <Globe size={15} />
       </button>
       <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); if (playing) play(active, tts.accent, next); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('speed', locale)} title={t('speedTitle', locale, { speed: tts.rate })}>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Puzzle, Zap, ChevronDown, Volume2, Eye, EyeOff, BookText, ArrowRight } from 'lucide-react';
+import { Layers, Puzzle, Zap, ChevronDown, Volume2, Eye, EyeOff, BookText, ArrowRight, BookOpen } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -8,13 +8,15 @@ import { Panel, Row, Tag } from '../components/ui/primitives.tsx';
 import Flashcard from '../components/Flashcard.tsx';
 import CollocationConnector from '../components/CollocationConnector.tsx';
 import Sprint from '../components/Sprint.tsx';
+import ReadingView from './ReadingView.tsx';
 import { requestSpeak } from '../components/FloatingTTS.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
+import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 
 export default function LearnView() {
   const { unit, studyItems, tts, locale } = useAppStore();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<null | 'flash' | 'connector' | 'sprint'>(null);
+  const [mode, setMode] = useState<null | 'flash' | 'connector' | 'sprint' | 'reading'>(null);
   const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'pattern'>('all');
   const [hideCn, setHideCn] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
@@ -29,6 +31,7 @@ export default function LearnView() {
   if (mode === 'flash') return <Flashcard items={studyItems} onExit={() => setMode(null)} />;
   if (mode === 'connector') return <CollocationConnector onExit={() => setMode(null)} />;
   if (mode === 'sprint') return <Sprint onExit={() => setMode(null)} />;
+  if (mode === 'reading' && unit) return <ReadingView unit={unit.unit} onExit={() => setMode(null)} />;
 
   const groups = [
     { kind: 'vocab', items: studyItems.filter((i) => i.kind === 'vocab') },
@@ -55,6 +58,24 @@ export default function LearnView() {
           </button>
         </div>
       </div>
+
+      {/* 课文朗读卡片 */}
+      {(() => {
+        const reading = UNIT_READINGS.find((r) => r.unit === unit.unit);
+        if (!reading) return null;
+        return (
+          <div className="mt-4 overflow-hidden rounded-[var(--radius-hero)] border border-[var(--color-hairline)]">
+            <div className="flex items-center gap-3 p-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-white" style={{ background: 'var(--grad-cta)' }}><BookOpen size={20} /></span>
+              <div className="min-w-0 flex-1">
+                <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('reading', locale)}</span>
+                <span className="mt-0.5 block truncate text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
+              </div>
+              <button onClick={() => setMode('reading')} className="press flex items-center gap-1 rounded-full bg-[var(--color-accent)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('enter', locale)} <ArrowRight size={14} /></button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 练习入口：合并为一个可展开卡片 */}
       <div className="mt-4 overflow-hidden rounded-[var(--radius-hero)] border border-[var(--color-hairline)]">
