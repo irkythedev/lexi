@@ -41,10 +41,9 @@ export function clearConfig(): void {
 
 export function normalizeBaseUrl(url: string): string {
   if (!url) return '';
-  let u = url.trim().replace(/\/+$/, '');
-  u = u.replace(/\/chat\/completions$/i, '');
-  u = u.replace(/\/v1$/i, '') || u;
-  return u;
+  const trimmed = url.trim().split('?')[0].replace(/\/+$/, '').replace(/\/chat\/completions$/i, '');
+  if (!/^https?:\/\//i.test(trimmed)) return '';
+  return trimmed;
 }
 
 export function isNetworkError(msg?: string): boolean {
