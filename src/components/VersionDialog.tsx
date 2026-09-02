@@ -7,7 +7,7 @@ import { CHANGELOG, APP_VERSION } from '../lib/changelog.ts';
 export default function VersionDialog({ onClose }: { onClose: () => void }) {
   const locale = useAppStore((s) => s.locale);
   return (
-    <div className="fixed top-16 right-4 left-4 z-[80] max-h-[70vh] overflow-hidden rounded-[var(--radius-hero)] border border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)] sm:left-auto sm:w-[calc(100vw-2rem)] sm:max-w-sm" role="dialog" aria-modal="true" aria-label={t('changelogTitle', locale)}>
+    <div className="fixed top-16 right-4 left-4 z-[80] max-h-[70vh] overflow-hidden rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)] sm:left-auto sm:w-[calc(100vw-2rem)] sm:max-w-sm" role="dialog" aria-modal="true" aria-label={t('changelogTitle', locale)}>
       <div className="flex items-center justify-between border-b border-[var(--color-hairline)] px-4 py-3">
         <h2 className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-bold tracking-[-0.01em] text-[var(--color-text)]">
           <Info size={16} style={{ color: 'var(--color-accent)' }} />

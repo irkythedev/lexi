@@ -30,7 +30,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <button onClick={() => this.setState({ error: null })} className="press mt-6 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">
             重试
           </button>
-          <button onClick={() => window.location.href = '/'} className="press mt-3 ml-3 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium">
+          <button onClick={() => window.location.href = '/'} className="press mt-3 ml-3 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium">
             回到首页
           </button>
         </div>

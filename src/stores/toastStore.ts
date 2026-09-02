@@ -24,7 +24,8 @@ export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
   show: (msg, type = 'info', icon) => {
     const id = ++seq;
-    set((s) => ({ toasts: [...s.toasts.slice(-2), { id, msg, type, icon }] }));
+    // 同类型 toast 替换：切主题/字号/语速连续滑动时只留最新一条，避免叠罗汉
+    set((s) => ({ toasts: [...s.toasts.filter((t) => t.type !== type), { id, msg, type, icon }] }));
     setTimeout(() => {
       set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
     }, DURATION);

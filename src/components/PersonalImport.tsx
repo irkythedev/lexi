@@ -91,7 +91,7 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
                   {batches.map((b) => {
                     const c = countByKind(b.entries);
                     return (
-                      <div key={b.id} className="flex items-center justify-between rounded-xl border border-[var(--color-hairline)] px-3 py-2">
+                      <div key={b.id} className="flex items-center justify-between rounded-xl border-2 border-[var(--color-hairline)] px-3 py-2">
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-medium">
                             <span className="truncate">{b.name}</span>
@@ -117,7 +117,7 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
               <span className="rounded-[var(--radius-sm)] px-3 py-1" style={{ background: 'var(--color-vocab-soft)', color: 'var(--color-vocab)' }}>可导入 {result.ok.length}</span>
               <span className="rounded-[var(--radius-sm)] px-3 py-1" style={{ background: 'var(--color-trap-soft)', color: 'var(--color-trap)' }}>待修正 {result.errors.length}</span>
             </div>
-            <div className="max-h-48 overflow-y-auto rounded-2xl border border-[var(--color-hairline)]">
+            <div className="max-h-48 overflow-y-auto rounded-2xl border-2 border-[var(--color-hairline)]">
               {result.ok.map((e, i) => (
                 <div key={i} className="flex items-center gap-2 border-b border-[var(--color-hairline)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] last:border-b-0">
                   <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[calc(10px*var(--type-scale))] font-bold" style={{ background: KIND_META[e.type].soft, color: KIND_META[e.type].text }}>{KIND_META[e.type].label.zh.slice(0, 1)}</span>

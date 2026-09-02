@@ -78,7 +78,7 @@ function StudyCardView({ card, accent, rate, highlight }: { card: StudyCard; acc
       {card.example.en && (
         <div>
           <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardExample', locale)}</div>
-          <div className="mt-1 flex items-start gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">
+          <div className="mt-1 flex items-start gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">
             <button
               onClick={() => { if (active) stop(); else speak(card.example.en.trim(), { accent, rate, lang: 'en' }); }}
               className={`press mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] ${active ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}

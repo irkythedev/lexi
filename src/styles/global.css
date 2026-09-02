@@ -209,9 +209,9 @@ textarea:focus-visible {
 .flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .flip-back { transform: rotateY(180deg); }
 
-.seg { display: inline-flex; background: var(--color-track); border-radius: var(--radius-md); padding: 3px; gap: 2px; }
-.seg button { border: none; cursor: pointer; font-size: 13px; font-weight: 500; padding: 7px 15px; min-height: 36px; border-radius: var(--radius-md); background: transparent; color: var(--color-text-2); transition: all 0.25s var(--ease-out-quart); }
-.seg button.active { background: var(--color-surface); color: var(--color-text); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
+.seg { display: inline-flex; background: var(--color-track); border: 2px solid var(--color-hairline); border-radius: var(--radius-md); padding: 3px; gap: 2px; }
+.seg button { border: 2px solid transparent; cursor: pointer; font-size: 13px; font-weight: 500; padding: 7px 15px; min-height: 36px; border-radius: var(--radius-md); background: transparent; color: var(--color-text-2); transition: all 0.25s var(--ease-out-quart); }
+.seg button.active { background: var(--color-surface); color: var(--color-text); font-weight: 600; border: 2px solid var(--color-hairline); box-shadow: 1px 1px 0 color-mix(in srgb, var(--color-hairline) 60%, transparent); }
 
 .panel { background: var(--color-surface); border-radius: var(--radius-panel); border: 2px solid var(--color-hairline); box-shadow: var(--shadow-panel); overflow: hidden; }
 .row { display: block; padding: 16px clamp(17px, 3vw, 24px); transition: background 0.15s; }
@@ -254,8 +254,8 @@ input[type='range'].thumb-rect::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* 字号档位滑块：低矮矩形滑块（避免像音量推子） */
-input[type='range'].thumb-tick {
+/* 字号/语速统一滑块：圆拇指白底 + 2px 墨线（同一套零件） */
+input[type='range'].thumb-round {
   -webkit-appearance: none;
   appearance: none;
   height: 6px;
@@ -263,24 +263,31 @@ input[type='range'].thumb-tick {
   background: var(--color-track);
   outline: none;
 }
-input[type='range'].thumb-tick::-webkit-slider-thumb {
+input[type='range'].thumb-round::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 10px;
-  height: 14px;
-  border-radius: 3px;
-  background: var(--color-accent);
-  border: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-hairline);
+  box-shadow: 1px 1px 0 color-mix(in srgb, var(--color-hairline) 60%, transparent);
   cursor: pointer;
 }
-input[type='range'].thumb-tick::-moz-range-thumb {
-  width: 10px;
-  height: 14px;
-  border-radius: 3px;
-  background: var(--color-accent);
-  border: none;
+input[type='range'].thumb-round::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-hairline);
+  box-shadow: 1px 1px 0 color-mix(in srgb, var(--color-hairline) 60%, transparent);
   cursor: pointer;
 }
+
+/* 旧矩形滑块类（不再用于设置页，保留以防外部引用） */
+input[type='range'].thumb-tick { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--color-track); outline: none; }
+input[type='range'].thumb-tick::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 14px; border-radius: 3px; background: var(--color-accent); border: none; cursor: pointer; }
+input[type='range'].thumb-tick::-moz-range-thumb { width: 10px; height: 14px; border-radius: 3px; background: var(--color-accent); border: none; cursor: pointer; }
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-text) 16%, transparent); border-radius: 999px; }

@@ -53,7 +53,7 @@ export default function GlassNav() {
               const isActive = activeTab === tabItem.id || (location.pathname === '/' && tabItem.id === 'learn');
               return (
                 <button key={tabItem.id} onClick={() => go(tabItem.id)} className="press relative flex h-9 items-center gap-1.5 rounded-full border-2 px-3.5 transition" style={{ cursor: 'pointer', borderColor: isActive ? 'var(--color-accent)' : 'transparent', background: isActive ? 'var(--color-accent)' : 'transparent', color: isActive ? '#fff' : 'var(--color-text-2)' }}>
-                  <Icon size={16} className={isActive ? '' : 'opacity-60'} />
+                  <Icon size={16} style={isActive ? { color: '#fff' } : { color: 'var(--color-text-2)' }} />
                   <span className="text-[calc(14px*var(--type-scale))] font-medium">{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
                 </button>
               );
@@ -64,16 +64,16 @@ export default function GlassNav() {
             <span className="hidden max-w-[200px] truncate text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)] sm:inline">
               {unit ? `${unit.editionName} · ${unit.title}` : t('noTextbook', locale)}
             </span>
-            <button onClick={() => { const cur = useAppStore.getState().theme; toggleTheme(); useToastStore.getState().show(cur === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', cur === 'dark' ? 'sun' : 'moon'); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('switchTheme', locale)}>
+            <button onClick={() => { const cur = useAppStore.getState().theme; toggleTheme(); useToastStore.getState().show(cur === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', cur === 'dark' ? 'sun' : 'moon'); }} className="press flex h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text-2)]" aria-label={t('switchTheme', locale)}>
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             {/* AI 配置入口：未配置时显示红点 */}
-            <button onClick={() => navigate('/ai')} className="press relative flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('aiConfigure', locale)}>
+            <button onClick={() => navigate('/ai')} className="press relative flex h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text-2)]" aria-label={t('aiConfigure', locale)}>
               <Sparkles size={16} />
               {!aiReady && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--color-trap)]" />}
             </button>
             {/* 语言切换 */}
-            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-11 items-center justify-center rounded-[var(--radius-md)] px-2 text-[calc(13px*var(--type-scale))] font-bold text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('langSwitch', locale)}>
+            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-11 items-center justify-center rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-2.5 text-[calc(13px*var(--type-scale))] font-bold text-[var(--color-text-2)]" aria-label={t('langSwitch', locale)}>
               {locale === 'zh' ? 'EN' : '中文'}
             </button>
           </div>
@@ -88,9 +88,9 @@ export default function GlassNav() {
             return (
               <button key={tabItem.id} onClick={() => go(tabItem.id)} className="press relative flex flex-1 flex-col items-center gap-0.5 py-2" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
                 <span className="relative">
-                  <Icon size={22} className={isActive ? '' : 'opacity-50'} style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-2)' }} />
+                  <Icon size={22} style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-3)' }} />
                 </span>
-                <span className="text-[calc(11px*var(--type-scale))] font-medium" style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-2)' }}>{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
+                <span className="text-[calc(11px*var(--type-scale))] font-medium" style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-3)' }}>{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
               </button>
             );
           })}

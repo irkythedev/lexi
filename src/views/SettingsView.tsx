@@ -58,7 +58,7 @@ export default function SettingsView() {
             {(Object.keys(ACCENT_META) as Accent[]).map((a) => (
               <button key={a} onClick={() => { setAccent(a); toast(t('toastThemeColor', locale, { name: ACCENT_META[a].name }), 'success', 'check'); }} title={ACCENT_META[a].name}
                 className="press relative flex h-8 w-8 items-center justify-center rounded-full transition"
-                style={{ background: ACCENT_COLORS[a], boxShadow: accent === a ? `0 0 0 2px var(--color-ground), 0 0 0 3px ${ACCENT_COLORS[a]}` : 'none', opacity: accent === a ? 1 : 0.75 }}
+                style={{ background: ACCENT_COLORS[a], boxShadow: accent === a ? '0 0 0 2px var(--color-ground), 0 0 0 4px var(--color-accent)' : 'none' }}
                 aria-label={ACCENT_META[a].name}>
                 {accent === a && <span className="text-white"><Check size={13} strokeWidth={3} /></span>}
               </button>
@@ -77,7 +77,7 @@ export default function SettingsView() {
             onMouseUp={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
             onTouchEnd={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
             aria-label={t('fontSize', locale)}
-            className="w-full thumb-tick cursor-pointer"
+            className="w-full thumb-round cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
           {/* 字号档位：文本区间标注（无刻度），可点击选档 */}
@@ -111,7 +111,7 @@ export default function SettingsView() {
           <div className="flex gap-2">
             {(['us', 'uk'] as const).map((v) => (
               <button key={v} onClick={() => { setTts({ accent: v }); toast(v === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); }}
-                className={`press flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}>
+                className={`press flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}>
                 <span className="text-[calc(2rem*var(--type-scale))] leading-none">{v === 'us' ? '🇺🇸' : '🇬🇧'}</span>
                 <span>{v === 'us' ? t('accentUs', locale) : t('accentUk', locale)}</span>
               </button>
@@ -125,7 +125,7 @@ export default function SettingsView() {
             <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
           </div>
           {/* 试听当前口音 + 语速 */}
-          <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
+          <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border-2 border-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
             {previewState === 'synthesizing' ? <Loader2 size={15} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={15} /> : <Play size={15} />}
             {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('previewPlaying', locale) : t('previewVoice', locale)}
           </button>
@@ -142,7 +142,7 @@ export default function SettingsView() {
             onMouseUp={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             aria-label={t('speed', locale)}
-            className="w-full cursor-pointer"
+            className="w-full thumb-round cursor-pointer"
             style={{ accentColor: 'var(--color-accent)' }}
           />
           <Scale min={0.8} max={2.0} step={0.1} majorStep={0.2} inset={8}
@@ -155,16 +155,16 @@ export default function SettingsView() {
           <div className="py-1">
             <p className="text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{unit.editionName}</p>
             <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{unit.title}（Unit {unit.unit}）</p>
-            <button onClick={() => setEditingBook(true)} className="press mt-2 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('textbookChange', locale)}</button>
+            <button onClick={() => setEditingBook(true)} className="press mt-2 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('textbookChange', locale)}</button>
           </div>
         ) : <p className="py-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('textbookNone', locale)}</p>}
-        {editingBook && <div className="mt-2 rounded-[var(--radius-card)] border border-[var(--color-hairline)] p-3"><TextbookSwitcher onSelected={() => { setEditingBook(false); }} /></div>}
+        {editingBook && <div className="mt-2 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] p-3"><TextbookSwitcher onSelected={() => { setEditingBook(false); }} /></div>}
       </Section>
 
       <Section icon={Upload} title={t('personalImport', locale)}>
         <div className="flex items-center justify-between py-1">
           <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('personalImportDesc', locale)}</span>
-          <button onClick={() => setShowImport(true)} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('personalImportOpen', locale)}</button>
+          <button onClick={() => setShowImport(true)} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('personalImportOpen', locale)}</button>
         </div>
       </Section>
 
@@ -231,7 +231,7 @@ function Section({ icon: Icon, title, children }: { icon: typeof BookOpen; title
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]"><Icon size={15} /> {title}</div>
-      <div className="rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">{children}</div>
+      <div className="rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)] p-2.5">{children}</div>
     </div>
   );
 }

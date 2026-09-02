@@ -90,7 +90,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
     return (
       <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-16 text-center">
         <p className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sessionNoUnit', locale)}</p>
-        <button onClick={onExit} className="press mt-4 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))]">{t('backToHome', locale)}</button>
+        <button onClick={onExit} className="press mt-4 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))]">{t('backToHome', locale)}</button>
       </div>
     );
   }
