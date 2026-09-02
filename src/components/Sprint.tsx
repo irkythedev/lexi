@@ -69,8 +69,8 @@ function StepInput({ items, tts, onNext }: { items: StudyItem[]; tts: TtsPrefs; 
       {item.examTips && <p className="mt-2 text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{item.examTips}</p>}
       <div className="mt-5 flex items-center justify-between">
         <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] disabled:opacity-40">上一张</button>
-        {idx < items.length - 1 ? <button onClick={() => setIdx((i) => i + 1)} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">下一张 <ArrowRight size={16} /></button>
-          : <button onClick={onNext} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">进入跟读 <ArrowRight size={16} /></button>}
+        {idx < items.length - 1 ? <button onClick={() => setIdx((i) => i + 1)} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">下一张 <ArrowRight size={16} /></button>
+          : <button onClick={onNext} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">进入跟读 <ArrowRight size={16} /></button>}
       </div>
     </div></Panel>
   );
@@ -94,7 +94,7 @@ function StepShadow({ items, tts, onNext, onPrev }: { items: StudyItem[]; tts: T
       <div className="text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]">跟读 {idx + 1}/{targets.length}</div>
       <p className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-surface-2)] p-4 text-[calc(17px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{sentence}</p>
       <div className="mt-4 flex items-center gap-3">
-        <SpeakButton text={sentence} accent={tts.accent} rate={tts.rate} size={16} color="#fff" className="h-auto rounded-[var(--radius-md)] bg-[var(--color-accent)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white hover:bg-[var(--color-accent)]">听原句</SpeakButton>
+        <SpeakButton text={sentence} accent={tts.accent} rate={tts.rate} size={16} color="#fff" className="h-auto rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white hover:bg-[var(--color-accent)]">听原句</SpeakButton>
         {supported ? <button onClick={() => (listening ? stop() : start())} className={`press flex items-center gap-1.5 rounded-[var(--radius-md)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold ${listening ? 'bg-[var(--color-trap)] text-white' : 'border border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}><Mic size={16} /> {listening ? '录音中…点此停止' : '开始跟读'}</button>
           : <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">当前浏览器不支持语音识别（可用 Chrome/Edge）</span>}
       </div>
@@ -106,7 +106,7 @@ function StepShadow({ items, tts, onNext, onPrev }: { items: StudyItem[]; tts: T
       )}
       <div className="mt-5 flex items-center justify-between">
         <button onClick={onPrev} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))]">上一步</button>
-        <button onClick={() => { if (idx < targets.length - 1) { setIdx(idx + 1); setShowCompare(false); setComparison(null); } else onNext(); }} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">{idx < targets.length - 1 ? '下一句' : '进入练习'} <ArrowRight size={16} /></button>
+        <button onClick={() => { if (idx < targets.length - 1) { setIdx(idx + 1); setShowCompare(false); setComparison(null); } else onNext(); }} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">{idx < targets.length - 1 ? '下一句' : '进入练习'} <ArrowRight size={16} /></button>
       </div>
     </div></Panel>
   );
@@ -147,8 +147,8 @@ function StepPractice({ items, selection, onNext, onPrev }: { items: StudyItem[]
       </div>
       <div className="mt-5 flex items-center justify-between">
         <button onClick={onPrev} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))]">上一步</button>
-        {!checked ? <button onClick={submit} disabled={!allAnswered} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-40">检查</button>
-          : <button onClick={onNext} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">进入 AI 造句 <ArrowRight size={16} /></button>}
+        {!checked ? <button onClick={submit} disabled={!allAnswered} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-40">检查</button>
+          : <button onClick={onNext} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">进入 AI 造句 <ArrowRight size={16} /></button>}
       </div>
     </div></Panel>
   );
@@ -190,7 +190,7 @@ function StepAI({ items, unit, onPrev }: { items: StudyItem[]; unit: Unit; onPre
         className="mt-3 w-full resize-none rounded-[var(--radius-md)] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
       <div className="mt-3 flex items-center justify-between">
         <button onClick={onPrev} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))]">上一步</button>
-        <button onClick={run} disabled={loading} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-50">{loading ? '批改中…' : <>批改 <Send size={15} /></>}</button>
+        <button onClick={run} disabled={loading} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-50">{loading ? '批改中…' : <>批改 <Send size={15} /></>}</button>
       </div>
       {error && <p className="mt-3 text-[calc(13px*var(--type-scale))] text-[var(--color-trap)]">{error}</p>}
       {result && (
@@ -237,7 +237,7 @@ function StepQuiz({ items, selection, onPrev, onExit }: { items: StudyItem[]; se
       <p className="mt-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">错题已自动进入错题本与复习队列。</p>
       <div className="mt-5 flex gap-3">
         <button onClick={onPrev} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))]">查看练习</button>
-        <button onClick={onExit} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">完成</button>
+        <button onClick={onExit} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">完成</button>
       </div>
     </div></Panel>
   );
@@ -261,7 +261,7 @@ function StepQuiz({ items, selection, onPrev, onExit }: { items: StudyItem[]; se
       </div>
       <div className="mt-5 flex items-center justify-between">
         <button onClick={onPrev} disabled={cur === 0} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] disabled:opacity-40">上一步</button>
-        <button onClick={next} disabled={!picked} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-40">{cur < quiz.length - 1 ? '下一题' : '查看结果'} <ArrowRight size={16} /></button>
+        <button onClick={next} disabled={!picked} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-40">{cur < quiz.length - 1 ? '下一题' : '查看结果'} <ArrowRight size={16} /></button>
       </div>
     </div></Panel>
   );

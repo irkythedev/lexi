@@ -4,7 +4,7 @@ import { useToastStore, type ToastItem, type ToastType } from '../stores/toastSt
 
 const TYPE_STYLE: Record<ToastType, { color: string; bg: string; Icon: typeof CheckCircle2 }> = {
   success: { color: 'var(--color-vocab)', bg: 'var(--color-vocab-soft)', Icon: CheckCircle2 },
-  info: { color: 'var(--color-accent)', bg: 'color-mix(in srgb, var(--color-accent) 12%, transparent)', Icon: Info },
+  info: { color: 'var(--color-accent)', bg: 'var(--color-surface)', Icon: Info },
   error: { color: 'var(--color-trap)', bg: 'var(--color-trap-soft)', Icon: AlertTriangle },
 };
 

@@ -44,7 +44,7 @@ function ConsentView({ onAgree }: { onAgree: () => void }) {
       <ol className="mt-4 space-y-3">
         {TERMS.map((x, i) => <li key={i} className="text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]"><span className="font-semibold text-[var(--color-text)]">{i + 1}. {t(x.tk, locale)}：</span>{t(x.bk, locale)}</li>)}
       </ol>
-      <button onClick={onAgree} className="press mt-5 w-full rounded-[var(--radius-md)] bg-[var(--color-accent)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiAgree', locale)}</button>
+      <button onClick={onAgree} className="press mt-5 w-full rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiAgree', locale)}</button>
     </div>
   );
 }
@@ -124,7 +124,7 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
 
       <div className="mt-5 flex items-center justify-between">
         <button onClick={clearAll} className="press text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiClearAll', locale)}</button>
-        <button onClick={save} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] px-6 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiSaveConfig', locale)}</button>
+        <button onClick={save} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-6 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiSaveConfig', locale)}</button>
       </div>
     </div>
   );

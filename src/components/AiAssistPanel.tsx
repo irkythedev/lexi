@@ -225,14 +225,14 @@ export default function AiAssistPanel({
         {!cfg ? (
           <div className="flex flex-col items-center gap-3 py-6 text-center">
             <p className="px-4 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiNotConfigured', locale)}</p>
-            <a href="/ai" className="press inline-flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('aiConfigure', locale)}</a>
+            <a href="/ai" className="press inline-flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('aiConfigure', locale)}</a>
           </div>
         ) : (
           <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-2">
             {/* 单按钮：一次生成学习卡片 */}
             {!card && !busy && context && (
               <div className="flex flex-col gap-2 pt-1">
-                <button onClick={() => void study()} className="press inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-4 py-2.5 text-[calc(13.5px*var(--type-scale))] font-semibold text-white">
+                <button onClick={() => void study()} className="press inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-4 py-2.5 text-[calc(13.5px*var(--type-scale))] font-semibold text-white">
                   <Sparkles size={14} /> {t('aiStudyGenerate', locale)}
                 </button>
                 <p className="text-center text-[calc(11.5px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiStudyHint', locale)}</p>

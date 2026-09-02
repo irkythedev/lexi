@@ -27,7 +27,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <p className="mt-2 text-[calc(14px*var(--type-scale))] text-[var(--color-text-2)]">
             {this.state.error.message}
           </p>
-          <button onClick={() => this.setState({ error: null })} className="press mt-6 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">
+          <button onClick={() => this.setState({ error: null })} className="press mt-6 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">
             重试
           </button>
           <button onClick={() => window.location.href = '/'} className="press mt-3 ml-3 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium">

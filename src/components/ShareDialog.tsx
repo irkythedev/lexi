@@ -76,7 +76,7 @@ export default function ShareDialog({ url, onClose, title, text }: ShareDialogPr
         {/* 按钮 */}
         <div className="mt-3 flex flex-col gap-2">
           {'share' in navigator && (
-            <button type="button" onClick={handleNativeShare} className="press flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">
+            <button type="button" onClick={handleNativeShare} className="press flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">
               <Share2 size={16} /> {t('share', locale)}
             </button>
           )}

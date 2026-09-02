@@ -64,7 +64,7 @@ export default function GlassNav() {
             <span className="hidden max-w-[200px] truncate text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)] sm:inline">
               {unit ? `${unit.editionName} · ${unit.title}` : t('noTextbook', locale)}
             </span>
-            <button onClick={() => { toggleTheme(); useToastStore.getState().show(useAppStore.getState().theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', useAppStore.getState().theme === 'dark' ? 'sun' : 'moon'); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('switchTheme', locale)}>
+            <button onClick={() => { const cur = useAppStore.getState().theme; toggleTheme(); useToastStore.getState().show(cur === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', cur === 'dark' ? 'sun' : 'moon'); }} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('switchTheme', locale)}>
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
             {/* AI 配置入口：未配置时显示红点 */}
