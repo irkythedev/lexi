@@ -83,7 +83,13 @@ export function useSpeak() {
     if (timerRef.current !== null) { window.clearInterval(timerRef.current); timerRef.current = null; }
   }, []);
 
+  // 请求序号：每次 speak 递增，stop 也递增使其失效。
+  // 防止 React StrictMode 开发模式双调用 effect 时，第一次 speak 的
+  // 异步 fetch 完成后仍创建 audio（导致两次读音重叠）。
+  const speakSeqRef = useRef(0);
+
   const stopSource = useCallback(() => {
+    speakSeqRef.current += 1; // 使进行中的 speak 请求失效
     clearTimer();
     if (audioRef.current) {
       try { audioRef.current.onended = null; audioRef.current.pause(); audioRef.current.src = ''; } catch { /* noop */ }
@@ -145,6 +151,7 @@ export function useSpeak() {
     if (!text) return;
     // 自停：停止当前实例的任何遗留播放，避免重叠
     stopSource();
+    const seq = speakSeqRef.current; // 本次请求序号（stopSource 已自增）
     optsRef.current = options;
     const { accent = 'us', rate = 1.0, onEnd } = options;
     wasStoppedRef.current = false;
@@ -165,11 +172,21 @@ export function useSpeak() {
           if (!res.ok) throw new Error(`HTTP ${res.status}`);
           blobs.push(toMp3Blob(await res.arrayBuffer()));
         }
+        // 请求已失效（被新的 speak/stop 取代）：丢弃结果，不创建 audio
+        if (seq !== speakSeqRef.current) {
+          setState('idle');
+          return;
+        }
         chunksRef.current = blobs;
         // Measure cumulative playback time across ALL chunks so per-word
         // highlight pacing matches the real audio, not just the first chunk.
         const measured = await Promise.all(blobs.map(blobDurationMs));
         totalMsRef.current = measured.reduce((a, b) => a + b, 0);
+        // 测量期间可能又失效
+        if (seq !== speakSeqRef.current) {
+          setState('idle');
+          return;
+        }
         playEdgeChunk(0);
         return;
       } catch (e) {
