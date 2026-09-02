@@ -2,7 +2,7 @@
 // Replaces the old 6-step drill-down (region→stage→publisher→grade→volume→unit).
 // Per user decision: 5 editions → flat cards, no unnecessary nesting.
 import { useMemo, useState } from 'react';
-import { ChevronRight, BookOpen, ExternalLink } from 'lucide-react';
+import { ChevronRight, Library, ExternalLink } from 'lucide-react';
 import { BUNDLED_EDITIONS } from '../data/textbooks/index.ts';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
@@ -98,7 +98,7 @@ export default function TextbookSwitcher({ onSelected }: { onSelected?: () => vo
             <button key={ed.editionId} onClick={() => handlePick(ed)}
               className="press card flex items-start gap-3 p-4 text-left">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}>
-                <BookOpen size={20} />
+                <Library size={20} />
               </span>
               <div className="min-w-0 flex-1">
                 <div className="text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{ed.editionName}</div>
@@ -117,7 +117,7 @@ export default function TextbookSwitcher({ onSelected }: { onSelected?: () => vo
           <p className="mt-1 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">粘贴教材 JSON 链接，可扩展更多单元。</p>
           <div className="mt-2 flex flex-col gap-2 sm:flex-row">
             <input value={remoteUrl} onChange={(e) => setRemoteUrl(e.target.value)} placeholder="https://example.com/edition.json"
-              className="flex-1 rounded-[12px] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-2 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+              className="flex-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
             <GhostButton onClick={handleRemoteLoad}>加载</GhostButton>
           </div>
           {remoteMsg && <p className="mt-2 text-[calc(12px*var(--type-scale))] text-[var(--color-vocab)]">{remoteMsg}</p>}

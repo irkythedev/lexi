@@ -77,10 +77,10 @@ export default function SettingsView() {
             onMouseUp={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
             onTouchEnd={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
             aria-label={t('fontSize', locale)}
-            className="w-full thumb-round cursor-pointer"
+            className="w-full thumb-tick cursor-pointer"
             style={{ '--fill': `${Math.round(((fontScale - 0.9) / 0.5) * 100)}%` } as React.CSSProperties}
           />
-          {/* 字号档位：文本区间标注（无刻度），可点击选档 */}
+          {/* 字号档位：文本区间标注（无刻度），可点击选档；首尾档贴边避免溢出卡框 */}
           <div className="relative mt-1.5" style={{ height: '1.5rem' }}>
             {(() => {
               const tiers = t('fontSizeTiers', locale).split(',');
@@ -89,10 +89,14 @@ export default function SettingsView() {
               return values.map((v, i) => {
                 const pct = N > 1 ? (i / (N - 1)) * 100 : 50;
                 const active = Math.abs(fontScale - v) < 1e-9;
+                // 首档/末档改为靠边对齐，避免 translateX(-50%) 溢出卡边框
+                const anchor = i === 0 ? { left: 0, transform: 'translateX(0)' }
+                  : i === N - 1 ? { left: '100%', transform: 'translateX(-100%)' }
+                  : { left: `${pct}%`, transform: 'translateX(-50%)' };
                 return (
                   <button key={i} type="button" onClick={() => { setFontScale(v); toast(t('toastFontSize', locale, { scale: Math.round(v * 100) }), 'info'); }}
                     className="absolute flex flex-col items-center"
-                    style={{ left: `${pct}%`, transform: 'translateX(-50%)' }}>
+                    style={{ ...anchor }}>
                     <span className={`whitespace-nowrap rounded px-1 py-0.5 text-[calc(11px*var(--type-scale))] leading-tight transition ${active ? 'font-semibold text-[var(--color-accent)]' : 'text-[var(--color-text-3)] hover:text-[var(--color-text-2)]'}`}>
                       {tiers[i]}
                     </span>
@@ -111,7 +115,7 @@ export default function SettingsView() {
           <div className="flex gap-2">
             {(['us', 'uk'] as const).map((v) => (
               <button key={v} onClick={() => { setTts({ accent: v }); toast(v === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); }}
-                className={`press flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/15 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}>
+                className={`press flex h-12 flex-1 items-center justify-center gap-2 rounded-[var(--radius-md)] border-2 text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] shadow-[var(--shadow-card)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]'}`}>
                 <span className="text-[calc(2rem*var(--type-scale))] leading-none">{v === 'us' ? '🇺🇸' : '🇬🇧'}</span>
                 <span>{v === 'us' ? t('accentUs', locale) : t('accentUk', locale)}</span>
               </button>
@@ -125,7 +129,7 @@ export default function SettingsView() {
             <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
           </div>
           {/* 试听当前口音 + 语速 */}
-          <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border-2 border-[var(--color-accent)] bg-[var(--color-accent)]/15 px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
+          <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] shadow-[var(--shadow-card)] hover:bg-[var(--color-surface-2)] disabled:opacity-60">
             {previewState === 'synthesizing' ? <Loader2 size={15} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={15} /> : <Play size={15} />}
             {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('previewPlaying', locale) : t('previewVoice', locale)}
           </button>

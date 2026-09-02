@@ -187,7 +187,7 @@ function StepAI({ items, unit, onPrev }: { items: StudyItem[]; unit: Unit; onPre
         ))}
       </div>
       <textarea value={sentence} onChange={(e) => setSentence(e.target.value)} rows={3} placeholder={`用「${target?.label}」写一句英语，例如：${target?.exampleEn ?? ''}`}
-        className="mt-3 w-full resize-none rounded-[var(--radius-md)] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+        className="mt-3 w-full resize-none rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
       <div className="mt-3 flex items-center justify-between">
         <button onClick={onPrev} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))]">上一步</button>
         <button onClick={run} disabled={loading} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-50">{loading ? '批改中…' : <>批改 <Send size={15} /></>}</button>

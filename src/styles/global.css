@@ -288,10 +288,39 @@ input[type='range'].thumb-round::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* 旧矩形滑块类（不再用于设置页，保留以防外部引用） */
-input[type='range'].thumb-tick { -webkit-appearance: none; appearance: none; height: 6px; border-radius: 3px; background: var(--color-track); outline: none; }
-input[type='range'].thumb-tick::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 10px; height: 14px; border-radius: 3px; background: var(--color-accent); border: none; cursor: pointer; }
-input[type='range'].thumb-tick::-moz-range-thumb { width: 10px; height: 14px; border-radius: 3px; background: var(--color-accent); border: none; cursor: pointer; }
+/* 字号步进滑块：accent 进度填充 + 矩形拇指白底墨线+偏移墨影悬浮（与 thumb-round 同风格，仅头为圆角矩形而非圆） */
+input[type='range'].thumb-tick {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right,
+    var(--color-accent) 0%,
+    var(--color-accent) var(--fill, 0%),
+    var(--color-track) var(--fill, 0%),
+    var(--color-track) 100%);
+  outline: none;
+}
+input[type='range'].thumb-tick::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 20px;
+  border-radius: 5px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-hairline);
+  box-shadow: 1px 1px 0 color-mix(in srgb, var(--color-hairline) 60%, transparent);
+  cursor: pointer;
+}
+input[type='range'].thumb-tick::-moz-range-thumb {
+  width: 16px;
+  height: 20px;
+  border-radius: 5px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-hairline);
+  box-shadow: 1px 1px 0 color-mix(in srgb, var(--color-hairline) 60%, transparent);
+  cursor: pointer;
+}
 
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-text) 16%, transparent); border-radius: 999px; }

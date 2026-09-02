@@ -38,8 +38,8 @@ export default function GlassNav() {
       <header className={`glass-nav fixed inset-x-0 top-0 z-50 ${scrolled ? 'scrolled' : ''}`}>
         <div className="mx-auto flex h-14 max-w-[var(--max-grid)] items-center justify-between px-[var(--pad-x)]">
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[10px] text-white shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}>
-              <BookOpen size={16} />
+            <span className="flex h-7 w-7 items-center justify-center rounded-[10px] shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}>
+              <span className="font-serif text-[calc(15px*var(--type-scale))] font-bold leading-none text-white">L</span>
             </span>
             <span className="flex items-baseline gap-1">
               <span className="text-[calc(15px*var(--type-scale))] font-semibold tracking-[-0.01em] text-[var(--color-text)]">Lexi</span>
@@ -52,9 +52,10 @@ export default function GlassNav() {
               const Icon = tabItem.icon;
               const isActive = activeTab === tabItem.id || (location.pathname === '/' && tabItem.id === 'learn');
               return (
-                <button key={tabItem.id} onClick={() => go(tabItem.id)} className="press relative flex h-9 items-center gap-1.5 rounded-full border-2 px-3.5 transition" style={{ cursor: 'pointer', borderColor: isActive ? 'var(--color-accent)' : 'transparent', background: isActive ? 'var(--color-accent)' : 'transparent', color: isActive ? '#fff' : 'var(--color-text-2)' }}>
-                  <Icon size={16} style={isActive ? { color: '#fff' } : { color: 'var(--color-text-2)' }} />
-                  <span className="text-[calc(14px*var(--type-scale))] font-medium">{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
+                <button key={tabItem.id} onClick={() => go(tabItem.id)} className={`press relative flex h-9 items-center gap-1.5 rounded-full border-2 px-3.5 transition ${isActive ? 'border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]' : 'border-transparent bg-transparent'}`} style={{ cursor: 'pointer', color: isActive ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
+                  <Icon size={16} style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-2)' }} />
+                  <span className={`text-[calc(14px*var(--type-scale))] ${isActive ? 'font-semibold' : 'font-medium'}`}>{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
+                  {isActive && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />}
                 </button>
               );
             })}
@@ -69,9 +70,9 @@ export default function GlassNav() {
               <Sparkles size={18} />
               {!aiReady && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--color-trap)]" />}
             </button>
-            {/* 语言切换：胶囊徽章，与版本胶囊同高约 28-32px */}
-            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-8 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] px-2.5 text-[calc(12px*var(--type-scale))] font-semibold text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]" aria-label={t('langSwitch', locale)}>
-              {locale === 'zh' ? 'EN' : '中文'}
+            {/* 语言切换：与主题/AI 同规格 40px 圆，文字随当前语言（zh→EN / en→中） */}
+            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-10 w-10 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('langSwitch', locale)}>
+              <span className="text-[calc(13px*var(--type-scale))] font-semibold leading-none">{locale === 'zh' ? 'EN' : '中'}</span>
             </button>
           </div>
         </div>
@@ -83,7 +84,7 @@ export default function GlassNav() {
             const Icon = tabItem.icon;
             const isActive = activeTab === tabItem.id || (location.pathname === '/' && tabItem.id === 'learn');
             return (
-              <button key={tabItem.id} onClick={() => go(tabItem.id)} className="press relative flex flex-1 flex-col items-center gap-0.5 py-2" style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+              <button key={tabItem.id} onClick={() => go(tabItem.id)} className={`press relative flex flex-1 flex-col items-center gap-0.5 rounded-[var(--radius-md)] py-2 transition ${isActive ? 'border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]' : 'border-2 border-transparent'}`} style={{ cursor: 'pointer' }}>
                 <span className="relative">
                   <Icon size={22} style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-2)' }} />
                 </span>

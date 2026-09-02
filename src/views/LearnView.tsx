@@ -40,9 +40,9 @@ export default function LearnView() {
   const pagedItems = pager.slice;
 
   const MODES = [
-    { id: 'flash', title: t('flashcard', locale), desc: t('flashcardDesc', locale), icon: Layers, grad: 'var(--grad-cta)' },
-    { id: 'connector', title: t('connector', locale), desc: t('connectorDesc', locale), icon: Puzzle, grad: 'var(--grad-cta)' },
-    { id: 'sprint', title: t('sprint', locale), desc: t('sprintDesc', locale), icon: Zap, grad: 'var(--grad-cta)' },
+    { id: 'flash', title: t('flashcard', locale), desc: t('flashcardDesc', locale), icon: Layers },
+    { id: 'connector', title: t('connector', locale), desc: t('connectorDesc', locale), icon: Puzzle },
+    { id: 'sprint', title: t('sprint', locale), desc: t('sprintDesc', locale), icon: Zap },
   ];
 
   if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-6"><BookText size={42} className="mx-auto text-[var(--color-text-3)]" /><p className="mt-3 mb-4 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('learnEmpty', locale)}</p><TextbookSwitcher onSelected={() => {}} /></div>;
@@ -86,7 +86,7 @@ export default function LearnView() {
         return (
           <div className="mt-4 overflow-hidden rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
             <div className="flex items-center gap-3 p-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-white shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}><BookOpen size={20} /></span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" style={{ background: 'var(--color-surface)', border: '2px solid var(--color-hairline)' }}><BookOpen size={20} /></span>
               <div className="min-w-0 flex-1">
                 <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('reading', locale)}</span>
                 <span className="mt-0.5 block truncate text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
@@ -108,7 +108,7 @@ export default function LearnView() {
           <div className="border-t border-[var(--color-hairline)] p-3 space-y-2">
             {MODES.map((m) => { const Icon = m.icon; return (
               <div key={m.id} className="flex items-center gap-3 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] p-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-white shadow-[var(--shadow-card)]" style={{ background: m.grad, border: '2px solid var(--color-hairline)' }}><Icon size={20} /></span>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" style={{ background: 'var(--color-surface)', border: '2px solid var(--color-hairline)' }}><Icon size={20} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{m.title}</span>
                   <span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{m.desc}</span>
@@ -122,9 +122,11 @@ export default function LearnView() {
 
       <div className="mt-5 flex items-center justify-between">
         <div className="flex gap-2">
-          {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
-            <button key={f} onClick={() => { setFilter(f); pager.reset(); }} className="press rounded-[var(--radius-sm)] border-2 px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-semibold transition" style={filter === f ? { background: 'var(--color-surface)', borderColor: 'var(--color-accent)', color: 'var(--color-accent)' } : { background: 'var(--color-track)', borderColor: 'color-mix(in_srgb,var(--color-hairline)_60%,transparent)', color: 'var(--color-text-2)' }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
-          ))}
+          <div className="seg">
+            {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
+              <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
+            ))}
+          </div>
         </div>
         <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} /> : <Eye size={15} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
       </div>
