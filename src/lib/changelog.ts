@@ -2,7 +2,7 @@
 // 语言贴近使用者而非开发者；技术细节与管理规范不在此展示。
 // APP_VERSION 与 package.json / footer.ts 同步维护。
 
-export const APP_VERSION = '0.2.2';
+export const APP_VERSION = '0.3.1';
 
 export interface ChangelogEntry {
   version: string;
@@ -13,6 +13,52 @@ export interface ChangelogEntry {
 
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.3.1',
+    date: '2026-09',
+    zh: [
+      '[新增] 朗读悬浮球改为侧边栏吸附：默认收起为小按钮，展开向左滑出面板，闲置几秒自动收回',
+      '[优化] 整体视觉改版为纸面印刷风：米纸底色、墨线描边、统一卡片层级',
+      '[优化] 词条卡片操作按钮（朗读/AI/展开）紧凑成组并缩小，图标列上下对齐',
+      '[优化] 顶栏图标统一：L 标识放大、右侧圆钮精简',
+      '[优化] 练习模式完善：例句数据补齐（课文回填）、AI 造句后可进入冲刺测、英文界面不再出现中文',
+      '[修复] 修复搭配拼图右侧出现中文释义的问题（无结构数据时显示空态而非假配对）',
+    ],
+    en: [
+      '[New] Floating read-aloud dock attaches to the screen edge: collapses to a small button, slides out a panel, auto-hides after idle',
+      '[Improved] Full visual redesign to paper-print style: warm paper background, ink outlines, unified card hierarchy',
+      '[Improved] Word row action buttons (speak/AI/expand) grouped and compacted, icon column aligned',
+      '[Improved] Top bar icons unified: larger L logo, slimmer round buttons',
+      '[Improved] Practice modes completed: example sentences backfilled from the textbook, AI writing now flows into the quiz, English UI has no Chinese leftovers',
+      '[Fixed] Fixed collocation puzzle showing Chinese meanings (shows empty state instead of fake pairs)',
+    ],
+  },
+  {
+    version: '0.3.0',
+    date: '2026-09',
+    zh: [
+      '[新增] AI 学习卡片：点一下生成单词/短语的释义、用法、例句、考点四段，例句采用教材原文，目标词自动高亮',
+      '[新增] 词条列表可展开查看课文原句（仅真实出现时显示），长句默认展示核心片段，可展开全文',
+      '[新增] 课文朗读：8 个单元阅读文本逐句朗读、逐句高亮，点击任意句子单独播放',
+      '[新增] 内置江苏译林 9 年级上册完整词表：257 单词 + 45 短语 + 36 句式',
+      '[新增] 学习区嵌入 AI 辅助：预设问题按钮一键提问，无需自由输入',
+      '[优化] 学习进度在页面间切换后保留（去设置再回来不丢进度）',
+      '[优化] 学习页改为统一入口：选教材、看内容、开始学习集中在一页',
+      '[优化] 导航响应式：手机端底部标签栏、电脑端顶部导航',
+      '[修复] 修复朗读双重播放、进入学习页自动朗读、翻页重叠等多项问题',
+    ],
+    en: [
+      '[New] AI study card: one tap generates definition, usage, example and exam tips; examples use real textbook sentences with the target word highlighted',
+      '[New] Word rows expand to show the real textbook sentence (only when the word actually appears); long sentences show a focused excerpt with full-text toggle',
+      '[New] Reading mode: 8 units of passages with sentence-by-sentence read-aloud and highlight, tap any sentence to play',
+      '[New] Full Yilin Grade 9A vocabulary: 257 words + 45 phrases + 36 patterns with phonetics',
+      '[New] AI assist embedded in learning areas with preset question buttons (no free-text chat)',
+      '[Improved] Session progress survives page switches (Settings round-trip no longer loses progress)',
+      '[Improved] Learn page is now the single entry: pick textbook, browse content, start session',
+      '[Improved] Responsive navigation: bottom tabs on mobile, top bar on desktop',
+      '[Fixed] Fixed double audio playback, auto-play on session open, pager overlap and more',
+    ],
+  },
   {
     version: '0.2.2',
     date: '2026-09',
