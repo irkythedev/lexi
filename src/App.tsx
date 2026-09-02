@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { useAppStore, hydrateSettings, applyAccent } from './stores/useAppStore.ts';
 import GlassNav from './components/GlassNav.tsx';
 import FloatingTTS from './components/FloatingTTS.tsx';
-import TextbookSwitcher from './components/TextbookSwitcher.tsx';
 import ToastHost from './components/ToastHost.tsx';
 import Footer from './components/Footer.tsx';
 import LearnView from './views/LearnView.tsx';
@@ -23,6 +22,7 @@ function Home() {
         <div className="rounded-[var(--radius-hero)] p-6 text-white" style={{ background: 'var(--grad-cta)' }}>
           <h2 className="text-[calc(22px*var(--type-scale))] font-bold tracking-[-0.02em]">先选一本教材</h2>
           <p className="mt-1.5 text-[calc(15px*var(--type-scale))] leading-relaxed text-white/85">选择学段、出版社、年级与单元，即可开始单词、短语、句式与考点的智能训练。数据完全保存在本机，无需登录。</p>
+          <button onClick={() => navigate('/learn')} className="press mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold backdrop-blur">去选教材 →</button>
         </div>
       )}
       {unit && (
@@ -34,7 +34,6 @@ function Home() {
           <button onClick={() => navigate(`/session/${unit.unit}`)} className="press rounded-full bg-white/20 px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold backdrop-blur">继续学习 →</button>
         </div>
       )}
-      <div className="mt-4"><TextbookSwitcher onSelected={() => {}} /></div>
     </div>
   );
 }

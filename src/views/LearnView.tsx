@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Layers, Puzzle, Zap, ChevronDown, Volume2, Eye, EyeOff, BookText, ArrowRight } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
@@ -12,6 +13,7 @@ import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 
 export default function LearnView() {
   const { unit, studyItems, tts, locale } = useAppStore();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<null | 'flash' | 'connector' | 'sprint'>(null);
   const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'pattern'>('all');
   const [hideCn, setHideCn] = useState(false);
@@ -48,6 +50,9 @@ export default function LearnView() {
             <span className="glass-chip rounded-full px-3 py-1">{t('phrases', locale)} {groups[1].items.length}</span>
             <span className="glass-chip rounded-full px-3 py-1">{t('patterns', locale)} {groups[2].items.length}</span>
           </div>
+          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold backdrop-blur">
+            {t('startLearning', locale)} <ArrowRight size={16} />
+          </button>
         </div>
       </div>
 
