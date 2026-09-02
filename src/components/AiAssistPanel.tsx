@@ -2,9 +2,10 @@
 // 嵌入在 Learn/Reading/Session 等学习区域，预设问题按钮触发 AI 回答，
 // 不使用自由输入框。对齐 stem 的 BYOK 纪律。
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Sparkles, Loader2, ChevronRight } from 'lucide-react';
+import { X, Sparkles, Loader2, ChevronRight, Volume2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { loadConfig, streamChat, buildSystemPrompt, isNetworkError } from '../lib/ai.ts';
+import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
 
 export interface AssistContext {
@@ -20,8 +21,9 @@ export default function AiAssistPanel({
   onClose: () => void;
   context: AssistContext | null;
 }) {
-  const { locale, unit } = useAppStore();
+  const { locale, unit, tts } = useAppStore();
   const cfg = loadConfig();
+  const { speak, stop, state: ttsState } = useSpeak();
   const [answer, setAnswer] = useState('');
   const [busy, setBusy] = useState(false);
   const [lastQ, setLastQ] = useState('');
@@ -101,7 +103,10 @@ export default function AiAssistPanel({
                   <div className="flex items-center gap-2 p-2"><Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-accent)' }} /><span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">思考中...</span></div>
                 )}
                 {answer && (
-                  <div className="whitespace-pre-wrap rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{answer}</div>
+                  <div className="whitespace-pre-wrap rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">
+                    <button onClick={() => { if (ttsState === 'playing' || ttsState === 'synthesizing') { stop(); } else { speak(answer, { accent: tts.accent, rate: tts.rate, lang: 'auto' }); } }} className="press float-right ml-2 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={14} className="animate-spin" /> : <Volume2 size={14} />}</button>
+                    {answer}
+                  </div>
                 )}
                 {err && <p className="rounded-[var(--radius-card)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>}
                 {/* 再问一次按钮 */}

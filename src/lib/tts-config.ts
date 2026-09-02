@@ -25,6 +25,12 @@ export function getEdgeVoice(accent: 'us' | 'uk', gender: VoiceGender): string {
   return gender === 'male' ? 'en-US-GuyNeural' : 'en-US-AriaNeural';
 }
 
+// 中文朗读 voice：跟随性别（女→晓晓，男→云希）。
+// 用于 AI 回答中英混杂时的中文段落朗读。
+export function getChineseVoice(gender: VoiceGender): string {
+  return gender === 'male' ? 'zh-CN-YunxiNeural' : 'zh-CN-XiaoxiaoNeural';
+}
+
 // Voice mapping for Web Speech API fallback
 export const SPEECH_LANG: Record<string, string> = {
   us: 'en-US',

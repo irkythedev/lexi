@@ -4,7 +4,7 @@
 // pause via stop+offset rebuild, onended race guard.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { TTS_BASE, getEdgeVoice } from './tts-config.ts';
+import { TTS_BASE, getEdgeVoice, getChineseVoice } from './tts-config.ts';
 import { scfUrlWithToken } from './scf-token.ts';
 import { speak as webSpeak, type Accent, type SpeakHandle } from './tts.ts';
 
@@ -16,6 +16,8 @@ export interface SpeakOptions {
   accent?: 'us' | 'uk';
   gender?: 'female' | 'male';
   rate?: number;
+  /** 语言模式：'auto' 时按 CJK 检测自动分段，中文段用中文 voice，英文段用 en voice。 */
+  lang?: 'zh' | 'en' | 'auto';
   /** Called as playback progresses; wordIndex is 0-based. */
   onWordChange?: (wordIndex: number, totalWords: number) => void;
   onEnd?: () => void;
@@ -50,6 +52,60 @@ function splitForTTS(text: string, max = 800): string[] {
   }
   if (buf) out.push(buf);
   return out;
+}
+
+/** 是否 CJK 字符（中文/日文/韩文统一判为中文字段）。 */
+function isCJK(ch: string): boolean {
+  const c = ch.codePointAt(0)!;
+  return (c >= 0x4e00 && c <= 0x9fff) || (c >= 0x3400 && c <= 0x4dbf)
+    || (c >= 0x3000 && c <= 0x303f) || (c >= 0xff00 && c <= 0xffef);
+}
+
+export interface LangSeg { lang: 'zh' | 'en'; text: string; }
+
+/** 清洗 markdown/结构符号：去加粗/斜体/行内代码/标题/列表符/引用/链接标记/JSON 括号，只留正文。 */
+export function cleanTextForTTS(text: string): string {
+  let t = text
+    .replace(/```[\s\S]*?```/g, ' ')          // 代码块整体跳过
+    .replace(/`([^`\n]*)`/g, '$1')            // 行内代码保留内容
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')  // markdown 链接 → 文字
+    .replace(/[#>*_~|]/g, ' ')                // 标题/粗斜体/引用/删除线/表格符
+    .replace(/\{\s*"[^}]*\}/g, ' ')           // JSON 对象
+    .replace(/[{}\[\]]/g, ' ')                // 残余括号
+    .replace(/\s+/g, ' ')
+    .trim();
+  return t;
+}
+
+/**
+ * 按语言切分文本为交替的中文/英文段（CJK 检测）。
+ * 相邻极短段（≤2 字符）并入前一段，避免单个标点/字母造成频繁换 voice。
+ */
+export function splitMixedLang(text: string, max = 800): LangSeg[] {
+  const segs: LangSeg[] = [];
+  let cur = '';
+  let curLang: 'zh' | 'en' | null = null;
+
+  const flush = () => {
+    if (!cur) return;
+    segs.push({ lang: curLang === 'zh' ? 'zh' : 'en', text: cur });
+    cur = '';
+  };
+
+  for (const ch of text) {
+    const lang: 'zh' | 'en' = isCJK(ch) ? 'zh' : 'en';
+    if (curLang === null) { curLang = lang; }
+    if (lang !== curLang) {
+      // 极短段（≤2 字符，常见为标点/单个字母）并入前段，不换 voice
+      if (cur.length <= 2) { cur += ch; continue; }
+      flush();
+      curLang = lang;
+    }
+    cur += ch;
+    if (cur.length >= max) { flush(); curLang = null; }
+  }
+  flush();
+  return segs;
 }
 
 // Resolve a blob's duration (ms). Falls back to 0 on failure so callers can
@@ -153,25 +209,45 @@ export function useSpeak() {
     stopSource();
     const seq = speakSeqRef.current; // 本次请求序号（stopSource 已自增）
     optsRef.current = options;
-    const { accent = 'us', rate = 1.0, onEnd } = options;
+    const { accent = 'us', rate = 1.0, lang = 'en', onEnd } = options;
     wasStoppedRef.current = false;
-    wordsRef.current = splitWords(text);
     setError('');
     setState('synthesizing');
 
     // Prefer edge-tts via SCF; fall back to Web Speech on any failure.
     if (TTS_BASE) {
       try {
-        const parts = splitForTTS(text);
-        const blobs: Blob[] = [];
         const gender = useAppStore.getState().tts.gender;
-        const voice = getEdgeVoice(accent, gender);
-        for (const part of parts) {
-          const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
-          const res = await fetch(url, { cache: 'no-store' });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          blobs.push(toMp3Blob(await res.arrayBuffer()));
+        const blobs: Blob[] = [];
+
+        if (lang === 'auto') {
+          // 中英混杂模式：清洗后按语言分段，每段用对应 voice 合成，串行播
+          const cleaned = cleanTextForTTS(text);
+          const segs = splitMixedLang(cleaned);
+          wordsRef.current = splitWords(cleaned);
+          for (const seg of segs) {
+            const voice = seg.lang === 'zh' ? getChineseVoice(gender) : getEdgeVoice(accent, gender);
+            const parts = splitForTTS(seg.text);
+            for (const part of parts) {
+              const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
+              const res = await fetch(url, { cache: 'no-store' });
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              blobs.push(toMp3Blob(await res.arrayBuffer()));
+            }
+          }
+        } else {
+          // 单语言模式（现有行为）
+          const parts = splitForTTS(text);
+          const voice = getEdgeVoice(accent, gender);
+          wordsRef.current = splitWords(text);
+          for (const part of parts) {
+            const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
+            const res = await fetch(url, { cache: 'no-store' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            blobs.push(toMp3Blob(await res.arrayBuffer()));
+          }
         }
+
         // 请求已失效（被新的 speak/stop 取代）：丢弃结果，不创建 audio
         if (seq !== speakSeqRef.current) {
           setState('idle');
@@ -197,7 +273,9 @@ export function useSpeak() {
 
     // Web Speech fallback
     const fallbackGender = useAppStore.getState().tts.gender;
-    const handle = webSpeak(text, {
+    const fallbackText = lang === 'auto' ? cleanTextForTTS(text) : text;
+    wordsRef.current = splitWords(fallbackText);
+    const handle = webSpeak(fallbackText, {
       accent: accent as Accent,
       gender: fallbackGender,
       rate,
