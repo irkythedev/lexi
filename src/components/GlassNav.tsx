@@ -38,9 +38,7 @@ export default function GlassNav() {
       <header className={`glass-nav fixed inset-x-0 top-0 z-50 ${scrolled ? 'scrolled' : ''}`}>
         <div className="mx-auto flex h-14 max-w-[var(--max-grid)] items-center justify-between px-[var(--pad-x)]">
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
-            <span className="flex h-10 w-10 items-center justify-center rounded-[12px] shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}>
-              <span className="font-serif text-[calc(20px*var(--type-scale))] font-bold leading-none text-white">L</span>
-            </span>
+            <img src="/icon-192.png" alt="Lexi" className="h-10 w-10 shrink-0 rounded-[12px] border-2 border-[var(--color-hairline)] shadow-[var(--shadow-card)]" style={{ background: '#FAEFD9' }} />
             <span className="flex items-baseline gap-1">
               <span className="text-[calc(15px*var(--type-scale))] font-semibold tracking-[-0.01em] text-[var(--color-text)]">Lexi</span>
               <button type="button" onClick={() => setShowChangelog(true)} title={t('changelogTitle', locale)} className="tnum press rounded-[var(--radius-pill)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-2 py-0.5 text-[calc(10px*var(--type-scale))] font-semibold text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors">v{FOOTER.version}</button>
