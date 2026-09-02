@@ -135,13 +135,13 @@ export default function LearnView() {
                     </div>
                     <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
                   </div>
-                  {/* 展开指示（单独靠左，紧跟内容） */}
-                  <ChevronDown size={18} className={`shrink-0 text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
-                  {/* 朗读 + AI 操作成组，gap 8px，靠右 */}
-                  <div className="flex shrink-0 items-center gap-2">
-                    <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={20} color={meta.tint} />
-                    <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind }); setAiOpen(true); }} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={20} /></button>
+                  {/* 朗读 + AI 操作成组，gap 8px */}
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} compact />
+                    <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
                   </div>
+                  {/* 展开指示：仅当词条在课文实际出现时显示，放最右 */}
+                  {quote && <ChevronDown size={14} className={`shrink-0 text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />}
                 </div>
                 {/* 课文原句展开区：仅当词条在课文实际出现时显示 */}
                 {expanded && quote && (

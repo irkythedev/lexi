@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Pause, Play, Repeat, Globe, Gauge, Loader2, ChevronUp, Volume2 } from 'lucide-react';
+import { Pause, Play, Repeat, Globe, Gauge, Loader2, ChevronLeft } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
@@ -108,7 +108,7 @@ export default function FloatingTTS() {
       {/* 收起态：小圆按钮，点击展开 */}
       {collapsed ? (
         <button onClick={() => setOpen(true)} className="press fixed bottom-[4.7rem] left-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 text-[var(--color-accent)] shadow-[var(--shadow-overlay)]" aria-label={t('ttsExpand', locale)}>
-          <Volume2 size={16} />
+          <Play size={16} />
         </button>
       ) : (
         <div className="glass-overlay fixed bottom-[4.7rem] left-4 z-40 flex items-center gap-0.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 px-1 py-0.5 shadow-[var(--shadow-overlay)]">
@@ -126,7 +126,7 @@ export default function FloatingTTS() {
             <Gauge size={13} />
           </button>
           <button onClick={() => setOpen(false)} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)]" aria-label={t('ttsCollapse', locale)}>
-            <ChevronUp size={14} />
+            <ChevronLeft size={14} />
           </button>
         </div>
       )}

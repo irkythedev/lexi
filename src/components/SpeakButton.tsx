@@ -7,7 +7,7 @@ import { Volume2, Loader2 } from 'lucide-react';
 import { requestSpeak, subscribeTtsState } from '../components/FloatingTTS.tsx';
 
 export default function SpeakButton({
-  text, accent, rate, size = 16, color, className = '', children,
+  text, accent, rate, size = 16, color, className = '', children, compact = false,
 }: {
   text: string;
   accent: 'us' | 'uk';
@@ -16,6 +16,7 @@ export default function SpeakButton({
   color?: string;
   className?: string;
   children?: React.ReactNode;
+  compact?: boolean;
 }) {
   const [phase, setPhase] = useState<'idle' | 'synth' | 'play'>('idle');
   const activeRef = useRef(false);
@@ -56,7 +57,7 @@ export default function SpeakButton({
   return (
     <button
       onClick={click}
-      className={`press flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)] ${className}`}
+      className={`press flex shrink-0 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)] ${compact ? 'h-9 w-9' : 'h-11 w-11'} ${className}`}
       aria-label="朗读"
     >
       {Icon}
