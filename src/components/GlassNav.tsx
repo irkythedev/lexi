@@ -38,8 +38,8 @@ export default function GlassNav() {
       <header className={`glass-nav fixed inset-x-0 top-0 z-50 ${scrolled ? 'scrolled' : ''}`}>
         <div className="mx-auto flex h-14 max-w-[var(--max-grid)] items-center justify-between px-[var(--pad-x)]">
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[10px] shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}>
-              <span className="font-serif text-[calc(15px*var(--type-scale))] font-bold leading-none text-white">L</span>
+            <span className="flex h-10 w-10 items-center justify-center rounded-[12px] shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}>
+              <span className="font-serif text-[calc(20px*var(--type-scale))] font-bold leading-none text-white">L</span>
             </span>
             <span className="flex items-baseline gap-1">
               <span className="text-[calc(15px*var(--type-scale))] font-semibold tracking-[-0.01em] text-[var(--color-text)]">Lexi</span>
@@ -62,17 +62,17 @@ export default function GlassNav() {
           </nav>
           <div className="flex items-center gap-2">
             {/* 主题切换：40px 圆，1.5px hairline，图标 text */}
-            <button onClick={() => { const cur = useAppStore.getState().theme; toggleTheme(); useToastStore.getState().show(cur === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', cur === 'dark' ? 'sun' : 'moon'); }} className="press flex h-10 w-10 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('switchTheme', locale)}>
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            <button onClick={() => { const cur = useAppStore.getState().theme; toggleTheme(); useToastStore.getState().show(cur === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', cur === 'dark' ? 'sun' : 'moon'); }} className="press flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('switchTheme', locale)}>
+              {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
-            {/* AI 配置入口：40px 圆，未配置红点保留 */}
-            <button onClick={() => navigate('/ai')} className="press relative flex h-10 w-10 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('aiConfigure', locale)}>
-              <Sparkles size={18} />
-              {!aiReady && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--color-trap)]" />}
+            {/* AI 配置入口：32px 圆，未配置红点保留 */}
+            <button onClick={() => navigate('/ai')} className="press relative flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('aiConfigure', locale)}>
+              <Sparkles size={16} />
+              {!aiReady && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--color-trap)]" />}
             </button>
-            {/* 语言切换：与主题/AI 同规格 40px 圆，文字随当前语言（zh→EN / en→中） */}
-            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-10 w-10 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('langSwitch', locale)}>
-              <span className="text-[calc(13px*var(--type-scale))] font-semibold leading-none">{locale === 'zh' ? 'EN' : '中'}</span>
+            {/* 语言切换：与主题/AI 同规格 32px 圆，文字随当前语言（zh→EN / en→中） */}
+            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('langSwitch', locale)}>
+              <span className="text-[calc(12px*var(--type-scale))] font-semibold leading-none">{locale === 'zh' ? 'EN' : '中'}</span>
             </button>
           </div>
         </div>
