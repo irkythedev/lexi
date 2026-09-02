@@ -1,7 +1,7 @@
 // SessionView — fullscreen learning session driven by useSessionEngine.
 // Task chain per word: listen → recognize → recall → spell.
 // Word-by-word highlight during TTS playback (听步骤的随字符跳动).
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
@@ -9,7 +9,6 @@ import { useSessionEngine, type TaskResult } from '../lib/session-engine.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { KIND_META, shuffle } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
-import { requestStopTts } from '../components/FloatingTTS.tsx';
 import { Tag } from '../components/ui/primitives.tsx';
 
 export default function SessionView() {
@@ -36,21 +35,6 @@ export default function SessionView() {
     editionId: selection?.editionId ?? '',
     onComplete: () => setReviewDone(true),
   });
-
-  // Auto-play TTS on listen task.
-  useEffect(() => {
-    if (!task || task.type !== 'listen') return;
-    setShownWord(0);
-    // 先停止 FloatingTTS 的独立播放实例，避免两份读音重叠
-    requestStopTts();
-    speak(task.item.label, {
-      accent: tts.accent,
-      rate: tts.rate,
-      onWordChange: (idx: number) => setShownWord(idx),
-    });
-    return () => stop();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task?.id]);
 
   // Build recognition options (correct + 3 distractors).
   const recognizeOptions = useMemo(() => {
@@ -147,7 +131,7 @@ export default function SessionView() {
             </div>
             {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
             <div className="mt-4 flex items-center justify-center gap-3">
-              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
+              <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
               <button onClick={() => void grade('correct')} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
             </div>
           </div>
