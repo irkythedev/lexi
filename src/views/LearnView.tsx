@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Puzzle, Zap, ChevronDown, Eye, EyeOff, BookText, ArrowRight, BookOpen } from 'lucide-react';
+import { Layers, Puzzle, Zap, ChevronDown, Eye, EyeOff, BookText, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -11,6 +11,7 @@ import Sprint from '../components/Sprint.tsx';
 import ReadingView from './ReadingView.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import SpeakButton from '../components/SpeakButton.tsx';
+import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
 import PaginationBar from '../components/PaginationBar.tsx';
 import { usePagination } from '../lib/pagination.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
@@ -22,6 +23,8 @@ export default function LearnView() {
   const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'pattern'>('all');
   const [hideCn, setHideCn] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
+  const [aiTarget, setAiTarget] = useState<AssistContext | null>(null);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const groups = [
     { kind: 'vocab', items: studyItems.filter((i) => i.kind === 'vocab') },
@@ -128,12 +131,14 @@ export default function LearnView() {
                   <p className="mt-0.5 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
                 </div>
                 <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />
+                <button onClick={() => { setAiTarget({ label: item.label, extra: item.meaning ? `${item.meaning}` : undefined, questions: [t('aiWordMeaning', locale), t('aiWordUsage', locale), t('aiWordExample', locale), t('aiWordExam', locale)] }); setAiOpen(true); }} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={15} /></button>
               </div>
             </Row>
           );
         })}
       </Panel>
       <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />
+      <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiTarget} />
     </div>
   );
 }

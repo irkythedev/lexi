@@ -3,10 +3,11 @@
 // 数据：UNIT_READINGS（阅读数据，按单元索引）
 // 播放：useSpeak 单句 TTS；onEnd 自动播下一句
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Play, Pause, Loader2 } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Loader2, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
+import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
 import { t } from '../lib/i18n.ts';
 
 // 按句分割（保留分隔符让句子朗读时带标点停顿）
@@ -22,6 +23,13 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
   const [sentenceIdx, setSentenceIdx] = useState(0);
 
   const reading = useMemo(() => UNIT_READINGS.find((r) => r.unit === unit), [unit]);
+
+  const [aiOpen, setAiOpen] = useState(false);
+  const aiContext: AssistContext | null = reading ? {
+    label: reading.title,
+    extra: reading.paragraphs[0]?.slice(0, 200) ?? '',
+    questions: [t('aiReadSummary', locale), t('aiReadPhrase', locale), t('aiReadGrammar', locale)],
+  } : null;
 
   // 展平为句子数组
   const sentences = useMemo(() => {
@@ -139,6 +147,10 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
           );
         })}
       </div>
+
+      {/* AI 辅助 */}
+      <button onClick={() => setAiOpen(true)} className="press mt-5 inline-flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-accent)] hover:underline"><Sparkles size={14} /> {t('aiReading', locale)}</button>
+      <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiContext} />
     </div>
   );
 }

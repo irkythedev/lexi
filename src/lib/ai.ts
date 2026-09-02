@@ -86,7 +86,7 @@ export interface StreamHandle { abort: () => void; }
 // Streaming chat. onChunk receives (delta, full). Abortable.
 export function streamChat(args: {
   cfg: AiConfig; systemPrompt: string; userMessage: string;
-  onChunk?: (delta: string, full: string) => void; signal?: AbortSignal;
+  onChunk?: (delta: string, full: string) => void; onEnd?: (full: string) => void; signal?: AbortSignal;
 }): StreamHandle {
   const base = normalizeBaseUrl(args.cfg.baseUrl);
   const controller = new AbortController();
@@ -132,6 +132,7 @@ export function streamChat(args: {
         }
       }
       args.onChunk?.('', full);
+      args.onEnd?.(full);
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
       throw e;

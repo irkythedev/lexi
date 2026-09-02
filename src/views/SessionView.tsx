@@ -5,7 +5,7 @@
 // navigating away (e.g. to Settings) and back preserves progress.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2 } from 'lucide-react';
+import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   useSessionEngine, type TaskResult,
@@ -15,6 +15,7 @@ import { useSpeak } from '../lib/useSpeak.ts';
 import { KIND_META, shuffle } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
 import { Tag } from '../components/ui/primitives.tsx';
+import AiAssistPanel from '../components/AiAssistPanel.tsx';
 
 export default function SessionView() {
   const { unitId } = useParams();
@@ -32,6 +33,7 @@ export default function SessionView() {
   const [spellInput, setSpellInput] = useState('');
   const [feedback, setFeedback] = useState<null | { ok: boolean; msg: string }>(null);
   const [reviewDone, setReviewDone] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const words = useMemo(() => studyItems, [studyItems]);
 
@@ -184,6 +186,7 @@ export default function SessionView() {
             <div className="mt-4 flex items-center justify-center gap-3">
               <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
               <button onClick={() => void grade('correct')} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
+              <button onClick={() => setAiOpen(true)} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
             </div>
           </div>
         )}
@@ -244,6 +247,14 @@ export default function SessionView() {
           <button onClick={skip} className="press mt-5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-3)]">{t('skipThis', locale)}</button>
         )}
       </div>
+      {/* AI 辅助 — 当前词 */}
+      {task && (
+        <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={{
+          label: task.item.label,
+          extra: task.item.meaning ?? '',
+          questions: [t('aiWordMeaning', locale), t('aiWordUsage', locale), t('aiWordExample', locale)],
+        }} />
+      )}
     </div>
   );
 }
