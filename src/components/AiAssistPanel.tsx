@@ -14,6 +14,60 @@ export interface AssistContext {
   questions: string[]; // 预设问题
 }
 
+/** 按 CJK 切分文本：返回交替的中文/英文段。 */
+function splitByLang(text: string): { lang: 'zh' | 'en'; text: string }[] {
+  const segs: { lang: 'zh' | 'en'; text: string }[] = [];
+  let cur = '';
+  let curLang: 'zh' | 'en' | null = null;
+  const flush = () => { if (cur) { segs.push({ lang: curLang === 'zh' ? 'zh' : 'en', text: cur }); cur = ''; } };
+  for (const ch of text) {
+    const code = ch.codePointAt(0)!;
+    const isZh = (code >= 0x4e00 && code <= 0x9fff) || (code >= 0x3400 && code <= 0x4dbf) || (code >= 0x3000 && code <= 0x303f) || (code >= 0xff00 && code <= 0xffef);
+    const lang: 'zh' | 'en' = isZh ? 'zh' : 'en';
+    if (curLang === null) curLang = lang;
+    if (lang !== curLang) {
+      // 极短段（≤2 字符，常见标点）并入前段
+      if (cur.length <= 2) { cur += ch; continue; }
+      flush();
+      curLang = lang;
+    }
+    cur += ch;
+  }
+  flush();
+  return segs;
+}
+
+/** 回答气泡内的英文段落点播：英文句子/词组渲染为带小喇叭的行内块，点击朗读该段。 */
+function MixedSpeakText({ text, accent, rate }: { text: string; accent: 'us' | 'uk'; rate: number }) {
+  const locale = useAppStore((s) => s.locale);
+  const { speak, stop, state: ttsState } = useSpeak();
+  const segs = splitByLang(text);
+
+  return (
+    <>
+      {segs.map((seg, i) => {
+        if (seg.lang === 'zh') return <span key={i}>{seg.text}</span>;
+        // 英文段：仅当含字母才给播放按钮（纯标点/空白段不渲染按钮）
+        if (!/[A-Za-z]/.test(seg.text)) return <span key={i}>{seg.text}</span>;
+        const active = ttsState === 'playing' || ttsState === 'synthesizing';
+        return (
+          <span key={i} className="inline-flex items-baseline gap-1">
+            <button
+              onClick={() => { if (active) stop(); else speak(seg.text.trim(), { accent, rate, lang: 'en' }); }}
+              className="press -my-0.5 inline-flex h-5 w-5 shrink-0 translate-y-[1px] items-center justify-center rounded-full text-[var(--color-accent)] opacity-70 hover:opacity-100"
+              aria-label={t('listenAgain', locale)}
+              title={seg.text.trim().slice(0, 40)}
+            >
+              {ttsState === 'synthesizing' ? <Loader2 size={10} className="animate-spin" /> : <Volume2 size={10} />}
+            </button>
+            <span className="font-medium text-[var(--color-text)]">{seg.text}</span>
+          </span>
+        );
+      })}
+    </>
+  );
+}
+
 export default function AiAssistPanel({
   open, onClose, context,
 }: {
@@ -104,8 +158,10 @@ export default function AiAssistPanel({
                 )}
                 {answer && (
                   <div className="whitespace-pre-wrap rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">
+                    {/* 整段朗读按钮（右上角） */}
                     <button onClick={() => { if (ttsState === 'playing' || ttsState === 'synthesizing') { stop(); } else { speak(answer, { accent: tts.accent, rate: tts.rate, lang: 'auto' }); } }} className="press float-right ml-2 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={14} className="animate-spin" /> : <Volume2 size={14} />}</button>
-                    {answer}
+                    {/* 逐句英文段落朗读 */}
+                    <MixedSpeakText text={answer} accent={tts.accent} rate={tts.rate} />
                   </div>
                 )}
                 {err && <p className="rounded-[var(--radius-card)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>}
