@@ -1,5 +1,5 @@
-// PaginationBar — 吸底翻页控件：上一页 / 页码 / 下一页。
-// sticky bottom 保持可见，不随列表滚出视口。
+// PaginationBar — 紧凑型翻页控件：‹ 页码/总数 › 吸底右对齐。
+// 精简 icon 按钮，不占横贯全宽，不与左下角 FloatingTTS 朗读球重叠。
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
@@ -16,26 +16,26 @@ export default function PaginationBar({
   if (totalPages <= 1) return null;
 
   return (
-    <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] z-10 -mx-[var(--pad-x)] mt-3 px-[var(--pad-x)] pb-2 md:bottom-0">
-      <div className="mx-auto flex max-w-[var(--max-grid)] items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)] px-3 py-1.5 shadow-[var(--shadow-card)]">
+    <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] z-10 mt-3 flex justify-end pb-2 pr-[var(--pad-x)] md:bottom-0">
+      <div className="flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2 py-1 shadow-[var(--shadow-card)]">
         <button
           onClick={onPrev}
           disabled={page === 0}
-          className="press flex h-9 items-center gap-1 rounded-[var(--radius-md)] px-3 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-40"
+          className="press flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-30"
           aria-label={t('pagePrev', locale)}
         >
-          <ChevronLeft size={16} /> {t('pagePrev', locale)}
+          <ChevronLeft size={14} />
         </button>
-        <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
+        <span className="tnum min-w-[3em] text-center text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">
           {t('pageIndicator', locale, { page: page + 1, total: totalPages })}
         </span>
         <button
           onClick={onNext}
           disabled={page >= totalPages - 1}
-          className="press flex h-9 items-center gap-1 rounded-[var(--radius-md)] px-3 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-40"
+          className="press flex h-7 w-7 items-center justify-center rounded-[var(--radius-sm)] text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-text)] disabled:opacity-30"
           aria-label={t('pageNext', locale)}
         >
-          {t('pageNext', locale)} <ChevronRight size={16} />
+          <ChevronRight size={14} />
         </button>
       </div>
     </div>
