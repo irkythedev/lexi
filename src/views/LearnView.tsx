@@ -14,8 +14,9 @@ import SpeakButton from '../components/SpeakButton.tsx';
 import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
 import PaginationBar from '../components/PaginationBar.tsx';
 import { usePagination } from '../lib/pagination.ts';
-import { findQuote } from '../data/textbooks/unit_texts.ts';
+import { findQuote, truncateQuote } from '../data/textbooks/unit_texts.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
+import WordHighlight from '../components/WordHighlight.tsx';
 
 export default function LearnView() {
   const { unit, studyItems, tts, locale } = useAppStore();
@@ -27,6 +28,7 @@ export default function LearnView() {
   const [aiTarget, setAiTarget] = useState<AssistContext | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [quoteFull, setQuoteFull] = useState<Set<string>>(new Set());
 
   const groups = [
     { kind: 'vocab', items: studyItems.filter((i) => i.kind === 'vocab') },
@@ -138,7 +140,7 @@ export default function LearnView() {
                   {/* 朗读 + AI 操作成组，gap 8px */}
                   <div className="flex shrink-0 items-center gap-1.5">
                     <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} compact />
-                    <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind, quote: quote ?? undefined }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
                   </div>
                   {/* 展开指示：仅当词条在课文实际出现时显示，放最右 */}
                   {quote && <ChevronDown size={14} className={`shrink-0 text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />}
@@ -150,7 +152,27 @@ export default function LearnView() {
                       <span className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('textbookQuote', locale)}</span>
                       <SpeakButton text={quote} accent={tts.accent} rate={tts.rate} size={13} color="var(--color-accent)" />
                     </div>
-                    <p className="mt-1.5 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{quote}</p>
+                    {/* 长句默认只展示高亮词所在片段，点击展开全文 */}
+                    {(() => {
+                      const full = quoteFull.has(item.id);
+                      const short = truncateQuote(quote, item.label);
+                      const long = short !== quote;
+                      return (
+                        <>
+                          <p className="mt-1.5 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">
+                            <WordHighlight text={full ? quote : short} word={item.label} />
+                          </p>
+                          {long && (
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setQuoteFull((prev) => { const n = new Set(prev); if (full) n.delete(item.id); else n.add(item.id); return n; }); }}
+                              className="press mt-1.5 text-[calc(12px*var(--type-scale))] font-medium text-[var(--color-accent)]"
+                            >
+                              {full ? t('quoteCollapse', locale) : t('quoteExpand', locale)}
+                            </button>
+                          )}
+                        </>
+                      );
+                    })()}
                   </div>
                 )}
               </div>

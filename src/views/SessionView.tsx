@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
+import { findQuote } from '../data/textbooks/unit_texts.ts';
 import {
   useSessionEngine, type TaskResult,
   getSessionSnapshot, saveSessionSnapshot, clearSessionSnapshot,
@@ -253,6 +254,7 @@ export default function SessionView() {
           label: task.item.label,
           meaning: task.item.meaning ?? '',
           kind: task.item.kind,
+          quote: unit ? (findQuote(task.item, unit.unit) ?? undefined) : undefined,
         }} />
       )}
     </div>

@@ -12,11 +12,13 @@ import {
 } from '../lib/ai.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
+import WordHighlight from './WordHighlight.tsx';
 
 export interface AssistContext {
   label: string;       // 当前词/句
   meaning?: string;    // 释义（可选）
   kind?: string;       // vocab | phrase | pattern
+  quote?: string;      // 教材原文例句（可选，命中课文时 AI 例句优先采用）
   extra?: string;      // 额外上下文（如课文段落）
 }
 
@@ -47,17 +49,6 @@ function StudyCardView({ card, accent, rate, highlight }: { card: StudyCard; acc
   const locale = useAppStore((s) => s.locale);
   const { speak, stop, state: ttsState } = useSpeak();
   const active = ttsState === 'playing' || ttsState === 'synthesizing';
-
-  /** 把字符串中的高亮词用 mark 包裹（整词边界，大小写不敏感）。 */
-  const highlightText = (text: string, word: string): React.ReactNode => {
-    if (!word) return text;
-    const esc = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const re = new RegExp(`(?<![A-Za-z])${esc}(?![A-Za-z])`, 'gi');
-    const parts = text.split(re);
-    if (parts.length === 1) return text;
-    const matches = text.match(re) ?? [];
-    return parts.flatMap((p, i) => i < matches.length ? [p, <mark key={i} className="rounded-[3px] bg-[var(--color-accent)]/20 px-0.5 font-semibold text-[var(--color-accent)]" style={{ textDecoration: 'underline' }}>{matches[i]}</mark>] : [p]);
-  };
 
   return (
     <div className="space-y-3">
@@ -96,7 +87,7 @@ function StudyCardView({ card, accent, rate, highlight }: { card: StudyCard; acc
               {ttsState === 'synthesizing' ? <Loader2 size={13} className="animate-spin" /> : <Volume2 size={13} />}
             </button>
             <div className="min-w-0">
-              <p className="text-[calc(14.5px*var(--type-scale))] font-medium leading-relaxed text-[var(--color-text)]">{highlightText(card.example.en, highlight ?? card.word)}</p>
+              <p className="text-[calc(14.5px*var(--type-scale))] font-medium leading-relaxed text-[var(--color-text)]"><WordHighlight text={card.example.en} word={highlight ?? card.word} /></p>
               {card.example.zh && <p className="mt-0.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{card.example.zh}</p>}
             </div>
           </div>
@@ -147,7 +138,7 @@ export default function AiAssistPanel({
   const study = useCallback(async () => {
     if (!cfg || busy || !context) return;
     setBusy(true); setErr(''); setCard(null);
-    const msg = studyCardPrompt(context.label, context.meaning, context.kind);
+    const msg = studyCardPrompt(context.label, context.meaning, context.kind, context.quote);
     const knowledge = context.extra ?? (unit ? `${unit.editionName} Unit ${unit.unit}` : undefined);
     try {
       let full = '';

@@ -1059,9 +1059,30 @@ const UNIT_TEXTS: Record<number, string[]> = {
 
 const _QUOTE_CACHE = new Map<string, string | null>();
 
-/** 在单元文本中查找包含词条 label 的完整句子。
+/** 拆分句子：在 . ! ? 后按大写/引号开头断开，容忍引号归属。 */
+function _splitSentences(text: string): string[] {
+  return text
+    .replace(/\s+/g, ' ')
+    .split(/(?<=[.!?])\s+(?=[A-Z"'“(])/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 8 && !/^[,;:]$/.test(s));
+}
+
+/** 噪声行过滤：表格行/标题/孤词/评估行/转义残留一律不参与匹配。 */
+function _isCleanLine(line: string): boolean {
+  const t = line.trim();
+  if (!t) return false;
+  if (/^[|#>]/.test(t)) return false;                       // 表格行 / markdown 标题
+  if (t.split(/\s+/).length < 3) return false;              // 孤词与过短碎片（含词表残留行）
+  if (/^(Result:|My action plan:|Wonderful)/.test(t)) return false; // 学习评估噪声
+  if (t.includes('\\\\') || t.includes('\\_')) return false; // 转义残留
+  return true;
+}
+
+/** 在单元文本中查找包含词条 label 的句子。
  *  整词边界匹配（短语连续匹配，避免 "energetic" 匹配 "energetically"）。
- *  返回第一个匹配的原文句子（完整保留原文标点）。匹配不到返回 null。
+ *  先把长文本切成句子，过滤表格/标题/孤词噪声行，再从完整句里挑最短的
+ *  （最贴近"例句"形态），而非返回首个命中的整段。匹配不到返回 null。
  */
 export function findQuote(item: StudyItem, unitNumber: number): string | null {
   const cacheKey = unitNumber + ":" + item.id;
@@ -1083,12 +1104,47 @@ export function findQuote(item: StudyItem, unitNumber: number): string | null {
     : "(?<![A-Za-z])" + esc(label) + "(?![A-Za-z])";
   const re = new RegExp(pattern, "i");
 
-  for (const text of texts) {
-    if (re.test(text)) {
-      _QUOTE_CACHE.set(cacheKey, text);
-      return text;
+  const candidates: string[] = [];
+  for (const line of texts) {
+    if (!_isCleanLine(line)) continue;
+    for (const sentence of _splitSentences(line)) {
+      // 只收真正以句末标点收尾的句子；词表/碎片行（如 "impress high standards imagination..."）直接淘汰
+      if (!/[.!?]["')\]]?$/.test(sentence)) continue;
+      // 剥离对话行的人名前缀（"Amy: ..."、"Mr Wu: ..."、"Liu Hao: ..."）
+      const dePrefixed = sentence.replace(/^[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*:\s+/, '');
+      if (!dePrefixed || dePrefixed.split(/\s+/).length < 3) continue;
+      if (re.test(dePrefixed)) candidates.push(dePrefixed);
     }
   }
-  _QUOTE_CACHE.set(cacheKey, null);
-  return null;
+  if (candidates.length === 0) { _QUOTE_CACHE.set(cacheKey, null); return null; }
+
+  // 完整句中选最短者（最贴近"例句"形态）
+  candidates.sort((a, b) => a.length - b.length);
+  const best = candidates[0];
+  _QUOTE_CACHE.set(cacheKey, best);
+  return best;
+}
+
+/** 长句截断展示：保留高亮词所在的核心片段，前后补省略号；短于阈值原样返回。
+ *  用于"默认只展示高亮词所在那半句"，点击可展开看全文。
+ */
+export function truncateQuote(quote: string, label: string, maxLen = 120): string {
+  if (!quote || quote.length <= maxLen) return quote;
+  const idx = quote.toLowerCase().indexOf(label.toLowerCase());
+  if (idx === -1) return quote.slice(0, maxLen - 1).trimEnd() + '…';
+  const half = Math.floor((maxLen - 3 - label.length) / 2);
+  let start = Math.max(0, idx - half);
+  let end = Math.min(quote.length, idx + label.length + half);
+  // 对齐到词边界，避免半词
+  if (start > 0) {
+    const sp = quote.indexOf(' ', start);
+    if (sp !== -1 && sp < idx) start = sp + 1;
+  }
+  if (end < quote.length) {
+    const sp2 = quote.lastIndexOf(' ', end);
+    if (sp2 !== -1 && sp2 > idx + label.length) end = sp2;
+  }
+  const head = start > 0 ? '… ' : '';
+  const tail = end < quote.length ? ' …' : '';
+  return head + quote.slice(start, end).trim() + tail;
 }

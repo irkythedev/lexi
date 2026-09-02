@@ -182,9 +182,14 @@ export interface StudyCard {
 /**
  * 合并学习卡片 prompt：一次请求生成 释义/用法/例句/考点 四段，输出 JSON。
  * 结构化输出避免前端用字符串替换插朗读按钮（那是破坏性分词）。
+ * quote：教材原文例句（存在时要求 AI 优先采用，可微调时态/人称但保留句式骨架），
+ *        缺失时 AI 自拟例句，必须自然、必须包含目标词。
  */
-export function studyCardPrompt(label: string, meaning?: string, kind?: string): string {
+export function studyCardPrompt(label: string, meaning?: string, kind?: string, quote?: string): string {
   const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : '单词';
+  const quoteRule = quote
+    ? `- 例句必须采用下面的教材原文（可微调时态/人称适配语境，但保留句式结构与原词形，不要改写含义）：「${quote}」`
+    : '- 例句必须自然地道、像教材或考试题，长度 8-15 词，且必须包含目标词「' + label + '」。';
   return `请针对这个${kindLabel}「${label}」${meaning ? `（${meaning}）` : ''}生成一份学习卡片，只输出 JSON，不要任何多余文字或 markdown：
 
 {
@@ -205,6 +210,7 @@ export function studyCardPrompt(label: string, meaning?: string, kind?: string):
 - usage 和 examTips 各 2-4 项；speak 项的 text 必须是完整英文词/短语（如 "be energetic"、"more energetic"），禁止拆成字母或词缀。
 - 若英文示例是单个字母（如考点里提示别漏字母 e），单独给一个 { "type": "speak", "text": "e" }。
 - example.en 是完整句子，朗读时整句播，不拆词。
+- ${quoteRule}
 - 总量控制在 180 字以内，每个字段简短。`;
 }
 
