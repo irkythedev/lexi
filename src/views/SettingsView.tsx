@@ -155,7 +155,7 @@ export default function SettingsView() {
           <div className="py-1">
             <p className="text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{unit.editionName}</p>
             <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{unit.title}（Unit {unit.unit}）</p>
-            <button onClick={() => setEditingBook(true)} className="press mt-2 rounded-full border border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('textbookChange', locale)}</button>
+            <button onClick={() => setEditingBook(true)} className="press mt-2 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('textbookChange', locale)}</button>
           </div>
         ) : <p className="py-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('textbookNone', locale)}</p>}
         {editingBook && <div className="mt-2 rounded-[var(--radius-card)] border border-[var(--color-hairline)] p-3"><TextbookSwitcher onSelected={() => { setEditingBook(false); }} /></div>}
@@ -164,7 +164,7 @@ export default function SettingsView() {
       <Section icon={Upload} title={t('personalImport', locale)}>
         <div className="flex items-center justify-between py-1">
           <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('personalImportDesc', locale)}</span>
-          <button onClick={() => setShowImport(true)} className="press flex items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('personalImportOpen', locale)}</button>
+          <button onClick={() => setShowImport(true)} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('personalImportOpen', locale)}</button>
         </div>
       </Section>
 

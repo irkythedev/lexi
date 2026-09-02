@@ -17,11 +17,11 @@ export default function PaginationBar({
 
   return (
     <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] z-10 -mx-[var(--pad-x)] mt-3 px-[var(--pad-x)] pb-2 md:bottom-0">
-      <div className="mx-auto flex max-w-[var(--max-grid)] items-center justify-between gap-3 rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface)] px-3 py-1.5 shadow-[var(--shadow-card)]">
+      <div className="mx-auto flex max-w-[var(--max-grid)] items-center justify-between gap-3 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)] px-3 py-1.5 shadow-[var(--shadow-card)]">
         <button
           onClick={onPrev}
           disabled={page === 0}
-          className="press flex h-9 items-center gap-1 rounded-full px-3 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-40"
+          className="press flex h-9 items-center gap-1 rounded-[var(--radius-md)] px-3 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-40"
           aria-label={t('pagePrev', locale)}
         >
           <ChevronLeft size={16} /> {t('pagePrev', locale)}
@@ -32,7 +32,7 @@ export default function PaginationBar({
         <button
           onClick={onNext}
           disabled={page >= totalPages - 1}
-          className="press flex h-9 items-center gap-1 rounded-full px-3 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-40"
+          className="press flex h-9 items-center gap-1 rounded-[var(--radius-md)] px-3 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-40"
           aria-label={t('pageNext', locale)}
         >
           {t('pageNext', locale)} <ChevronRight size={16} />

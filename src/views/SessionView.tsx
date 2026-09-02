@@ -134,8 +134,8 @@ export default function SessionView() {
         <h2 className="mt-5 text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('sessionComplete', locale)}</h2>
         <p className="mt-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sessionStats', locale, { total: stats.total, correct: stats.correct, wrong: stats.wrong })}</p>
         <div className="mt-6 flex gap-3">
-          <button onClick={() => navigate('/')} className="press rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium">{t('backToHome', locale)}</button>
-          <button onClick={handleReset} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>
+          <button onClick={() => navigate('/')} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium">{t('backToHome', locale)}</button>
+          <button onClick={handleReset} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>
             <RotateCcw size={16} /> {t('anotherRound', locale)}
           </button>
         </div>
@@ -147,7 +147,7 @@ export default function SessionView() {
     return (
       <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-16 text-center">
         <p className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sessionNoUnit', locale)}</p>
-        <button onClick={() => navigate('/')} className="press mt-4 rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))]">{t('backToHome', locale)}</button>
+        <button onClick={() => navigate('/')} className="press mt-4 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))]">{t('backToHome', locale)}</button>
       </div>
     );
   }
@@ -184,8 +184,8 @@ export default function SessionView() {
             </div>
             {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
             <div className="mt-4 flex items-center justify-center gap-3">
-              <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
-              <button onClick={() => void grade('correct')} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
+              <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
+              <button onClick={() => void grade('correct')} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
               <button onClick={() => setAiOpen(true)} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
             </div>
           </div>
@@ -214,8 +214,8 @@ export default function SessionView() {
             <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('recallHint', locale)}</p>
             <h2 className="mt-3 text-[calc(clamp(24px,6vw,36px)*var(--type-scale))] font-bold">{task.item.meaning}</h2>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <button onClick={() => void grade('correct')} className="press flex items-center justify-center gap-1.5 rounded-full border border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab)]"><Check size={17} /> {t('known', locale)}</button>
-              <button onClick={() => void grade('wrong')} className="press flex items-center justify-center gap-1.5 rounded-full border border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap)]"><X size={17} /> {t('unknown', locale)}</button>
+              <button onClick={() => void grade('correct')} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab)]"><Check size={17} /> {t('known', locale)}</button>
+              <button onClick={() => void grade('wrong')} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap)]"><X size={17} /> {t('unknown', locale)}</button>
             </div>
             <p className="mt-3 text-[calc(13px*var(--type-scale))] text-[var(--color-text-3)]">{task.item.label} · {task.item.phonetic ?? ''}</p>
           </div>
@@ -231,14 +231,14 @@ export default function SessionView() {
               <input autoFocus value={spellInput} onChange={(e) => setSpellInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') checkSpell(); }}
                 placeholder={t('spellInput', locale)}
-                className="w-full rounded-2xl border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-3.5 text-center text-[calc(18px*var(--type-scale))] font-medium outline-none focus:border-[var(--color-accent)]" />
-              <button onClick={checkSpell} className="press mt-3 w-full rounded-full px-6 py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('spellSubmit', locale)}</button>
+                className="w-full rounded-[var(--radius-md)] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-3.5 text-center text-[calc(18px*var(--type-scale))] font-medium outline-none focus:border-[var(--color-accent)]" />
+              <button onClick={checkSpell} className="press mt-3 w-full rounded-[var(--radius-md)] px-6 py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('spellSubmit', locale)}</button>
             </div>
           </div>
         )}
 
         {feedback && (
-          <div className={`mt-5 rounded-full px-4 py-2 text-[calc(14px*var(--type-scale))] font-medium ${feedback.ok ? 'bg-[var(--color-vocab-soft)] text-[var(--color-vocab)]' : 'bg-[var(--color-trap-soft)] text-[var(--color-trap)]'}`}>
+          <div className={`mt-5 rounded-[var(--radius-md)] px-4 py-2 text-[calc(14px*var(--type-scale))] font-medium ${feedback.ok ? 'bg-[var(--color-vocab-soft)] text-[var(--color-vocab)]' : 'bg-[var(--color-trap-soft)] text-[var(--color-trap)]'}`}>
             {feedback.msg || (feedback.ok ? t('correct', locale) : t('wrong', locale))}
           </div>
         )}

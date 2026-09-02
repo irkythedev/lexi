@@ -58,7 +58,7 @@ export default function Flashcard({ items, onExit }: { items: StudyItem[]; onExi
                 </div>
               )}
             </div>
-            <button onClick={() => setFlipped(true)} className="press mt-2 w-full rounded-full border border-[var(--color-hairline)] py-2.5 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('cardShowAnswerOrFlip', locale)}</button>
+            <button onClick={() => setFlipped(true)} className="press mt-2 w-full rounded-[var(--radius-md)] border border-[var(--color-hairline)] py-2.5 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('cardShowAnswerOrFlip', locale)}</button>
           </div>
           {/* BACK */}
           <div className="flip-face flip-back absolute inset-0 flex flex-col rounded-[var(--radius-hero)] border p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
@@ -76,7 +76,7 @@ export default function Flashcard({ items, onExit }: { items: StudyItem[]; onExi
                     {collos.map((c, i) => (
                       <div key={i} className="flex flex-wrap items-center gap-1.5">
                         {splitCollocation(c).map((part, j) => (
-                          <span key={j} className="rounded-full border px-3 py-1 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: meta.border, background: 'var(--color-surface)', color: meta.text }}>{part}</span>
+                          <span key={j} className="rounded-[var(--radius-md)] border px-3 py-1 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: meta.border, background: 'var(--color-surface)', color: meta.text }}>{part}</span>
                         ))}
                       </div>
                     ))}
@@ -91,16 +91,16 @@ export default function Flashcard({ items, onExit }: { items: StudyItem[]; onExi
               )}
             </div>
             <div className="mt-3 grid grid-cols-2 gap-3">
-              <button onClick={() => gradeCard(false)} className="press flex items-center justify-center gap-1.5 rounded-full border border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap)]"><X size={16} /> {t('cardForgot', locale)}</button>
-              <button onClick={() => gradeCard(true)} className="press flex items-center justify-center gap-1.5 rounded-full border border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab)]"><Check size={16} /> {t('cardRemember', locale)}</button>
+              <button onClick={() => gradeCard(false)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap)]"><X size={16} /> {t('cardForgot', locale)}</button>
+              <button onClick={() => gradeCard(true)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab)]"><Check size={16} /> {t('cardRemember', locale)}</button>
             </div>
           </div>
         </div>
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <button onClick={prev} disabled={idx === 0} className="press flex items-center gap-1 rounded-full border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] disabled:opacity-40"><ArrowLeft size={16} /> {t('cardPrev', locale)}</button>
-        <button onClick={next} disabled={idx === items.length - 1} className="press flex items-center gap-1 rounded-full border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] disabled:opacity-40">{t('cardNext', locale)} <ArrowRight size={16} /></button>
+        <button onClick={prev} disabled={idx === 0} className="press flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] disabled:opacity-40"><ArrowLeft size={16} /> {t('cardPrev', locale)}</button>
+        <button onClick={next} disabled={idx === items.length - 1} className="press flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] disabled:opacity-40">{t('cardNext', locale)} <ArrowRight size={16} /></button>
       </div>
     </div>
   );

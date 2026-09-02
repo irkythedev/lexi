@@ -58,7 +58,7 @@ export default function CollocationConnector({ onExit }: { onExit: () => void })
         <div className="mt-8 flex flex-col items-center rounded-[var(--radius-hero)] p-8 text-center" style={{ background: 'var(--color-vocab-soft)', border: '1px solid var(--color-vocab-border)' }}>
           <Trophy size={40} className="text-[var(--color-vocab)]" />
           <p className="mt-3 text-[18px] font-bold text-[var(--color-text)]">全部配对成功！</p>
-          <button onClick={reset} className="press mt-4 rounded-full bg-[var(--color-text)] px-5 py-2 text-[15px] font-semibold text-[var(--color-surface)]">再来一次</button>
+          <button onClick={reset} className="press mt-4 rounded-[var(--radius-md)] bg-[var(--color-text)] px-5 py-2 text-[15px] font-semibold text-[var(--color-surface)]">再来一次</button>
         </div>
       ) : (
         <div className="mt-5 space-y-5">

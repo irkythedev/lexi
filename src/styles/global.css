@@ -51,11 +51,14 @@
 
   /* Radii (named tiers — no ad-hoc values) */
   --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-chip: 8px;
   --radius-thumb: 12px;
-  --radius-card: 18px;
-  --radius-panel: 22px;
-  --radius-hero: 26px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
+  --radius-hero: 16px;
   --radius-sheet: 16px;
 
   /* Shadows (two-layer, Apple) */
@@ -209,8 +212,8 @@ textarea:focus-visible {
 .flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .flip-back { transform: rotateY(180deg); }
 
-.seg { display: inline-flex; background: var(--color-track); border-radius: var(--radius-pill); padding: 3px; gap: 2px; }
-.seg button { border: none; cursor: pointer; font-size: 13px; font-weight: 500; padding: 7px 15px; min-height: 36px; border-radius: var(--radius-pill); background: transparent; color: var(--color-text-2); transition: all 0.25s var(--ease-out-quart); }
+.seg { display: inline-flex; background: var(--color-track); border-radius: var(--radius-md); padding: 3px; gap: 2px; }
+.seg button { border: none; cursor: pointer; font-size: 13px; font-weight: 500; padding: 7px 15px; min-height: 36px; border-radius: var(--radius-md); background: transparent; color: var(--color-text-2); transition: all 0.25s var(--ease-out-quart); }
 .seg button.active { background: var(--color-surface); color: var(--color-text); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 
 .panel { background: var(--color-surface); border-radius: var(--radius-panel); box-shadow: var(--shadow-panel); overflow: hidden; }

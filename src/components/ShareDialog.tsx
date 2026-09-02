@@ -76,11 +76,11 @@ export default function ShareDialog({ url, onClose, title, text }: ShareDialogPr
         {/* 按钮 */}
         <div className="mt-3 flex flex-col gap-2">
           {'share' in navigator && (
-            <button type="button" onClick={handleNativeShare} className="press flex items-center justify-center gap-2 rounded-full bg-[var(--color-accent)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">
+            <button type="button" onClick={handleNativeShare} className="press flex items-center justify-center gap-2 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">
               <Share2 size={16} /> {t('share', locale)}
             </button>
           )}
-          <button type="button" onClick={handleCopy} className="press flex items-center justify-center gap-2 rounded-full border border-[var(--color-hairline)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]">
+          <button type="button" onClick={handleCopy} className="press flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]">
             {copied ? <Check size={16} style={{ color: 'var(--color-vocab)' }} /> : <Copy size={16} />}
             {copied ? t('copied', locale) : t('copyLink', locale)}
           </button>

@@ -56,11 +56,11 @@ export default function LearnView() {
           <div className="text-[calc(12px*var(--type-scale))] font-semibold tracking-[0.14em] opacity-80">{unit.editionName} · Unit {unit.unit}</div>
           <h2 className="mt-1.5 text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{unit.title}</h2>
           <div className="mt-3 flex gap-4 text-[calc(13px*var(--type-scale))]">
-            <span className="glass-chip rounded-full px-3 py-1">{t('words', locale)} {groups[0].items.length}</span>
-            <span className="glass-chip rounded-full px-3 py-1">{t('phrases', locale)} {groups[1].items.length}</span>
-            <span className="glass-chip rounded-full px-3 py-1">{t('patterns', locale)} {groups[2].items.length}</span>
+            <span className="glass-chip rounded-[var(--radius-sm)] px-3 py-1">{t('words', locale)} {groups[0].items.length}</span>
+            <span className="glass-chip rounded-[var(--radius-sm)] px-3 py-1">{t('phrases', locale)} {groups[1].items.length}</span>
+            <span className="glass-chip rounded-[var(--radius-sm)] px-3 py-1">{t('patterns', locale)} {groups[2].items.length}</span>
           </div>
-          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press mt-4 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold backdrop-blur">
+          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press mt-4 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-white/20 px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold backdrop-blur">
             {t('startLearning', locale)} <ArrowRight size={16} />
           </button>
         </div>
@@ -78,7 +78,7 @@ export default function LearnView() {
                 <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('reading', locale)}</span>
                 <span className="mt-0.5 block truncate text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
               </div>
-              <button onClick={() => setMode('reading')} className="press flex items-center gap-1 rounded-full bg-[var(--color-accent)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('enter', locale)} <ArrowRight size={14} /></button>
+              <button onClick={() => setMode('reading')} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('enter', locale)} <ArrowRight size={14} /></button>
             </div>
           </div>
         );
@@ -100,7 +100,7 @@ export default function LearnView() {
                   <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{m.title}</span>
                   <span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{m.desc}</span>
                 </span>
-                <button onClick={() => setMode(m.id as 'flash')} className="press flex items-center gap-1 rounded-full bg-[var(--color-accent)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white"><span>{t('enter', locale)}</span><ArrowRight size={14} /></button>
+                <button onClick={() => setMode(m.id as 'flash')} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white"><span>{t('enter', locale)}</span><ArrowRight size={14} /></button>
               </div>
             ); })}
           </div>
@@ -110,7 +110,7 @@ export default function LearnView() {
       <div className="mt-5 flex items-center justify-between">
         <div className="flex gap-2">
           {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
-            <button key={f} onClick={() => { setFilter(f); pager.reset(); }} className="press rounded-full px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ background: filter === f ? 'var(--color-accent)' : 'var(--color-track)', color: filter === f ? '#fff' : 'var(--color-text-2)' }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
+            <button key={f} onClick={() => { setFilter(f); pager.reset(); }} className="press rounded-[var(--radius-sm)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ background: filter === f ? 'var(--color-accent)' : 'var(--color-track)', color: filter === f ? '#fff' : 'var(--color-text-2)' }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
           ))}
         </div>
         <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} /> : <Eye size={15} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
