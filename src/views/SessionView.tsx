@@ -145,10 +145,10 @@ export default function SessionView() {
                 >{w}</span>
               ))}
             </div>
-            <p className="mt-4 text-[calc(14px*var(--type-scale))] text-[var(--color-text-2)]">{t('listenHint', locale)}</p>
-            <div className="mt-5 flex justify-center gap-3">
-              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} disabled={ttsState === 'synthesizing'} className="press flex items-center gap-2 rounded-full border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={17} className="animate-spin" /> : <Volume2 size={17} />} {ttsState === 'synthesizing' ? t('synthesizing', locale) : t('listenAgain', locale)}</button>
-              <button onClick={() => void grade('correct')} className="press flex items-center gap-1.5 rounded-full px-6 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('stepDone', locale)} <ChevronRight size={17} /></button>
+            {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-full border border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
+              <button onClick={() => void grade('correct')} className="press flex items-center gap-1.5 rounded-full px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
             </div>
           </div>
         )}
