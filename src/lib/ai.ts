@@ -168,22 +168,44 @@ export function examPointPrompt(phrase: string, meaning: string): string {
 短语：${phrase}（${meaning || ''}）。题目考查该短语的固定搭配、介词或用法，难度贴近中考/高考。`;
 }
 
+/** 学习卡片渲染段：text = 普通文本，speak = 整段一个朗读按钮（不再拆词）。 */
+export interface StudySegment { type: 'text' | 'speak'; text: string; }
+
+export interface StudyCard {
+  word: string;
+  definition: string;
+  usage: StudySegment[];
+  example: { en: string; zh: string };
+  examTips: StudySegment[];
+}
+
 /**
- * 合并学习卡片 prompt：一次请求生成 释义/用法/例句/考点 四段。
- * 纯文本输出（无 markdown），总长受限，方便朗读与展示。
+ * 合并学习卡片 prompt：一次请求生成 释义/用法/例句/考点 四段，输出 JSON。
+ * 结构化输出避免前端用字符串替换插朗读按钮（那是破坏性分词）。
  */
 export function studyCardPrompt(label: string, meaning?: string, kind?: string): string {
   const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : '单词';
-  return `请针对这个${kindLabel}「${label}」${meaning ? `（${meaning}）` : ''}生成一份学习卡片，按以下结构输出，每项都用简短的一句话，总共不超过 180 字：
+  return `请针对这个${kindLabel}「${label}」${meaning ? `（${meaning}）` : ''}生成一份学习卡片，只输出 JSON，不要任何多余文字或 markdown：
 
-1. 释义：用中文解释含义（若已有中文释义可简化为更易记的说法）。
-2. 用法：一句话说明常见用法或搭配。
-3. 例句：给出 1 个简单英语例句，并附中文翻译。
-4. 考点：一句话指出常考或易错点。
+{
+  "word": "${label}",
+  "definition": "一句话中文释义（可用更易记的说法）",
+  "usage": [
+    { "type": "text", "text": "一句话说明常见用法或搭配，含中文解释" },
+    { "type": "speak", "text": "英语示例短语，完整词/短语，不要拆开" }
+  ],
+  "example": { "en": "一个完整英语例句", "zh": "对应中文翻译" },
+  "examTips": [
+    { "type": "text", "text": "中文考点提示" },
+    { "type": "speak", "text": "需要朗读的英文词/短语（可选，单独列，不要嵌在中文句子里）" }
+  ]
+}
 
-输出要求：
-- 只用纯文本，不要任何 markdown 标记（不要 **、#、-、反引号、星号）。
-- 用数字 1. 2. 3. 4. 开头分行，不要额外总结。`;
+要求：
+- usage 和 examTips 各 2-4 项；speak 项的 text 必须是完整英文词/短语（如 "be energetic"、"more energetic"），禁止拆成字母或词缀。
+- 若英文示例是单个字母（如考点里提示别漏字母 e），单独给一个 { "type": "speak", "text": "e" }。
+- example.en 是完整句子，朗读时整句播，不拆词。
+- 总量控制在 180 字以内，每个字段简短。`;
 }
 
 export function extractJson(text: string): CorrectionResult | ExamPointResult | null {
@@ -194,6 +216,37 @@ export function extractJson(text: string): CorrectionResult | ExamPointResult | 
   if (start === -1 || end === -1) return null;
   try {
     return JSON.parse(s.slice(start, end + 1)) as CorrectionResult | ExamPointResult;
+  } catch {
+    return null;
+  }
+}
+
+/** 解析学习卡片 JSON，容错降级（字段缺失时返回 null，由调用方回退纯文本）。 */
+export function parseStudyCard(text: string): StudyCard | null {
+  if (!text) return null;
+  const s = text.trim();
+  const start = s.indexOf('{');
+  const end = s.lastIndexOf('}');
+  if (start === -1 || end === -1) return null;
+  try {
+    const raw = JSON.parse(s.slice(start, end + 1)) as Partial<StudyCard>;
+    if (!raw.word || !raw.definition) return null;
+    const seg = (v: unknown): StudySegment[] => {
+      if (!Array.isArray(v)) return [];
+      return v
+        .filter((x): x is StudySegment => !!x && typeof (x as StudySegment).text === 'string')
+        .map((x) => ({ type: (x as StudySegment).type === 'speak' ? 'speak' : 'text', text: String((x as StudySegment).text) }));
+    };
+    return {
+      word: String(raw.word),
+      definition: String(raw.definition),
+      usage: seg(raw.usage).length ? seg(raw.usage) : [{ type: 'text' as const, text: String(raw.definition) }],
+      example: {
+        en: String(raw.example?.en ?? ''),
+        zh: String(raw.example?.zh ?? ''),
+      },
+      examTips: seg(raw.examTips),
+    };
   } catch {
     return null;
   }

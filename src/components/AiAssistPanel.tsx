@@ -1,11 +1,15 @@
 // AIAssistPanel — 轻量 AI 学习面板（无自由输入）。
 // 嵌入在 Learn/Reading/Session 等学习区域，单按钮一次生成学习卡片
-// （释义/用法/例句/考点），纯文本限长。桌面端为可拖拽/缩放的浮窗，
-// 移动端为底部 sheet。
+// （释义/用法/例句/考点），模型输出结构化 JSON，前端按类型渲染：
+//   type:"speak" 段 = 整段一个朗读按钮（完整词/短语/句子），文本不可再拆。
+// 桌面端为可拖拽/缩放的浮窗，移动端为底部 sheet。
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Sparkles, Loader2, Volume2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, isNetworkError } from '../lib/ai.ts';
+import {
+  loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, isNetworkError,
+  parseStudyCard, type StudyCard,
+} from '../lib/ai.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
 
@@ -16,70 +20,94 @@ export interface AssistContext {
   extra?: string;      // 额外上下文（如课文段落）
 }
 
-/** 轻清洗 md：去掉加粗/斜体/代码/标题/列表符，留纯文本。 */
-function stripMarkdown(text: string): string {
-  return text
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/`([^`\n]*)`/g, '$1')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/\*([^*]+)\*/g, '$1')
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/^#+\s*/gm, '')
-    .replace(/^[-*]\s+/gm, '· ')
-    .replace(/^>\s?/gm, '')
-    .replace(/~~([^~]+)~~/g, '$1')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-/** 按 CJK 切分文本：返回交替的中文/英文段。 */
-function splitByLang(text: string): { lang: 'zh' | 'en'; text: string }[] {
-  const segs: { lang: 'zh' | 'en'; text: string }[] = [];
-  let cur = '';
-  let curLang: 'zh' | 'en' | null = null;
-  const flush = () => { if (cur) { segs.push({ lang: curLang === 'zh' ? 'zh' : 'en', text: cur }); cur = ''; } };
-  for (const ch of text) {
-    const code = ch.codePointAt(0)!;
-    const isZh = (code >= 0x4e00 && code <= 0x9fff) || (code >= 0x3400 && code <= 0x4dbf) || (code >= 0x3000 && code <= 0x303f) || (code >= 0xff00 && code <= 0xffef);
-    const lang: 'zh' | 'en' = isZh ? 'zh' : 'en';
-    if (curLang === null) curLang = lang;
-    if (lang !== curLang) {
-      if (cur.length <= 2) { cur += ch; continue; }
-      flush();
-      curLang = lang;
-    }
-    cur += ch;
-  }
-  flush();
-  return segs;
-}
-
-/** 回答气泡：英文段落内嵌小喇叭逐句点播，中文原样。 */
-function MixedSpeakText({ text, accent, rate }: { text: string; accent: 'us' | 'uk'; rate: number }) {
+/** 朗读按钮：整段一个喇叭 + 文本同行，中间不拆。 */
+function SpeakInline({ text, accent, rate, size = 12, fontSize = 'inherit', bold = false }: {
+  text: string; accent: 'us' | 'uk'; rate: number; size?: number; fontSize?: string; bold?: boolean;
+}) {
   const locale = useAppStore((s) => s.locale);
   const { speak, stop, state: ttsState } = useSpeak();
-  const segs = splitByLang(text);
+  const active = ttsState === 'playing' || ttsState === 'synthesizing';
+  return (
+    <span className="inline-flex items-center gap-1 whitespace-nowrap">
+      <button
+        onClick={() => { if (active) stop(); else speak(text.trim(), { accent, rate, lang: 'en' }); }}
+        className="press inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] opacity-80 hover:opacity-100"
+        aria-label={t('listenAgain', locale)}
+        title={text.trim().slice(0, 60)}
+      >
+        {ttsState === 'synthesizing' ? <Loader2 size={size} className="animate-spin" /> : <Volume2 size={size} />}
+      </button>
+      <span className={bold ? 'font-semibold text-[var(--color-text)]' : ''} style={{ fontSize }}>{text}</span>
+    </span>
+  );
+}
+
+/** 学习卡片展示。 */
+function StudyCardView({ card, accent, rate }: { card: StudyCard; accent: 'us' | 'uk'; rate: number }) {
+  const locale = useAppStore((s) => s.locale);
+  const { speak, stop, state: ttsState } = useSpeak();
+  const active = ttsState === 'playing' || ttsState === 'synthesizing';
 
   return (
-    <>
-      {segs.map((seg, i) => {
-        if (seg.lang === 'zh' || !/[A-Za-z]/.test(seg.text)) return <span key={i}>{seg.text}</span>;
-        const active = ttsState === 'playing' || ttsState === 'synthesizing';
-        return (
-          <span key={i} className="inline-flex items-baseline gap-1">
+    <div className="space-y-3">
+      {/* 释义 */}
+      <div>
+        <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardDefinition', locale)}</div>
+        <p className="mt-0.5 text-[calc(14.5px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{card.definition}</p>
+      </div>
+
+      {/* 用法 */}
+      {card.usage.length > 0 && (
+        <div>
+          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardUsage', locale)}</div>
+          <ul className="mt-1 space-y-1">
+            {card.usage.map((s, i) => (
+              <li key={i} className="text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">
+                {s.type === 'speak'
+                  ? <SpeakInline text={s.text} accent={accent} rate={rate} bold />
+                  : <span>{s.text}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 例句（整句一个按钮） */}
+      {card.example.en && (
+        <div>
+          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardExample', locale)}</div>
+          <div className="mt-1 flex items-start gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">
             <button
-              onClick={() => { if (active) stop(); else speak(seg.text.trim(), { accent, rate, lang: 'en' }); }}
-              className="press -my-0.5 inline-flex h-5 w-5 shrink-0 translate-y-[1px] items-center justify-center rounded-full text-[var(--color-accent)] opacity-70 hover:opacity-100"
+              onClick={() => { if (active) stop(); else speak(card.example.en.trim(), { accent, rate, lang: 'en' }); }}
+              className="press mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] hover:opacity-100"
               aria-label={t('listenAgain', locale)}
-              title={seg.text.trim().slice(0, 40)}
             >
-              {ttsState === 'synthesizing' ? <Loader2 size={10} className="animate-spin" /> : <Volume2 size={10} />}
+              {ttsState === 'synthesizing' ? <Loader2 size={13} className="animate-spin" /> : <Volume2 size={13} />}
             </button>
-            <span className="font-medium text-[var(--color-text)]">{seg.text}</span>
-          </span>
-        );
-      })}
-    </>
+            <div className="min-w-0">
+              <p className="text-[calc(14.5px*var(--type-scale))] font-medium leading-relaxed text-[var(--color-text)]">{card.example.en}</p>
+              {card.example.zh && <p className="mt-0.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{card.example.zh}</p>}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 考点 */}
+      {card.examTips.length > 0 && (
+        <div>
+          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardExam', locale)}</div>
+          <ul className="mt-1 space-y-1">
+            {card.examTips.map((s, i) => (
+              <li key={i} className="text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">
+                {s.type === 'speak'
+                  ? <SpeakInline text={s.text} accent={accent} rate={rate} bold />
+                  : <span>{s.text}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -92,36 +120,40 @@ export default function AiAssistPanel({
 }) {
   const { locale, unit } = useAppStore();
   const cfg = loadConfig();
-  const [answer, setAnswer] = useState('');
+  const [card, setCard] = useState<StudyCard | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 桌面浮窗位置/尺寸（拖拽缩放）
-  const [win, setWin] = useState({ x: 0, y: 0, w: 360, h: 480, dragging: false, resizing: false });
+  const [win, setWin] = useState({ x: 0, y: 0, w: 380, h: 520, dragging: false, resizing: false });
   const dragStart = useRef({ x: 0, y: 0, wx: 0, wy: 0 });
 
-  useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [answer, busy]);
-  useEffect(() => { if (!open) { setAnswer(''); setBusy(false); setErr(''); } }, [open]);
+  useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [card, busy]);
+  useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); } }, [open]);
 
-  // 生成学习卡片（一次请求四段合一）
+  // 生成学习卡片（一次请求，JSON 结构化）
   const study = useCallback(async () => {
     if (!cfg || busy || !context) return;
-    setBusy(true); setErr(''); setAnswer('');
+    setBusy(true); setErr(''); setCard(null);
     const msg = studyCardPrompt(context.label, context.meaning, context.kind);
     const knowledge = context.extra ?? (unit ? `${unit.editionName} Unit ${unit.unit}` : undefined);
     try {
+      let full = '';
       await new Promise<void>((resolve) => {
         let settled = false;
         streamChat({
           cfg, systemPrompt: buildSystemPrompt({ unitTitle: unit?.title, knowledge }),
           userMessage: msg,
-          onChunk: (_d, f) => setAnswer(stripMarkdown(f)),
-          onEnd: (full) => { if (!settled) { settled = true; setAnswer(stripMarkdown(full)); resolve(); } },
+          onChunk: (_d, f) => { full = f; },
+          onEnd: (f) => { if (!settled) { settled = true; full = f; resolve(); } },
         });
         const timer = setTimeout(() => { if (!settled) { settled = true; resolve(); } }, 60000);
         void timer;
       });
+      const parsed = parseStudyCard(full);
+      if (parsed) setCard(parsed);
+      else setErr(t('aiCardParseError', locale));
     } catch (e) {
       setErr(isNetworkError((e as Error).message) ? t('aiNetUnreachable', locale) : (e as Error).message);
     } finally {
@@ -150,8 +182,8 @@ export default function AiAssistPanel({
   };
   const onResizeMove = (e: React.PointerEvent) => {
     if (!win.resizing) return;
-    const w = Math.max(300, Math.min(window.innerWidth - 40, dragStart.current.wx + (e.clientX - dragStart.current.x)));
-    const h = Math.max(240, Math.min(window.innerHeight - 40, dragStart.current.wy + (e.clientY - dragStart.current.y)));
+    const w = Math.max(320, Math.min(window.innerWidth - 40, dragStart.current.wx + (e.clientX - dragStart.current.x)));
+    const h = Math.max(280, Math.min(window.innerHeight - 40, dragStart.current.wy + (e.clientY - dragStart.current.y)));
     setWin((s) => ({ ...s, w, h }));
   };
   const endGesture = () => setWin((w) => ({ ...w, dragging: false, resizing: false }));
@@ -164,8 +196,8 @@ export default function AiAssistPanel({
       <div
         className={`fixed z-10 flex flex-col border border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)]
           ${window.innerWidth < 640
-            ? 'inset-x-0 bottom-0 max-h-[85vh] rounded-t-2xl pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]'
-            : 'rounded-xl'}`}
+            ? 'inset-x-0 bottom-0 max-h-[85vh] rounded-t-[var(--radius-lg)] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]'
+            : 'rounded-[var(--radius-lg)]'}`}
         style={window.innerWidth >= 640 ? { left: win.x, top: win.y, width: win.w, height: win.h, cursor: win.dragging ? 'grabbing' : 'default' } : undefined}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
@@ -196,7 +228,7 @@ export default function AiAssistPanel({
         ) : (
           <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-2">
             {/* 单按钮：一次生成学习卡片 */}
-            {!answer && !busy && context && (
+            {!card && !busy && context && (
               <div className="flex flex-col gap-2 pt-1">
                 <button onClick={() => void study()} className="press inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-4 py-2.5 text-[calc(13.5px*var(--type-scale))] font-semibold text-white">
                   <Sparkles size={14} /> {t('aiStudyGenerate', locale)}
@@ -204,17 +236,13 @@ export default function AiAssistPanel({
                 <p className="text-center text-[calc(11.5px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiStudyHint', locale)}</p>
               </div>
             )}
-            {busy && !answer && (
+            {busy && !card && (
               <div className="flex items-center gap-2 p-2"><Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-accent)' }} /><span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStudyBusy', locale)}</span></div>
             )}
-            {answer && (
-              <div className="whitespace-pre-wrap rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-3 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">
-                <MixedSpeakText text={answer} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} />
-              </div>
-            )}
-            {err && <p className="rounded-[var(--radius-card)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>}
-            {answer && (
-              <button onClick={() => { setAnswer(''); }} className="press text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('aiAskAgain', locale)}</button>
+            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} />}
+            {err && <p className="rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>}
+            {card && (
+              <button onClick={() => { setCard(null); }} className="press text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('aiAskAgain', locale)}</button>
             )}
           </div>
         )}
