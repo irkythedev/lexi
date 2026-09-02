@@ -86,37 +86,37 @@
 
 /* Dark mode tokens — 暖黑纸 + 浅描边卡（同一套语言的夜间版） */
 .dark {
-  --color-ground: #1C1A17;
-  --color-surface: #26231F;
-  --color-surface-2: #2F2B26;
-  --color-text: #F4EFE7;
-  --color-text-body: #C9C2B8;
-  --color-text-2: #9A938A;
-  --color-text-3: #6F6962;
+  --color-ground: #161411;
+  --color-surface: #241F1B;
+  --color-surface-2: #2E2924;
+  --color-text: #F3EBE0;
+  --color-text-body: #C9C0B5;
+  --color-text-2: #9A9186;
+  --color-text-3: #6E675F;
   --color-text-4: #524D46;
-  --color-hairline: #E8DFD4;
+  --color-hairline: #E4D9CC;
   --color-input-border: #8A837C;
-  --color-input-bg: #26231F;
-  --color-track: #3A352F;
+  --color-input-bg: #2E2924;
+  --color-track: #3A342E;
   /* semantic text lightened for dark backgrounds (deep 提亮，soft 低透明) */
   --color-vocab-deep: #7FA896;
   --color-phrase-deep: #D9B95C;
   --color-pattern-deep: #A89AD6;
   --color-trap-deep: #E08368;
-  --color-vocab-soft: rgba(47, 111, 94, 0.22);
+  --color-vocab-soft: rgba(47, 111, 94, 0.16);
   --color-vocab-border: rgba(127, 168, 150, 0.5);
-  --color-phrase-soft: rgba(196, 150, 42, 0.2);
+  --color-phrase-soft: rgba(196, 150, 42, 0.16);
   --color-phrase-border: rgba(217, 185, 92, 0.5);
-  --color-pattern-soft: rgba(110, 94, 168, 0.24);
+  --color-pattern-soft: rgba(110, 94, 168, 0.16);
   --color-pattern-border: rgba(168, 154, 214, 0.5);
-  --color-trap-soft: rgba(212, 90, 60, 0.2);
+  --color-trap-soft: rgba(212, 90, 60, 0.16);
   --color-trap-border: rgba(224, 131, 104, 0.5);
   --color-live: #7FA896;
   /* accent is theme-driven; dark uses same theme accent (set below) */
-  --shadow-card: 2px 2px 0 rgba(0, 0, 0, 0.6);
-  --shadow-panel: 3px 3px 0 rgba(0, 0, 0, 0.6);
-  --shadow-lift: 3px 5px 0 rgba(0, 0, 0, 0.6);
-  --shadow-cta: 2px 2px 0 color-mix(in srgb, var(--color-accent) 60%, #000);
+  --shadow-card: 2px 2px 0 rgba(0, 0, 0, 0.7);
+  --shadow-panel: 3px 3px 0 rgba(0, 0, 0, 0.7);
+  --shadow-lift: 3px 5px 0 rgba(0, 0, 0, 0.7);
+  --shadow-cta: 2px 2px 0 rgba(0, 0, 0, 0.7);
 }
 
 /* ── Theme color variants — user-selectable, override --color-accent ──
@@ -211,7 +211,7 @@ textarea:focus-visible {
 
 .seg { display: inline-flex; background: var(--color-track); border: 2px solid var(--color-hairline); border-radius: var(--radius-md); padding: 3px; gap: 2px; }
 .seg button { border: 2px solid transparent; cursor: pointer; font-size: 13px; font-weight: 500; padding: 7px 15px; min-height: 36px; border-radius: var(--radius-md); background: transparent; color: var(--color-text-2); transition: all 0.25s var(--ease-out-quart); }
-.seg button.active { background: var(--color-surface); color: var(--color-text); font-weight: 600; border: 2px solid var(--color-hairline); box-shadow: 1px 1px 0 color-mix(in srgb, var(--color-hairline) 60%, transparent); }
+.seg button.active { background: var(--color-surface); color: var(--color-text); font-weight: 600; border: 2px solid var(--color-hairline); }
 
 .panel { background: var(--color-surface); border-radius: var(--radius-panel); border: 2px solid var(--color-hairline); box-shadow: var(--shadow-panel); overflow: hidden; }
 .row { display: block; padding: 16px clamp(17px, 3vw, 24px); transition: background 0.15s; }
@@ -254,13 +254,17 @@ input[type='range'].thumb-rect::-moz-range-thumb {
   cursor: pointer;
 }
 
-/* 字号/语速统一滑块：圆拇指白底 + 2px 墨线（同一套零件） */
+/* 字号/语速统一滑块：accent 进度填充 + 圆拇指白底墨线（同一套零件） */
 input[type='range'].thumb-round {
   -webkit-appearance: none;
   appearance: none;
-  height: 6px;
-  border-radius: 3px;
-  background: var(--color-track);
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right,
+    var(--color-accent) 0%,
+    var(--color-accent) var(--fill, 0%),
+    var(--color-track) var(--fill, 0%),
+    var(--color-track) 100%);
   outline: none;
 }
 input[type='range'].thumb-round::-webkit-slider-thumb {

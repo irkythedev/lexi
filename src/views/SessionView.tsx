@@ -136,7 +136,7 @@ export default function SessionView() {
         <p className="mt-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sessionStats', locale, { total: stats.total, correct: stats.correct, wrong: stats.wrong })}</p>
         <div className="mt-6 flex gap-3">
           <button onClick={() => navigate('/')} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]">{t('backToHome', locale)}</button>
-          <button onClick={handleReset} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>
+          <button onClick={handleReset} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>
             <RotateCcw size={16} /> {t('anotherRound', locale)}
           </button>
         </div>
@@ -186,7 +186,7 @@ export default function SessionView() {
             {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
             <div className="mt-4 flex items-center justify-center gap-3">
               <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
-              <button onClick={() => void grade('correct')} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
+              <button onClick={() => void grade('correct')} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
               <button onClick={() => setAiOpen(true)} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
             </div>
           </div>
@@ -233,7 +233,7 @@ export default function SessionView() {
                 onKeyDown={(e) => { if (e.key === 'Enter') checkSpell(); }}
                 placeholder={t('spellInput', locale)}
                 className="w-full rounded-[var(--radius-md)] border-2 border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-3.5 text-center text-[calc(18px*var(--type-scale))] font-medium outline-none focus:border-[var(--color-accent)]" />
-              <button onClick={checkSpell} className="press mt-3 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-6 py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('spellSubmit', locale)}</button>
+              <button onClick={checkSpell} className="press mt-3 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-6 py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('spellSubmit', locale)}</button>
             </div>
           </div>
         )}

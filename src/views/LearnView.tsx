@@ -73,7 +73,7 @@ export default function LearnView() {
               </div>
             ))}
           </div>
-          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">
+          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">
             {t('startLearning', locale)} <ArrowRight size={16} />
           </button>
         </div>
@@ -113,7 +113,7 @@ export default function LearnView() {
                   <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{m.title}</span>
                   <span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{m.desc}</span>
                 </span>
-                <button onClick={() => setMode(m.id as 'flash')} className="press inline-flex min-h-9 items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)]"><span>{t('enter', locale)}</span><ArrowRight size={14} /></button>
+                <button onClick={() => setMode(m.id as 'flash')} className="press inline-flex min-h-9 items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)]"><span>{t('enter', locale)}</span><ArrowRight size={14} /></button>
               </div>
             ); })}
           </div>

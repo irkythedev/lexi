@@ -39,7 +39,7 @@ function ConsentView({ onAgree }: { onAgree: () => void }) {
     { tk: 'aiTermCompliance', bk: 'aiTermComplianceDesc' },
   ];
   return (
-    <div className="rounded-[var(--radius-hero)] border p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
+    <div className="rounded-[var(--radius-hero)] border-2 p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
       <div className="flex items-center gap-2 text-[calc(15px*var(--type-scale))] font-bold text-[var(--color-text)]"><AlertCircle size={18} style={{ color: 'var(--color-accent)' }} /> {t('aiNoticeTitle', locale)}</div>
       <ol className="mt-4 space-y-3">
         {TERMS.map((x, i) => <li key={i} className="text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]"><span className="font-semibold text-[var(--color-text)]">{i + 1}. {t(x.tk, locale)}：</span>{t(x.bk, locale)}</li>)}
@@ -90,10 +90,10 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   };
 
   return (
-    <div className="rounded-[var(--radius-hero)] border p-5 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
+    <div className="rounded-[var(--radius-hero)] border-2 p-5 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
       <div className="text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiChooseProvider', locale)}</div>
       <div className="mt-2 flex flex-wrap gap-2">
-        {AI_PROVIDERS.map((p) => <button key={p.id} onClick={() => onProvider(p.id)} className="press rounded-[var(--radius-sm)] border px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: provider === p.id ? 'var(--color-accent)' : 'var(--color-hairline)', background: provider === p.id ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: provider === p.id ? 'var(--color-accent)' : 'var(--color-text-2)' }}>{providerName(p.id)}</button>)}
+        {AI_PROVIDERS.map((p) => <button key={p.id} onClick={() => onProvider(p.id)} className="press rounded-[var(--radius-md)] border-2 px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: provider === p.id ? 'var(--color-accent)' : 'var(--color-hairline)', background: provider === p.id ? 'color-mix(in srgb, var(--color-accent) 15%, transparent)' : 'var(--color-surface)', color: provider === p.id ? 'var(--color-accent)' : 'var(--color-text-2)' }}>{providerName(p.id)}</button>)}
       </div>
       {currentProvider?.id === 'doubao' && <p className="mt-1.5 text-[calc(12px*var(--type-scale))] text-[var(--color-trap)]">{t('aiProviderDoubaoNote', locale)}</p>}
 
@@ -124,7 +124,7 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
 
       <div className="mt-5 flex items-center justify-between">
         <button onClick={clearAll} className="press text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiClearAll', locale)}</button>
-        <button onClick={save} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-6 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('aiSaveConfig', locale)}</button>
+        <button onClick={save} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-6 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">{t('aiSaveConfig', locale)}</button>
       </div>
     </div>
   );

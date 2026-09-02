@@ -23,7 +23,7 @@ function Home() {
         <div className="rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-panel)]">
           <h2 className="text-[calc(22px*var(--type-scale))] font-bold tracking-[-0.02em] text-[var(--color-text)]">先选一本教材</h2>
           <p className="mt-1.5 text-[calc(15px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">选择学段、出版社、年级与单元，即可开始单词、短语、句式与考点的智能训练。数据完全保存在本机，无需登录。</p>
-          <button onClick={() => navigate('/learn')} className="press mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">去选教材 →</button>
+          <button onClick={() => navigate('/learn')} className="press mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">去选教材 →</button>
         </div>
       )}
       {unit && (
@@ -32,7 +32,7 @@ function Home() {
             <div className="text-[calc(12px*var(--type-scale))] font-semibold tracking-[0.14em] text-[var(--color-accent)]">{unit.editionName} · Unit {unit.unit}</div>
             <h2 className="mt-1 text-[calc(clamp(20px,4vw,26px)*var(--type-scale))] font-bold tracking-[-0.02em] text-[var(--color-text)]">{unit.title}</h2>
           </div>
-          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">继续学习 →</button>
+          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">继续学习 →</button>
         </div>
       )}
     </div>

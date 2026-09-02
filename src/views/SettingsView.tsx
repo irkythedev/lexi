@@ -58,7 +58,7 @@ export default function SettingsView() {
             {(Object.keys(ACCENT_META) as Accent[]).map((a) => (
               <button key={a} onClick={() => { setAccent(a); toast(t('toastThemeColor', locale, { name: ACCENT_META[a].name }), 'success', 'check'); }} title={ACCENT_META[a].name}
                 className="press relative flex h-8 w-8 items-center justify-center rounded-full transition"
-                style={{ background: ACCENT_COLORS[a], boxShadow: accent === a ? '0 0 0 2px var(--color-ground), 0 0 0 4px var(--color-accent)' : 'none' }}
+                style={{ background: ACCENT_COLORS[a], border: '1.5px solid var(--color-hairline)', boxShadow: accent === a ? '0 0 0 2px var(--color-ground), 0 0 0 4px var(--color-accent)' : 'none' }}
                 aria-label={ACCENT_META[a].name}>
                 {accent === a && <span className="text-white"><Check size={13} strokeWidth={3} /></span>}
               </button>
@@ -78,7 +78,7 @@ export default function SettingsView() {
             onTouchEnd={(e) => toast(t('toastFontSize', locale, { scale: Math.round(parseFloat((e.target as HTMLInputElement).value) * 100) }), 'info')}
             aria-label={t('fontSize', locale)}
             className="w-full thumb-round cursor-pointer"
-            style={{ accentColor: 'var(--color-accent)' }}
+            style={{ '--fill': `${Math.round(((fontScale - 0.9) / 0.5) * 100)}%` } as React.CSSProperties}
           />
           {/* 字号档位：文本区间标注（无刻度），可点击选档 */}
           <div className="relative mt-1.5" style={{ height: '1.5rem' }}>
@@ -111,7 +111,7 @@ export default function SettingsView() {
           <div className="flex gap-2">
             {(['us', 'uk'] as const).map((v) => (
               <button key={v} onClick={() => { setTts({ accent: v }); toast(v === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); }}
-                className={`press flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}>
+                className={`press flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border-2 text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/15 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}>
                 <span className="text-[calc(2rem*var(--type-scale))] leading-none">{v === 'us' ? '🇺🇸' : '🇬🇧'}</span>
                 <span>{v === 'us' ? t('accentUs', locale) : t('accentUk', locale)}</span>
               </button>
@@ -125,7 +125,7 @@ export default function SettingsView() {
             <Segmented options={[{ value: 'female', label: t('genderFemale', locale) }, { value: 'male', label: t('genderMale', locale) }]} value={tts.gender} onChange={(v) => { setTts({ gender: v as 'female' | 'male' }); toast(v === 'female' ? t('toastGenderFemale', locale) : t('toastGenderMale', locale), 'info'); }} />
           </div>
           {/* 试听当前口音 + 语速 */}
-          <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border-2 border-[var(--color-accent)] bg-[var(--color-accent)]/10 px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
+          <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl border-2 border-[var(--color-accent)] bg-[var(--color-accent)]/15 px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] disabled:opacity-60">
             {previewState === 'synthesizing' ? <Loader2 size={15} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={15} /> : <Play size={15} />}
             {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('previewPlaying', locale) : t('previewVoice', locale)}
           </button>
@@ -143,7 +143,7 @@ export default function SettingsView() {
             onTouchEnd={() => { setTts({ rate: dragRate }); toast(t('toastRate', locale, { rate: dragRate.toFixed(1) }), 'info'); }}
             aria-label={t('speed', locale)}
             className="w-full thumb-round cursor-pointer"
-            style={{ accentColor: 'var(--color-accent)' }}
+            style={{ '--fill': `${Math.round(((dragRate - 0.8) / 1.2) * 100)}%` } as React.CSSProperties}
           />
           <Scale min={0.8} max={2.0} step={0.1} majorStep={0.2} inset={8}
             onSelect={(v) => { setDragRate(v); setTts({ rate: v }); toast(t('toastRate', locale, { rate: v.toFixed(1) }), 'info'); }} />

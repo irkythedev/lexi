@@ -39,7 +39,7 @@ export function Tag({ kind, locale = 'zh', children }: { kind: Kind; locale?: Lo
 export function PrimaryButton({ children, onClick, type = 'button', className = '', disabled }: { children: ReactNode; onClick?: () => void; type?: 'button' | 'submit'; className?: string; disabled?: boolean }) {
   return (
     <button type={type} onClick={onClick} disabled={disabled}
-      className={`press inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px] disabled:opacity-50 ${className}`}>
+      className={`press inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px] disabled:opacity-50 ${className}`}>
       {children}
     </button>
   );
@@ -48,8 +48,8 @@ export function PrimaryButton({ children, onClick, type = 'button', className = 
 export function GhostButton({ children, onClick, className = '', active }: { children: ReactNode; onClick?: () => void; className?: string; active?: boolean }) {
   return (
     <button onClick={onClick}
-      className={`press inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-md)] border-2 px-4 py-2 text-[calc(15px*var(--type-scale))] font-medium transition ${
-        active ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]' : 'border-[color-mix(in_srgb,var(--color-hairline)_60%,transparent)] text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]'} ${className}`}>
+      className={`press inline-flex min-h-11 items-center justify-center gap-2 rounded-[var(--radius-md)] border-2 bg-[var(--color-surface)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-medium transition ${
+        active ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/15 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]'} ${className}`}>
       {children}
     </button>
   );
