@@ -129,9 +129,9 @@ export default function LearnView() {
                 <div className="flex items-center gap-3">
                   <Tag kind={item.kind}>{meta.label[locale]}</Tag>
                   <div className="min-w-0 flex-1">
-                    <div className="min-w-0">
-                      <span className="block break-words text-[calc(16px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{item.label}</span>
-                      {item.phonetic && <span className="mt-0.5 block break-words font-mono text-[calc(12px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{item.phonetic}</span>}
+                    <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                      <span className="break-words text-[calc(16px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{item.label}</span>
+                      {item.phonetic && <span className="break-words font-mono text-[calc(12px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{item.phonetic}</span>}
                     </div>
                     <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
                   </div>
