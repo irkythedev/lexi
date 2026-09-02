@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Pause, Play, Repeat, Globe, Gauge, Loader2 } from 'lucide-react';
+import { Pause, Play, Repeat, Globe, Gauge, Loader2, ChevronUp, Volume2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
+import { useToastStore } from '../stores/toastStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
 import type { SpeakOptions } from '../lib/useSpeak.ts';
@@ -38,9 +39,11 @@ function emitTtsState(s: 'idle' | 'synthesizing' | 'playing') {
 
 export default function FloatingTTS() {
   const { tts, setTts, locale } = useAppStore();
+  const toast = useToastStore((s) => s.show);
   const [active, setActive] = useState<SpeakTarget | null>(null);
   const [playing, setPlaying] = useState(false);
   const [loop, setLoop] = useState(false);
+  const [open, setOpen] = useState(false); // 默认收起
   const { speak, stop, resume, state } = useSpeak();
   const playRef = useRef<(target: SpeakTarget, accent: 'us' | 'uk', rate: number, onEnd?: () => void) => void>(() => {});
   const loopTimerRef = useRef<number | null>(null);
@@ -98,21 +101,35 @@ export default function FloatingTTS() {
   };
   if (!active) return null;
 
+  const collapsed = !open;
+
   return (
-    <div className="glass-overlay fixed bottom-[4.7rem] left-4 z-40 flex items-center gap-0.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 px-1 py-0.5 shadow-[var(--shadow-overlay)]">
-      <span className="hidden max-w-[110px] truncate px-1.5 text-[calc(11px*var(--type-scale))] font-medium text-[var(--color-text-2)] sm:inline">{active.text}</span>
-      <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
-        {state === 'synthesizing' ? <Loader2 size={14} className="animate-spin" /> : playing ? <Pause size={14} /> : <Play size={14} />}
-      </button>
-      <button onClick={() => { clearLoopTimer(); setLoop((v) => !v); }} className="press flex h-8 w-8 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
-        <Repeat size={13} />
-      </button>
-      <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); if (state === 'playing' || playing) play(active, a, tts.rate); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('switchAccent', locale)} title={tts.accent === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
-        <Globe size={13} />
-      </button>
-      <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); if (playing) play(active, tts.accent, next); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('speed', locale)} title={t('speedTitle', locale, { speed: tts.rate })}>
-        <Gauge size={13} />
-      </button>
-    </div>
+    <>
+      {/* 收起态：小圆按钮，点击展开 */}
+      {collapsed ? (
+        <button onClick={() => setOpen(true)} className="press fixed bottom-[4.7rem] left-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 text-[var(--color-accent)] shadow-[var(--shadow-overlay)]" aria-label={t('ttsExpand', locale)}>
+          <Volume2 size={16} />
+        </button>
+      ) : (
+        <div className="glass-overlay fixed bottom-[4.7rem] left-4 z-40 flex items-center gap-0.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 px-1 py-0.5 shadow-[var(--shadow-overlay)]">
+          <span className="hidden max-w-[110px] truncate px-1.5 text-[calc(11px*var(--type-scale))] font-medium text-[var(--color-text-2)] sm:inline">{active.text}</span>
+          <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
+            {state === 'synthesizing' ? <Loader2 size={14} className="animate-spin" /> : playing ? <Pause size={14} /> : <Play size={14} />}
+          </button>
+          <button onClick={() => { clearLoopTimer(); const v = !loop; setLoop(v); toast(v ? t('toastLoopOn', locale) : t('toastLoopOff', locale), 'info'); }} className="press flex h-8 w-8 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
+            <Repeat size={13} />
+          </button>
+          <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); toast(a === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); if (state === 'playing' || playing) play(active, a, tts.rate); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('switchAccent', locale)} title={tts.accent === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
+            <Globe size={13} />
+          </button>
+          <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); toast(t('toastRate', locale, { rate: next }), 'info'); if (playing) play(active, tts.accent, next); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('speed', locale)} title={t('speedTitle', locale, { speed: tts.rate })}>
+            <Gauge size={13} />
+          </button>
+          <button onClick={() => setOpen(false)} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)]" aria-label={t('ttsCollapse', locale)}>
+            <ChevronUp size={14} />
+          </button>
+        </div>
+      )}
+    </>
   );
 }

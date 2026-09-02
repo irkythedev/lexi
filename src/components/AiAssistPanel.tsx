@@ -43,10 +43,21 @@ function SpeakInline({ text, accent, rate, size = 12, fontSize = 'inherit', bold
 }
 
 /** 学习卡片展示。 */
-function StudyCardView({ card, accent, rate }: { card: StudyCard; accent: 'us' | 'uk'; rate: number }) {
+function StudyCardView({ card, accent, rate, highlight }: { card: StudyCard; accent: 'us' | 'uk'; rate: number; highlight?: string }) {
   const locale = useAppStore((s) => s.locale);
   const { speak, stop, state: ttsState } = useSpeak();
   const active = ttsState === 'playing' || ttsState === 'synthesizing';
+
+  /** 把字符串中的高亮词用 mark 包裹（整词边界，大小写不敏感）。 */
+  const highlightText = (text: string, word: string): React.ReactNode => {
+    if (!word) return text;
+    const esc = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`(?<![A-Za-z])${esc}(?![A-Za-z])`, 'gi');
+    const parts = text.split(re);
+    if (parts.length === 1) return text;
+    const matches = text.match(re) ?? [];
+    return parts.flatMap((p, i) => i < matches.length ? [p, <mark key={i} className="rounded-[3px] bg-[var(--color-accent)]/20 px-0.5 font-semibold text-[var(--color-accent)]" style={{ textDecoration: 'underline' }}>{matches[i]}</mark>] : [p]);
+  };
 
   return (
     <div className="space-y-3">
@@ -85,7 +96,7 @@ function StudyCardView({ card, accent, rate }: { card: StudyCard; accent: 'us' |
               {ttsState === 'synthesizing' ? <Loader2 size={13} className="animate-spin" /> : <Volume2 size={13} />}
             </button>
             <div className="min-w-0">
-              <p className="text-[calc(14.5px*var(--type-scale))] font-medium leading-relaxed text-[var(--color-text)]">{card.example.en}</p>
+              <p className="text-[calc(14.5px*var(--type-scale))] font-medium leading-relaxed text-[var(--color-text)]">{highlightText(card.example.en, highlight ?? card.word)}</p>
               {card.example.zh && <p className="mt-0.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{card.example.zh}</p>}
             </div>
           </div>
@@ -239,7 +250,7 @@ export default function AiAssistPanel({
             {busy && !card && (
               <div className="flex items-center gap-2 p-2"><Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-accent)' }} /><span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStudyBusy', locale)}</span></div>
             )}
-            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} />}
+            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} />}
             {err && <p className="rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>}
             {card && (
               <button onClick={() => { setCard(null); }} className="press text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('aiAskAgain', locale)}</button>
