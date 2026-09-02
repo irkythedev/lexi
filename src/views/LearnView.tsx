@@ -124,11 +124,11 @@ export default function LearnView() {
               <div className="flex items-center gap-3">
                 <Tag kind={item.kind}>{meta.label[locale]}</Tag>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline gap-2">
-                    <span className="truncate text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.label}</span>
-                    {item.phonetic && <span className="font-mono text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</span>}
+                  <div className="min-w-0">
+                    <span className="block break-words text-[calc(16px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{item.label}</span>
+                    {item.phonetic && <span className="mt-0.5 block break-words font-mono text-[calc(12px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{item.phonetic}</span>}
                   </div>
-                  <p className="mt-0.5 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
+                  <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
                 </div>
                 <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />
                 <button onClick={() => { setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind }); setAiOpen(true); }} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={15} /></button>

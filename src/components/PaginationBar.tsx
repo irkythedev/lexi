@@ -17,7 +17,7 @@ export default function PaginationBar({
 
   return (
     <div className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] z-10 mt-3 flex justify-end pb-2 pr-[var(--pad-x)] md:bottom-0">
-      <div className="flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)] px-2 py-1 shadow-[var(--shadow-card)]">
+      <div className="flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)]/80 px-2 py-1 shadow-[var(--shadow-card)]">
         <button
           onClick={onPrev}
           disabled={page === 0}
