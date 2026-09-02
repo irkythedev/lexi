@@ -11,6 +11,8 @@ import Sprint from '../components/Sprint.tsx';
 import ReadingView from './ReadingView.tsx';
 import { requestSpeak } from '../components/FloatingTTS.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
+import PaginationBar from '../components/PaginationBar.tsx';
+import { usePagination } from '../lib/pagination.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 
 export default function LearnView() {
@@ -39,6 +41,8 @@ export default function LearnView() {
     { kind: 'pattern', items: studyItems.filter((i) => i.kind === 'pattern') },
   ];
   const visible = filter === 'all' ? studyItems : studyItems.filter((i) => i.kind === filter);
+  const pager = usePagination(visible, 20);
+  const pagedItems = pager.slice;
 
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">
@@ -103,14 +107,14 @@ export default function LearnView() {
       <div className="mt-5 flex items-center justify-between">
         <div className="flex gap-2">
           {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)} className="press rounded-full px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ background: filter === f ? 'var(--color-accent)' : 'var(--color-track)', color: filter === f ? '#fff' : 'var(--color-text-2)' }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
+            <button key={f} onClick={() => { setFilter(f); pager.reset(); }} className="press rounded-full px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ background: filter === f ? 'var(--color-accent)' : 'var(--color-track)', color: filter === f ? '#fff' : 'var(--color-text-2)' }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
           ))}
         </div>
         <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} /> : <Eye size={15} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
       </div>
 
       <Panel className="mt-3">
-        {visible.map((item) => {
+        {pagedItems.map((item) => {
           const meta = KIND_META[item.kind];
           return (
             <Row key={item.id}>
@@ -129,6 +133,7 @@ export default function LearnView() {
           );
         })}
       </Panel>
+      <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />
     </div>
   );
 }

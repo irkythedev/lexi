@@ -8,6 +8,8 @@ import { KIND_META } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
 import { requestSpeak } from '../components/FloatingTTS.tsx';
 import { Panel, Row, Tag } from '../components/ui/primitives.tsx';
+import PaginationBar from '../components/PaginationBar.tsx';
+import { usePagination } from '../lib/pagination.ts';
 import { recordReview, clearResolvedErrors } from '../db/db.ts';
 
 type Tab = 'due' | 'recent' | 'traps';
@@ -34,6 +36,8 @@ export default function ReviewView() {
     kind: row.kind as Kind,
     srs: row.srs,
   }));
+  const pager = usePagination(normalizedList, 20);
+  const pagedList = pager.slice;
   const lookupItem = (id: string) => studyItems.find((i) => i.id === id);
 
   if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-10 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewNoUnit', locale)}</div>;
@@ -53,7 +57,7 @@ export default function ReviewView() {
         {tab === 'recent' && t('reviewEmptyRecent', locale)}
         {tab === 'traps' && t('reviewEmptyTraps', locale)}</div></Panel>
       : <Panel>
-        {normalizedList.map((row, i) => {
+        {pagedList.map((row, i) => {
           const item = lookupItem(row.itemId);
           if (!item) return null;
           const meta = KIND_META[item.kind];
@@ -69,6 +73,8 @@ export default function ReviewView() {
           );
         })}
       </Panel>}
+
+      <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />
 
       {tab === 'recent' && recentMistakes.length > 0 && (
         <div className="mt-3 flex justify-end"><button onClick={async () => { await clearResolvedErrors(); load(); }} className="press rounded-full border border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewClear', locale)}</button></div>

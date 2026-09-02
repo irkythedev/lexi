@@ -8,6 +8,8 @@ import { t } from '../lib/i18n.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { requestSpeak } from '../components/FloatingTTS.tsx';
 import { Panel, Row, Tag, GhostButton } from '../components/ui/primitives.tsx';
+import PaginationBar from '../components/PaginationBar.tsx';
+import { usePagination } from '../lib/pagination.ts';
 
 export default function ErrorsView() {
   const { unit, studyItems, selection, tts, locale } = useAppStore();
@@ -17,6 +19,8 @@ export default function ErrorsView() {
   useEffect(() => { load(); }, []);
 
   const unitErrors = errors.filter((e) => e.editionId === selection?.editionId);
+  const pager = usePagination(unitErrors, 20);
+  const pagedErrors = pager.slice;
   const resolve = async (id: number) => { await markErrorResolved(id); load(); toast(t('errorsResolvedToast', locale), 'success', 'check'); };
 
   return (
@@ -28,7 +32,7 @@ export default function ErrorsView() {
 
       {unitErrors.length === 0 ? <Panel><div className="flex flex-col items-center p-10 text-center"><CheckCircle2 size={40} className="text-[var(--color-vocab)]" /><p className="mt-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('errorsEmptyUnit', locale)}</p><p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('errorsEmptyDesc', locale)}</p></div></Panel>
       : <Panel>
-        {unitErrors.map((e) => {
+        {pagedErrors.map((e) => {
           const item = studyItems.find((i) => i.id === e.itemId);
           const meta = item ? KIND_META[item.kind] : KIND_META.vocab;
           const label = item ? item.label : e.itemId;
@@ -52,6 +56,7 @@ export default function ErrorsView() {
           );
         })}
       </Panel>}
+      <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />
     </div>
   );
 }
