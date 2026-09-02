@@ -46,6 +46,20 @@ export default function GlassNav() {
               <button type="button" onClick={() => setShowChangelog(true)} title={t('changelogTitle', locale)} className="tnum press text-[calc(10px*var(--type-scale))] font-medium text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors">v{FOOTER.version}</button>
             </span>
           </div>
+          {/* 桌面端导航：顶部横排，替代底部 tab 栏 */}
+          <nav className="hidden h-full items-center gap-1 md:flex" aria-label="主导航">
+            {TABS.map((tabItem) => {
+              const Icon = tabItem.icon;
+              const isActive = activeTab === tabItem.id || (location.pathname === '/' && tabItem.id === 'learn');
+              return (
+                <button key={tabItem.id} onClick={() => go(tabItem.id)} className="press relative flex h-full items-center gap-1.5 px-3.5" style={{ background: 'none', border: 'none', cursor: 'pointer', color: isActive ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
+                  <Icon size={16} className={isActive ? '' : 'opacity-60'} />
+                  <span className="text-[calc(14px*var(--type-scale))] font-medium">{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
+                  {isActive && <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full" style={{ background: 'var(--color-accent)' }} />}
+                </button>
+              );
+            })}
+          </nav>
           <div className="flex items-center gap-1.5">
             <span className="hidden h-1.5 w-1.5 rounded-full sm:inline-block" style={{ background: unit ? 'var(--color-live)' : 'var(--color-text-4)' }} />
             <span className="hidden max-w-[200px] truncate text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)] sm:inline">
@@ -67,7 +81,7 @@ export default function GlassNav() {
         </div>
       </header>
 
-      <nav className="glass-nav glass-nav-top fixed inset-x-0 bottom-0 z-50 safe-b">
+      <nav className="glass-nav glass-nav-top fixed inset-x-0 bottom-0 z-50 safe-b md:hidden">
         <div className="mx-auto flex max-w-[var(--max-grid)] items-center justify-around px-2">
           {TABS.map((tabItem) => {
             const Icon = tabItem.icon;
