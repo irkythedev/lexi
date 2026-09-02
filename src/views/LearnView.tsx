@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Puzzle, Zap, ChevronDown, Volume2, Eye, EyeOff, BookText, ArrowRight, BookOpen } from 'lucide-react';
+import { Layers, Puzzle, Zap, ChevronDown, Eye, EyeOff, BookText, ArrowRight, BookOpen } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -9,8 +9,8 @@ import Flashcard from '../components/Flashcard.tsx';
 import CollocationConnector from '../components/CollocationConnector.tsx';
 import Sprint from '../components/Sprint.tsx';
 import ReadingView from './ReadingView.tsx';
-import { requestSpeak } from '../components/FloatingTTS.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
+import SpeakButton from '../components/SpeakButton.tsx';
 import PaginationBar from '../components/PaginationBar.tsx';
 import { usePagination } from '../lib/pagination.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
@@ -127,7 +127,7 @@ export default function LearnView() {
                   </div>
                   <p className="mt-0.5 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
                 </div>
-                <button onClick={() => requestSpeak(item.label, tts.accent, tts.rate)} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]" aria-label="朗读"><Volume2 size={16} style={{ color: meta.tint }} /></button>
+                <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />
               </div>
             </Row>
           );

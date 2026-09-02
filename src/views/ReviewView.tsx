@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Brain, AlertTriangle, Flame, Volume2, X } from 'lucide-react';
+import { Brain, AlertTriangle, Flame, X } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem, Kind } from '../types/index.ts';
 import { getAllProgress, getErrors } from '../db/db.ts';
 import { isDue, intervalLabel } from '../db/srs.ts';
 import { KIND_META } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
-import { requestSpeak } from '../components/FloatingTTS.tsx';
 import { Panel, Row, Tag } from '../components/ui/primitives.tsx';
+import SpeakButton from '../components/SpeakButton.tsx';
 import PaginationBar from '../components/PaginationBar.tsx';
 import { usePagination } from '../lib/pagination.ts';
 import { recordReview, clearResolvedErrors } from '../db/db.ts';
@@ -67,7 +67,7 @@ export default function ReviewView() {
                 <Tag kind={item.kind}>{meta.label[useAppStore.getState().locale]}</Tag>
                 <div className="min-w-0 flex-1"><div className="truncate text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.label}</div><p className="mt-0.5 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{item.meaning}</p></div>
                 {row.srs && <span className="tnum shrink-0 text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">{intervalLabel(row.srs.interval)}</span>}
-                <button onClick={(e) => { e.stopPropagation(); requestSpeak(item.label, tts.accent, tts.rate); }} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]"><Volume2 size={16} style={{ color: meta.tint }} /></button>
+                <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />
               </div>
             </Row>
           );

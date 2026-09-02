@@ -1,13 +1,13 @@
 // ErrorsView — 错题本：展示本单元错题记录，i18n 全覆盖
 import { useState, useEffect } from 'react';
-import { AlertTriangle, CheckCircle2, Volume2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { getErrors, markErrorResolved, clearResolvedErrors } from '../db/db.ts';
 import { KIND_META } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
 import { useToastStore } from '../stores/toastStore.ts';
-import { requestSpeak } from '../components/FloatingTTS.tsx';
 import { Panel, Row, Tag, GhostButton } from '../components/ui/primitives.tsx';
+import SpeakButton from '../components/SpeakButton.tsx';
 import PaginationBar from '../components/PaginationBar.tsx';
 import { usePagination } from '../lib/pagination.ts';
 
@@ -44,7 +44,7 @@ export default function ErrorsView() {
                   <div className="flex items-center gap-2">
                     {item && <Tag kind={item.kind}>{meta.label[locale]}</Tag>}
                     <span className="truncate text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{label}</span>
-                    {item && <button onClick={() => requestSpeak(item.label, tts.accent, tts.rate)} className="press ml-auto flex h-11 w-11 shrink-0 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]"><Volume2 size={14} style={{ color: meta.tint }} /></button>}
+                    {item && <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={14} color={meta.tint} />}
                   </div>
                   {e.prompt && <p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('errorsPrompt', locale, { prompt: e.prompt })}</p>}
                   <p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-trap-deep)]">{t('errorsReason', locale, { reason: e.reason })}</p>

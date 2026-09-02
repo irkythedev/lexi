@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
-import { Mic, Check, X, ArrowRight, Trophy, Send, Volume2, Sparkles } from 'lucide-react';
+import { Mic, Check, X, ArrowRight, Trophy, Send, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem, Unit } from '../types/index.ts';
-import { requestSpeak } from './FloatingTTS.tsx';
+import SpeakButton from './SpeakButton.tsx';
 import { useSpeechRecognition, compareWords } from '../lib/speechRecognition.ts';
 import { KIND_META, maskSentence, shuffle } from '../lib/utils.ts';
 import { addError, recordReview } from '../db/db.ts';
@@ -61,7 +61,7 @@ function StepInput({ items, tts, onNext }: { items: StudyItem[]; tts: TtsPrefs; 
   return (
     <Panel><div className="p-5">
       <div className="flex items-center justify-between"><span className="text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]">速览 {idx + 1}/{items.length}</span>
-        <button onClick={() => requestSpeak(item.label, tts.accent, tts.rate)} className="press flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]"><Volume2 size={18} style={{ color: meta?.tint }} /></button></div>
+        <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={18} color={meta?.tint} /></div>
       <h3 className="mt-4 text-[calc(clamp(24px,6vw,36px)*var(--type-scale))] font-bold tracking-[-0.02em]">{item.label}</h3>
       {item.phonetic && <p className="mt-1 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
       {item.pos && <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{item.pos}</p>}
@@ -88,14 +88,13 @@ function StepShadow({ items, tts, onNext, onPrev }: { items: StudyItem[]; tts: T
     lang: tts.accent === 'uk' ? 'en-GB' : 'en-US',
     onResult: (transcript) => { const c = compareWords(sentence, transcript); setComparison(c); setShowCompare(true); },
   });
-  const play = () => requestSpeak(sentence, tts.accent, tts.rate);
 
   return (
     <Panel><div className="p-5">
       <div className="text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]">跟读 {idx + 1}/{targets.length}</div>
       <p className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-surface-2)] p-4 text-[calc(17px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{sentence}</p>
       <div className="mt-4 flex items-center gap-3">
-        <button onClick={play} className="press flex items-center gap-1.5 rounded-full bg-[var(--color-accent)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white"><Volume2 size={16} /> 听原句</button>
+        <SpeakButton text={sentence} accent={tts.accent} rate={tts.rate} size={16} color="#fff" className="h-auto rounded-full bg-[var(--color-accent)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white hover:bg-[var(--color-accent)]">听原句</SpeakButton>
         {supported ? <button onClick={() => (listening ? stop() : start())} className={`press flex items-center gap-1.5 rounded-full px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold ${listening ? 'bg-[var(--color-trap)] text-white' : 'border border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}><Mic size={16} /> {listening ? '录音中…点此停止' : '开始跟读'}</button>
           : <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">当前浏览器不支持语音识别（可用 Chrome/Edge）</span>}
       </div>
