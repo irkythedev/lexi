@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Pause, Play, Repeat, Globe, Gauge, Loader2, ChevronLeft } from 'lucide-react';
+import { Pause, Play, Repeat, Globe, Gauge, Loader2, ChevronLeft, Volume2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
@@ -47,6 +47,29 @@ export default function FloatingTTS() {
   const { speak, stop, resume, state } = useSpeak();
   const playRef = useRef<(target: SpeakTarget, accent: 'us' | 'uk', rate: number, onEnd?: () => void) => void>(() => {});
   const loopTimerRef = useRef<number | null>(null);
+  const autoHideRef = useRef<number | null>(null);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+
+  const clearAutoHide = useCallback(() => {
+    if (autoHideRef.current !== null) { clearTimeout(autoHideRef.current); autoHideRef.current = null; }
+  }, []);
+
+  // 展开后闲置 6 秒自动收起：仅正在播放/合成(有声音)不收起，暂停/空闲即收
+  const resetAutoHide = useCallback(() => {
+    clearAutoHide();
+    autoHideRef.current = window.setTimeout(() => {
+      const s = stateRef.current;
+      if (s === 'synthesizing' || s === 'playing') resetAutoHide(); // 仍在出声 → 等更久
+      else setOpen(false); // idle/paused/error → 收起
+    }, 6000);
+  }, [clearAutoHide]);
+
+  useEffect(() => {
+    if (open) resetAutoHide();
+    else clearAutoHide();
+    return () => clearAutoHide();
+  }, [open, resetAutoHide, clearAutoHide]);
 
   const clearLoopTimer = useCallback(() => {
     if (loopTimerRef.current !== null) { clearTimeout(loopTimerRef.current); loopTimerRef.current = null; }
@@ -101,35 +124,40 @@ export default function FloatingTTS() {
   };
   if (!active) return null;
 
-  const collapsed = !open;
-
   return (
     <>
-      {/* 收起态：小圆按钮，点击展开 */}
-      {collapsed ? (
-        <button onClick={() => setOpen(true)} className="press fixed left-4 top-[calc(50%-20px)] z-40 flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" aria-label={t('ttsExpand', locale)}>
-          <Play size={16} />
+      {/* 收起态：贴左缘窄条手柄，露出约18px，圆角朝左，点开向左展开面板 */}
+      <button
+        onClick={() => { setOpen(true); resetAutoHide(); }}
+        aria-label={t('ttsExpand', locale)}
+        className={`press fixed left-[-8px] z-40 flex h-14 w-7 items-center rounded-r-full border-2 border-l-0 border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-accent)] shadow-[var(--shadow-card)] transition-opacity duration-300 ${open ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+        style={{ top: 'calc(50% - 28px)', paddingLeft: '11px' }}
+      >
+        <Volume2 size={14} />
+      </button>
+      {/* 展开态：面板从左侧滑出，闲置6秒自动收起（播放中不收起） */}
+      <div
+        onMouseDown={() => resetAutoHide()}
+        className={`fixed left-4 z-40 flex items-center gap-0.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-1 py-0.5 shadow-[var(--shadow-card)] transition-[transform,opacity] duration-300 ease-in-out ${open ? 'translate-x-0 opacity-100' : 'pointer-events-none -translate-x-[120%] opacity-0'}`}
+        style={{ top: 'calc(50% - 22px)' }}
+      >
+        <span className="hidden max-w-[110px] truncate px-1.5 text-[calc(11px*var(--type-scale))] font-medium text-[var(--color-text-2)] sm:inline">{active.text}</span>
+        <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
+          {state === 'synthesizing' ? <Loader2 size={14} className="animate-spin" /> : playing ? <Pause size={14} /> : <Play size={14} />}
         </button>
-      ) : (
-        <div className="fixed left-4 top-[calc(50%-20px)] z-40 flex items-center gap-0.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-1 py-0.5 shadow-[var(--shadow-card)]">
-          <span className="hidden max-w-[110px] truncate px-1.5 text-[calc(11px*var(--type-scale))] font-medium text-[var(--color-text-2)] sm:inline">{active.text}</span>
-          <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
-            {state === 'synthesizing' ? <Loader2 size={14} className="animate-spin" /> : playing ? <Pause size={14} /> : <Play size={14} />}
-          </button>
-          <button onClick={() => { clearLoopTimer(); const v = !loop; setLoop(v); toast(v ? t('toastLoopOn', locale) : t('toastLoopOff', locale), 'info'); }} className="press flex h-8 w-8 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
-            <Repeat size={13} />
-          </button>
-          <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); toast(a === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); if (state === 'playing' || playing) play(active, a, tts.rate); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('switchAccent', locale)} title={tts.accent === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
-            <Globe size={13} />
-          </button>
-          <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); toast(t('toastRate', locale, { rate: next }), 'info'); if (playing) play(active, tts.accent, next); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('speed', locale)} title={t('speedTitle', locale, { speed: tts.rate })}>
-            <Gauge size={13} />
-          </button>
-          <button onClick={() => setOpen(false)} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)]" aria-label={t('ttsCollapse', locale)}>
-            <ChevronLeft size={14} />
-          </button>
-        </div>
-      )}
+        <button onClick={() => { clearLoopTimer(); const v = !loop; setLoop(v); toast(v ? t('toastLoopOn', locale) : t('toastLoopOff', locale), 'info'); }} className="press flex h-8 w-8 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
+          <Repeat size={13} />
+        </button>
+        <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); toast(a === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); if (state === 'playing' || playing) play(active, a, tts.rate); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('switchAccent', locale)} title={tts.accent === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
+          <Globe size={13} />
+        </button>
+        <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); toast(t('toastRate', locale, { rate: next }), 'info'); if (playing) play(active, tts.accent, next); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('speed', locale)} title={t('speedTitle', locale, { speed: tts.rate })}>
+          <Gauge size={13} />
+        </button>
+        <button onClick={() => { clearAutoHide(); setOpen(false); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)]" aria-label={t('ttsCollapse', locale)}>
+          <ChevronLeft size={14} />
+        </button>
+      </div>
     </>
   );
 }
