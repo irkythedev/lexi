@@ -59,7 +59,7 @@ export default function ShareDialog({ url, onClose, title, text }: ShareDialogPr
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-[1px]" onClick={onClose}>
-      <div className="relative w-full max-w-xs rounded-t-xl border border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-overlay)] sm:rounded-xl pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-4" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={t('share', locale)}>
+      <div className="relative w-full max-w-xs rounded-t-xl border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-overlay)] sm:rounded-xl pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-4" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={t('share', locale)}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-bold text-[var(--color-text)]"><Share2 size={16} style={{ color: 'var(--color-accent)' }} /> {t('share', locale)}</h2>
           <button type="button" onClick={onClose} aria-label={t('close', locale)} className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]"><X size={16} /></button>
@@ -80,7 +80,7 @@ export default function ShareDialog({ url, onClose, title, text }: ShareDialogPr
               <Share2 size={16} /> {t('share', locale)}
             </button>
           )}
-          <button type="button" onClick={handleCopy} className="press flex items-center justify-center gap-2 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]">
+          <button type="button" onClick={handleCopy} className="press flex items-center justify-center gap-2 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]">
             {copied ? <Check size={16} style={{ color: 'var(--color-vocab)' }} /> : <Copy size={16} />}
             {copied ? t('copied', locale) : t('copyLink', locale)}
           </button>

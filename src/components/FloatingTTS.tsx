@@ -107,11 +107,11 @@ export default function FloatingTTS() {
     <>
       {/* 收起态：小圆按钮，点击展开 */}
       {collapsed ? (
-        <button onClick={() => setOpen(true)} className="press fixed bottom-[4.7rem] left-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 text-[var(--color-accent)] shadow-[var(--shadow-overlay)]" aria-label={t('ttsExpand', locale)}>
+        <button onClick={() => setOpen(true)} className="press fixed bottom-[4.7rem] left-4 z-40 flex h-10 w-10 items-center justify-center rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" aria-label={t('ttsExpand', locale)}>
           <Play size={16} />
         </button>
       ) : (
-        <div className="glass-overlay fixed bottom-[4.7rem] left-4 z-40 flex items-center gap-0.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface)]/90 px-1 py-0.5 shadow-[var(--shadow-overlay)]">
+        <div className="fixed bottom-[4.7rem] left-4 z-40 flex items-center gap-0.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-1 py-0.5 shadow-[var(--shadow-card)]">
           <span className="hidden max-w-[110px] truncate px-1.5 text-[calc(11px*var(--type-scale))] font-medium text-[var(--color-text-2)] sm:inline">{active.text}</span>
           <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
             {state === 'synthesizing' ? <Loader2 size={14} className="animate-spin" /> : playing ? <Pause size={14} /> : <Play size={14} />}

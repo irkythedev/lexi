@@ -6,43 +6,43 @@
    ════════════════════════════════════════════════════════════════════════ */
 
 @theme {
-  /* Neutrals (Apple HIG skeleton) */
-  --color-ground: #f5f5f7;
-  --color-surface: #ffffff;
-  --color-surface-2: #fbfbfd;
-  --color-text: #1d1d1f;
-  --color-text-body: #424245;
-  --color-text-2: #6e6e73;
-  --color-text-3: #86868b;
-  --color-text-4: #aeaeb2;
-  --color-hairline: rgba(0, 0, 0, 0.08);
-  --color-input-border: #c9c9ce;
-  --color-input-bg: #ffffff;
-  --color-track: #e8e8ed;
+  /* Neutrals — 米纸印刷日报（纸面、近黑描边、无玻璃） */
+  --color-ground: #F3EBE0;
+  --color-surface: #FFFBF6;
+  --color-surface-2: #F7F0E6;
+  --color-text: #161513;
+  --color-text-body: #3F3C38;
+  --color-text-2: #6B6560;
+  --color-text-3: #8A837C;
+  --color-text-4: #B3AAA2;
+  --color-hairline: #161513;
+  --color-input-border: #161513;
+  --color-input-bg: #FFFFFF;
+  --color-track: #E7DFD4;
 
-  /* ── Semantic accents (education) ── */
-  --color-vocab: #10b981;
-  --color-vocab-soft: #ecfdf5;
-  --color-vocab-border: #a7f3d0;
-  --color-vocab-deep: #047857;
-  --color-phrase: #eab308;
-  --color-phrase-soft: #fefce8;
-  --color-phrase-border: #fde68a;
-  --color-phrase-deep: #a16207;
-  --color-pattern: #8b5cf6;
-  --color-pattern-soft: #f5f3ff;
-  --color-pattern-border: #ddd6fe;
-  --color-pattern-deep: #6d28d9;
-  --color-trap: #f43f5e;
-  --color-trap-soft: #fff1f2;
-  --color-trap-border: #fecdd3;
-  --color-trap-deep: #be123c;
+  /* ── Semantic accents (education) — 印刷色，非荧光 Tailwind 绿黄紫玫 ── */
+  --color-vocab: #2F6F5E;
+  --color-vocab-soft: #E4F0EA;
+  --color-vocab-border: #A8C9BC;
+  --color-vocab-deep: #1F4D41;
+  --color-phrase: #C4962A;
+  --color-phrase-soft: #F6EBC8;
+  --color-phrase-border: #E2CE8A;
+  --color-phrase-deep: #7A5A10;
+  --color-pattern: #6E5EA8;
+  --color-pattern-soft: #EBE6F6;
+  --color-pattern-border: #C9BFE8;
+  --color-pattern-deep: #43357A;
+  --color-trap: #D45A3C;
+  --color-trap-soft: #F8E4DC;
+  --color-trap-border: #E7B6A6;
+  --color-trap-deep: #8A2E1C;
 
   /* Brand accent — theme-driven, default emerald. No AI gradient. */
-  --color-accent: #1fa07a;
-  --color-accent-2: #3ac99c;
-  --color-live: #22c55e;
-  --color-heat: #ea580c;
+  --color-accent: #2F6F5E;
+  --color-accent-2: #4E9A82;
+  --color-live: #2F6F5E;
+  --color-heat: #D45A3C;
 
   /* CTA is solid accent (user rejected gradient) */
   --grad-cta: var(--color-accent);
@@ -51,22 +51,22 @@
 
   /* Radii (named tiers — no ad-hoc values) */
   --radius-pill: 999px;
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-chip: 8px;
-  --radius-thumb: 12px;
-  --radius-card: 12px;
-  --radius-panel: 16px;
-  --radius-hero: 16px;
-  --radius-sheet: 16px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-chip: 10px;
+  --radius-thumb: 16px;
+  --radius-card: 16px;
+  --radius-panel: 22px;
+  --radius-hero: 22px;
+  --radius-sheet: 22px;
 
-  /* Shadows (two-layer, Apple) */
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
-  --shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.05), 0 14px 40px rgba(0, 0, 0, 0.05);
-  --shadow-lift: 0 12px 32px rgba(0, 0, 0, 0.1);
-  --shadow-overlay: 0 2px 8px rgba(0, 0, 0, 0.1), 0 30px 80px rgba(0, 0, 0, 0.24);
-  --shadow-cta: 0 20px 54px rgba(0, 113, 227, 0.28);
+  /* Shadows (偏移墨影 — 贴纸/印章，几乎无模糊) */
+  --shadow-card: 2px 2px 0 #161513;
+  --shadow-panel: 3px 3px 0 #161513;
+  --shadow-lift: 3px 5px 0 #161513;
+  --shadow-overlay: 0 16px 40px rgba(22, 21, 19, 0.18);
+  --shadow-cta: 2px 2px 0 color-mix(in srgb, var(--color-accent) 70%, #161513);
 
   /* Type */
   --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
@@ -86,43 +86,47 @@
   --type-scale: 1;
 }
 
-/* Dark mode tokens — stemlab-inspired dark ground (#111210) */
+/* Dark mode tokens — 暖黑纸 + 浅描边卡（同一套语言的夜间版） */
 .dark {
-  --color-ground: #111210;
-  --color-surface: #1a1b19;
-  --color-surface-2: #222421;
-  --color-text: #f2f2ef;
-  --color-text-body: #c6c7c2;
-  --color-text-2: #9a9c96;
-  --color-text-3: #6f716c;
-  --color-hairline: rgba(255, 255, 255, 0.1);
-  --color-input-border: #3d3f3a;
-  --color-input-bg: #222421;
-  --color-track: #2a2c28;
-  /* semantic text lightened for dark backgrounds */
-  --color-vocab-deep: #34d399;
-  --color-phrase-deep: #fbbf24;
-  --color-pattern-deep: #c4b5fd;
-  --color-trap-deep: #fda4af;
-  --color-vocab-soft: rgba(16, 185, 129, 0.14);
-  --color-vocab-border: rgba(16, 185, 129, 0.4);
-  --color-phrase-soft: rgba(234, 179, 8, 0.14);
-  --color-phrase-border: rgba(234, 179, 8, 0.4);
-  --color-pattern-soft: rgba(139, 92, 246, 0.16);
-  --color-pattern-border: rgba(139, 92, 246, 0.45);
-  --color-trap-soft: rgba(244, 63, 94, 0.14);
-  --color-trap-border: rgba(244, 63, 94, 0.4);
+  --color-ground: #1C1A17;
+  --color-surface: #26231F;
+  --color-surface-2: #2F2B26;
+  --color-text: #F4EFE7;
+  --color-text-body: #C9C2B8;
+  --color-text-2: #9A938A;
+  --color-text-3: #6F6962;
+  --color-text-4: #524D46;
+  --color-hairline: #E8DFD4;
+  --color-input-border: #8A837C;
+  --color-input-bg: #26231F;
+  --color-track: #3A352F;
+  /* semantic text lightened for dark backgrounds (deep 提亮，soft 低透明) */
+  --color-vocab-deep: #7FA896;
+  --color-phrase-deep: #D9B95C;
+  --color-pattern-deep: #A89AD6;
+  --color-trap-deep: #E08368;
+  --color-vocab-soft: rgba(47, 111, 94, 0.22);
+  --color-vocab-border: rgba(127, 168, 150, 0.5);
+  --color-phrase-soft: rgba(196, 150, 42, 0.2);
+  --color-phrase-border: rgba(217, 185, 92, 0.5);
+  --color-pattern-soft: rgba(110, 94, 168, 0.24);
+  --color-pattern-border: rgba(168, 154, 214, 0.5);
+  --color-trap-soft: rgba(212, 90, 60, 0.2);
+  --color-trap-border: rgba(224, 131, 104, 0.5);
+  --color-live: #7FA896;
   /* accent is theme-driven; dark uses same theme accent (set below) */
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.4);
-  --shadow-panel: 0 1px 3px rgba(0, 0, 0, 0.3), 0 14px 40px rgba(0, 0, 0, 0.45);
+  --shadow-card: 2px 2px 0 rgba(0, 0, 0, 0.6);
+  --shadow-panel: 3px 3px 0 rgba(0, 0, 0, 0.6);
+  --shadow-lift: 3px 5px 0 rgba(0, 0, 0, 0.6);
+  --shadow-cta: 2px 2px 0 color-mix(in srgb, var(--color-accent) 60%, #000);
 }
 
 /* ── Theme color variants — user-selectable, override --color-accent ──
    Applied via data-accent on <html>. Default emerald (matches @theme). */
-:root[data-accent='emerald'] { --color-accent: #1fa07a; --color-accent-2: #3ac99c; }
-:root[data-accent='berry']   { --color-accent: #d94f86; --color-accent-2: #ef7fae; }
-:root[data-accent='indigo']  { --color-accent: #5b6ee8; --color-accent-2: #8190f4; }
-:root[data-accent='coral']   { --color-accent: #f26d5b; --color-accent-2: #ff927f; }
+:root[data-accent='emerald'] { --color-accent: #2F6F5E; --color-accent-2: #4E9A82; }
+:root[data-accent='berry']   { --color-accent: #C45B7A; --color-accent-2: #D9849C; }
+:root[data-accent='indigo']  { --color-accent: #4F5FBF; --color-accent-2: #7A87D8; }
+:root[data-accent='coral']   { --color-accent: #D45A3C; --color-accent-2: #E58A74; }
 
 * { -webkit-tap-highlight-color: transparent; }
 html { font-optical-sizing: auto; }
@@ -158,29 +162,24 @@ textarea:focus-visible {
   outline: none;
 }
 
-/* ── Liquid Glass (nav / overlays / controls only) ── */
+/* ── Nav / overlays — 纸面底 + 墨线，去毛玻璃 ── */
 .glass-nav {
-  background: color-mix(in srgb, var(--color-ground) 72%, transparent);
-  backdrop-filter: saturate(180%) blur(24px);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  transition: border-color 0.3s, box-shadow 0.3s;
+  background: var(--color-ground);
+  border-bottom: 2px solid var(--color-hairline);
+  transition: border-color 0.3s;
 }
 /* scroll-edge divider: hairline only when content scrolls beneath */
-.glass-nav.scrolled { border-bottom: 0.5px solid var(--color-hairline); box-shadow: 0 1px 12px rgba(0, 0, 0, 0.06); }
+.glass-nav.scrolled { box-shadow: 0 2px 0 color-mix(in srgb, var(--color-hairline) 40%, transparent); }
 /* bottom tab bar: divider on the edge that meets content (top) */
-.glass-nav-top.scrolled { border-top: 0.5px solid var(--color-hairline); box-shadow: 0 -1px 12px rgba(0, 0, 0, 0.06); }
+.glass-nav-top.scrolled { box-shadow: 0 -2px 0 color-mix(in srgb, var(--color-hairline) 40%, transparent); }
 
 .glass-overlay {
-  background: color-mix(in srgb, var(--color-ground) 70%, transparent);
-  backdrop-filter: saturate(180%) blur(28px);
-  -webkit-backdrop-filter: saturate(180%) blur(28px);
+  background: var(--color-ground);
 }
 
 .glass-control {
-  background: color-mix(in srgb, var(--color-surface) 55%, transparent);
-  backdrop-filter: blur(16px) saturate(160%);
-  -webkit-backdrop-filter: blur(16px) saturate(160%);
-  border: 0.5px solid var(--color-hairline);
+  background: var(--color-surface);
+  border: 2px solid var(--color-hairline);
 }
 
 .glass-spec::after {
@@ -216,13 +215,13 @@ textarea:focus-visible {
 .seg button { border: none; cursor: pointer; font-size: 13px; font-weight: 500; padding: 7px 15px; min-height: 36px; border-radius: var(--radius-md); background: transparent; color: var(--color-text-2); transition: all 0.25s var(--ease-out-quart); }
 .seg button.active { background: var(--color-surface); color: var(--color-text); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12); }
 
-.panel { background: var(--color-surface); border-radius: var(--radius-panel); box-shadow: var(--shadow-panel); overflow: hidden; }
+.panel { background: var(--color-surface); border-radius: var(--radius-panel); border: 2px solid var(--color-hairline); box-shadow: var(--shadow-panel); overflow: hidden; }
 .row { display: block; padding: 16px clamp(17px, 3vw, 24px); transition: background 0.15s; }
-.row + .row { border-top: 0.5px solid var(--color-hairline); }
+.row + .row { border-top: 1px solid color-mix(in srgb, var(--color-hairline) 18%, transparent); }
 .row:hover { background: var(--color-surface-2); }
 
-.card { background: var(--color-surface); border-radius: var(--radius-card); box-shadow: var(--shadow-card); transition: transform 0.2s, box-shadow 0.2s; }
-.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+.card { background: var(--color-surface); border-radius: var(--radius-card); border: 2px solid var(--color-hairline); box-shadow: var(--shadow-card); transition: transform 0.2s, box-shadow 0.2s; }
+.card:hover { transform: translateY(-3px) translateX(-2px); box-shadow: var(--shadow-lift); }
 
 .press { transition: transform 0.12s ease; }
 .press:active { transform: scale(0.97); }

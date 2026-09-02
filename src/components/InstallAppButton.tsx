@@ -49,7 +49,7 @@ export default function InstallAppButton() {
         <Download size={11} /> {t('installApp', locale)}
       </button>
       {showHint && (
-        <div className="max-w-xs rounded-lg border border-[var(--color-hairline)] bg-[var(--color-surface)] p-2.5 text-left shadow-[var(--shadow-overlay)]" role="status">
+        <div className="max-w-xs rounded-lg border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-2.5 text-left shadow-[var(--shadow-overlay)]" role="status">
           <p className="text-[calc(12px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">
             {env.isIOS ? t('installIosHint', locale) : env.isWebView ? t('installWebviewHint', locale) : t('installMenuHint', locale)}
           </p>

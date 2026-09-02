@@ -42,7 +42,7 @@ export default function Flashcard({ items, onExit }: { items: StudyItem[]; onExi
       <div className="flip-scene h-[420px]">
         <div className={`flip-inner h-full ${flipped ? 'is-flipped' : ''}`}>
           {/* FRONT */}
-          <div className="flip-face absolute inset-0 flex flex-col rounded-[var(--radius-hero)] border p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: meta.border }}>
+          <div className="flip-face absolute inset-0 flex flex-col rounded-[var(--radius-hero)] border-2 p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: meta.border }}>
             <div className="flex items-center justify-between">
               <Tag kind={item.kind}>{meta.label[locale]}</Tag>
               <button onClick={speakTarget} className="press flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]" aria-label={t('cardListen', locale)}><Volume2 size={18} style={{ color: meta.tint }} /></button>
@@ -52,13 +52,13 @@ export default function Flashcard({ items, onExit }: { items: StudyItem[]; onExi
               {item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
               {item.pos && <p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{item.pos}</p>}
               {(item.exampleEn || item.exampleCn) && (
-                <div className="mt-5 w-full rounded-[var(--radius-card)] bg-[var(--color-surface-2)] p-4 text-left">
+                <div className="mt-5 w-full rounded-[var(--radius-card)] border-2 border-[color-mix(in_srgb,var(--color-hairline)_18%,transparent)] bg-[var(--color-surface-2)] p-4 text-left">
                   {item.exampleEn && <p className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-body)]">例：{item.exampleEn.replace(new RegExp(`\\b(${item.label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`, 'i'), '＿＿＿')}</p>}
                   {item.exampleCn && <p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{item.exampleCn}</p>}
                 </div>
               )}
             </div>
-            <button onClick={() => setFlipped(true)} className="press mt-2 w-full rounded-[var(--radius-md)] border border-[var(--color-hairline)] py-2.5 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('cardShowAnswerOrFlip', locale)}</button>
+            <button onClick={() => setFlipped(true)} className="press mt-2 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] py-2.5 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('cardShowAnswerOrFlip', locale)}</button>
           </div>
           {/* BACK */}
           <div className="flip-face flip-back absolute inset-0 flex flex-col rounded-[var(--radius-hero)] border p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
@@ -99,8 +99,8 @@ export default function Flashcard({ items, onExit }: { items: StudyItem[]; onExi
       </div>
 
       <div className="mt-4 flex items-center justify-between">
-        <button onClick={prev} disabled={idx === 0} className="press flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] disabled:opacity-40"><ArrowLeft size={16} /> {t('cardPrev', locale)}</button>
-        <button onClick={next} disabled={idx === items.length - 1} className="press flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] disabled:opacity-40">{t('cardNext', locale)} <ArrowRight size={16} /></button>
+        <button onClick={prev} disabled={idx === 0} className="press flex items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] disabled:opacity-40"><ArrowLeft size={16} /> {t('cardPrev', locale)}</button>
+        <button onClick={next} disabled={idx === items.length - 1} className="press flex items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)] disabled:opacity-40">{t('cardNext', locale)} <ArrowRight size={16} /></button>
       </div>
     </div>
   );

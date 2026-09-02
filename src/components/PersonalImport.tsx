@@ -62,10 +62,10 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" onClick={onClose}>
-      <div className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-t-[var(--radius-panel)] border border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)] sm:rounded-[var(--radius-panel)]"
+      <div className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-t-[var(--radius-panel)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)] sm:rounded-[var(--radius-panel)]"
         onClick={(e) => e.stopPropagation()}>
 
-        <div className="flex items-center justify-between border-b border-[var(--color-hairline)] px-5 py-3.5">
+        <div className="flex items-center justify-between border-b-2 border-[var(--color-hairline)] px-5 py-3.5">
           <div className="flex items-center gap-2 text-[calc(15px*var(--type-scale))] font-semibold"><Upload size={17} style={{ color: 'var(--color-accent)' }} /> 个人导入</div>
           <button onClick={onClose} className="press flex h-9 w-9 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]" aria-label="关闭"><X size={17} /></button>
         </div>

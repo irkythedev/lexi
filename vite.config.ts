@@ -15,8 +15,8 @@ export default defineConfig({
         name: 'Lexi · 英语听说词汇',
         short_name: 'Lexi',
         description: '围绕江苏译林教材的英语单词、短语、句式听说学习工具。纯前端、本地优先、无需登录。',
-        theme_color: '#0a84ff',
-        background_color: '#0d0d0f',
+        theme_color: '#2F6F5E',
+        background_color: '#F3EBE0',
         display: 'standalone',
         start_url: '/',
         icons: [

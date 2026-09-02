@@ -68,7 +68,7 @@ function StepInput({ items, tts, onNext }: { items: StudyItem[]; tts: TtsPrefs; 
       <p className="mt-3 text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.meaning}</p>
       {item.examTips && <p className="mt-2 text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{item.examTips}</p>}
       <div className="mt-5 flex items-center justify-between">
-        <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] disabled:opacity-40">上一张</button>
+        <button onClick={() => setIdx((i) => Math.max(0, i - 1))} disabled={idx === 0} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))] disabled:opacity-40">上一张</button>
         {idx < items.length - 1 ? <button onClick={() => setIdx((i) => i + 1)} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">下一张 <ArrowRight size={16} /></button>
           : <button onClick={onNext} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">进入跟读 <ArrowRight size={16} /></button>}
       </div>

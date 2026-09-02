@@ -49,7 +49,7 @@ export default function ErrorsView() {
                   {e.prompt && <p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('errorsPrompt', locale, { prompt: e.prompt })}</p>}
                   <p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-trap-deep)]">{t('errorsReason', locale, { reason: e.reason })}</p>
                   <p className="mt-0.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('errorsAnswer', locale, { answer: e.answer || item?.meaning || '—' })}</p>
-                  <div className="mt-2"><button onClick={() => resolve(e.id!)} className="press inline-flex items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] px-3 py-1 text-[calc(12px*var(--type-scale))] font-semibold text-[var(--color-vocab-deep)]"><CheckCircle2 size={13} /> {t('errorsMarkResolved', locale)}</button></div>
+                  <div className="mt-2"><button onClick={() => resolve(e.id!)} className="press inline-flex items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] px-3 py-1 text-[calc(12px*var(--type-scale))] font-semibold text-[var(--color-vocab-deep)]"><CheckCircle2 size={13} /> {t('errorsMarkResolved', locale)}</button></div>
                 </div>
               </div>
             </Row>

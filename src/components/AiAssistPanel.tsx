@@ -196,7 +196,7 @@ export default function AiAssistPanel({
     <div className="fixed inset-0 z-50 sm:bg-black/30 sm:backdrop-blur-[1px]" onClick={() => { if (window.innerWidth >= 640) onClose(); }}>
       {/* 桌面：可拖拽浮窗；移动：底部 sheet */}
       <div
-        className={`fixed z-10 flex flex-col border border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)]
+        className={`fixed z-10 flex flex-col border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)]
           ${window.innerWidth < 640
             ? 'inset-x-0 bottom-0 max-h-[85vh] rounded-t-[var(--radius-lg)] pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]'
             : 'rounded-[var(--radius-lg)]'}`}

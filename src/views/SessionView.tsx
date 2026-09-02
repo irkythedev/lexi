@@ -129,14 +129,14 @@ export default function SessionView() {
   if (reviewDone) {
     return (
       <div className="mx-auto flex min-h-[70vh] max-w-[var(--max-read)] flex-col items-center justify-center px-[var(--pad-x)] py-10 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full" style={{ background: 'var(--grad-cta)' }}>
+        <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-[var(--color-hairline)]" style={{ background: 'var(--grad-cta)', boxShadow: 'var(--shadow-card)' }}>
           <Check size={30} className="text-white" />
         </div>
-        <h2 className="mt-5 text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('sessionComplete', locale)}</h2>
+        <h2 className="mt-5 text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em] text-[var(--color-text)]">{t('sessionComplete', locale)}</h2>
         <p className="mt-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sessionStats', locale, { total: stats.total, correct: stats.correct, wrong: stats.wrong })}</p>
         <div className="mt-6 flex gap-3">
-          <button onClick={() => navigate('/')} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium">{t('backToHome', locale)}</button>
-          <button onClick={handleReset} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>
+          <button onClick={() => navigate('/')} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]">{t('backToHome', locale)}</button>
+          <button onClick={handleReset} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>
             <RotateCcw size={16} /> {t('anotherRound', locale)}
           </button>
         </div>
@@ -185,8 +185,8 @@ export default function SessionView() {
             </div>
             {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
             <div className="mt-4 flex items-center justify-center gap-3">
-              <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
-              <button onClick={() => void grade('correct')} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
+              <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} className="animate-spin" /> : <Volume2 size={16} />} {t('listenAgain', locale)}</button>
+              <button onClick={() => void grade('correct')} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} /></button>
               <button onClick={() => setAiOpen(true)} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
             </div>
           </div>
@@ -197,12 +197,12 @@ export default function SessionView() {
             <h2 className="text-[calc(clamp(28px,7vw,40px)*var(--type-scale))] font-bold tracking-[-0.02em]">{task.item.label}</h2>
             {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
             <div className="mt-3 flex justify-center">
-              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} className="press flex h-12 w-12 items-center justify-center rounded-full border border-[var(--color-hairline)]" aria-label={t('cardListen', locale)}><Volume2 size={18} /></button>
+              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} className="press flex h-12 w-12 items-center justify-center rounded-full border-2 border-[var(--color-hairline)]" aria-label={t('cardListen', locale)}><Volume2 size={18} /></button>
             </div>
             <div className="mt-6 grid grid-cols-1 gap-2.5">
               {recognizeOptions.map((opt, i) => (
                 <button key={i} disabled={!!feedback} onClick={() => void grade(opt === task.item.meaning ? 'correct' : 'wrong')}
-                  className={`press rounded-2xl border bg-[var(--color-surface)] px-4 py-3.5 text-left text-[calc(15px*var(--type-scale))] font-medium ${feedback && !feedback.ok && opt === task.item.meaning ? 'border-[var(--color-vocab-border)] ring-1 ring-[var(--color-vocab)]' : 'border-[var(--color-hairline)]'}`}>
+                  className={`press rounded-2xl border-2 bg-[var(--color-surface)] px-4 py-3.5 text-left text-[calc(15px*var(--type-scale))] font-medium ${feedback && !feedback.ok && opt === task.item.meaning ? 'border-[var(--color-vocab-border)] ring-1 ring-[var(--color-vocab)]' : 'border-[var(--color-hairline)]'}`}>
                   {opt}
                 </button>
               ))}
@@ -215,8 +215,8 @@ export default function SessionView() {
             <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('recallHint', locale)}</p>
             <h2 className="mt-3 text-[calc(clamp(24px,6vw,36px)*var(--type-scale))] font-bold">{task.item.meaning}</h2>
             <div className="mt-6 grid grid-cols-2 gap-3">
-              <button onClick={() => void grade('correct')} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab)]"><Check size={17} /> {t('known', locale)}</button>
-              <button onClick={() => void grade('wrong')} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap)]"><X size={17} /> {t('unknown', locale)}</button>
+              <button onClick={() => void grade('correct')} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab)]"><Check size={17} /> {t('known', locale)}</button>
+              <button onClick={() => void grade('wrong')} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap)]"><X size={17} /> {t('unknown', locale)}</button>
             </div>
             <p className="mt-3 text-[calc(13px*var(--type-scale))] text-[var(--color-text-3)]">{task.item.label} · {task.item.phonetic ?? ''}</p>
           </div>
@@ -226,14 +226,14 @@ export default function SessionView() {
           <div className="mt-6 w-full">
             <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('spellHint', locale)}</p>
             <div className="mt-3 flex justify-center">
-              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} className="press flex h-12 w-12 items-center justify-center rounded-full border border-[var(--color-hairline)]" aria-label={t('cardListen', locale)}><Volume2 size={18} /></button>
+              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} className="press flex h-12 w-12 items-center justify-center rounded-full border-2 border-[var(--color-hairline)]" aria-label={t('cardListen', locale)}><Volume2 size={18} /></button>
             </div>
             <div className="mx-auto mt-5 max-w-sm">
               <input autoFocus value={spellInput} onChange={(e) => setSpellInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') checkSpell(); }}
                 placeholder={t('spellInput', locale)}
-                className="w-full rounded-[var(--radius-md)] border border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-3.5 text-center text-[calc(18px*var(--type-scale))] font-medium outline-none focus:border-[var(--color-accent)]" />
-              <button onClick={checkSpell} className="press mt-3 w-full rounded-[var(--radius-md)] px-6 py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white" style={{ background: 'var(--grad-cta)' }}>{t('spellSubmit', locale)}</button>
+                className="w-full rounded-[var(--radius-md)] border-2 border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-3.5 text-center text-[calc(18px*var(--type-scale))] font-medium outline-none focus:border-[var(--color-accent)]" />
+              <button onClick={checkSpell} className="press mt-3 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-6 py-3 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('spellSubmit', locale)}</button>
             </div>
           </div>
         )}

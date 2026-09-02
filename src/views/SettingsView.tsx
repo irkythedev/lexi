@@ -10,7 +10,7 @@ import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import PersonalImport from '../components/PersonalImport.tsx';
 
 const ACCENT_COLORS: Record<Accent, string> = {
-  emerald: '#1fa07a', berry: '#d94f86', indigo: '#5b6ee8', coral: '#f26d5b',
+  emerald: '#2F6F5E', berry: '#C45B7A', indigo: '#4F5FBF', coral: '#D45A3C',
 };
 
 const PREVIEW_TEXT = 'Hello! This is how I sound. Let us learn English together.';
@@ -50,8 +50,8 @@ export default function SettingsView() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('darkMode', locale)}</span>
-            <button onClick={() => { toggleTheme(); toast(theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', theme === 'dark' ? 'sun' : 'moon'); }} className="press relative h-7 w-12 rounded-full transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)' }}>
-              <span className="absolute top-1 h-5 w-5 rounded-full bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }} />
+            <button onClick={() => { toggleTheme(); toast(theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', theme === 'dark' ? 'sun' : 'moon'); }} className="press relative h-7 w-12 rounded-full border-2 transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)', borderColor: 'var(--color-hairline)' }}>
+              <span className="absolute top-0.5 h-5 w-5 rounded-full border-2 border-[var(--color-hairline)] bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }} />
             </button>
           </div>
           <div className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export default function SettingsView() {
             {(['us', 'uk'] as const).map((v) => (
               <button key={v} onClick={() => { setTts({ accent: v }); toast(v === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); }}
                 className={`press flex h-12 flex-1 items-center justify-center gap-2 rounded-xl border text-[calc(15px*var(--type-scale))] font-semibold transition ${tts.accent === v ? 'border-[var(--color-accent)] bg-[var(--color-accent)]/10 text-[var(--color-accent)]' : 'border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}>
-                <span className="text-[2rem] leading-none">{v === 'us' ? '🇺🇸' : '🇬🇧'}</span>
+                <span className="text-[calc(2rem*var(--type-scale))] leading-none">{v === 'us' ? '🇺🇸' : '🇬🇧'}</span>
                 <span>{v === 'us' ? t('accentUs', locale) : t('accentUk', locale)}</span>
               </button>
             ))}

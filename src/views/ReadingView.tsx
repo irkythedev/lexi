@@ -104,8 +104,8 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
       </div>
 
       {/* 播放控制栏 */}
-      <div className="mt-4 flex items-center gap-3 rounded-[var(--radius-card)] border border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 py-3">
-        <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={playing ? t('playPause', locale) : t('play', locale)}>
+      <div className="mt-4 flex items-center gap-3 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 py-3 shadow-[var(--shadow-card)]">
+        <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px] disabled:opacity-60" aria-label={playing ? t('playPause', locale) : t('play', locale)}>
           {ttsState === 'synthesizing' ? <Loader2 size={18} className="animate-spin" /> : playing ? <Pause size={18} /> : <Play size={18} />}
         </button>
         <div className="flex-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">

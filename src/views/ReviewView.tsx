@@ -77,7 +77,7 @@ export default function ReviewView() {
       <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />
 
       {tab === 'recent' && recentMistakes.length > 0 && (
-        <div className="mt-3 flex justify-end"><button onClick={async () => { await clearResolvedErrors(); load(); }} className="press rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewClear', locale)}</button></div>
+        <div className="mt-3 flex justify-end"><button onClick={async () => { await clearResolvedErrors(); load(); }} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewClear', locale)}</button></div>
       )}
 
       {reviewItem && <QuickReview item={reviewItem} onClose={() => setReviewItem(null)} onGraded={load} selection={selection} />}
@@ -86,7 +86,7 @@ export default function ReviewView() {
 }
 
 function FilterTab({ active, onClick, icon: Icon, label, count }: { active: boolean; onClick: () => void; icon: typeof Brain; label: string; count: number }) {
-  return <button onClick={onClick} className="press flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border py-2 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: active ? 'var(--color-accent)' : 'var(--color-hairline)', background: active ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
+  return <button onClick={onClick} className="press flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 py-2 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: active ? 'var(--color-accent)' : 'var(--color-hairline)', background: active ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
       <Icon size={15} /> {label}<span className="tnum ml-0.5 rounded-[var(--radius-sm)] bg-[var(--color-track)] px-1.5 text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">{count}</span></button>;
 }
 
@@ -110,10 +110,10 @@ function QuickReview({ item, onClose, onGraded, selection }: { item: StudyItem; 
         <h3 className="mt-4 text-center text-[calc(28px*var(--type-scale))] font-bold tracking-[-0.02em]">{item.label}</h3>
         {item.phonetic && <p className="text-center font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
         {flip && <p className="mt-3 text-center text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.meaning}</p>}
-        <button onClick={() => setFlip((v) => !v)} className="press mt-4 w-full rounded-[var(--radius-md)] border border-[var(--color-hairline)] py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{flip ? t('reviewHideAnswer', locale) : t('reviewShowAnswer', locale)}</button>
+        <button onClick={() => setFlip((v) => !v)} className="press mt-4 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{flip ? t('reviewHideAnswer', locale) : t('reviewShowAnswer', locale)}</button>
         <div className="mt-3 grid grid-cols-2 gap-3">
-          <button onClick={() => grade(2)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap-deep)]"><X size={16} /> {t('reviewStillWrong', locale)}</button>
-          <button onClick={() => grade(5)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab-deep)]">{t('known', locale)}</button>
+          <button onClick={() => grade(2)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap-deep)]"><X size={16} /> {t('reviewStillWrong', locale)}</button>
+          <button onClick={() => grade(5)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab-deep)]">{t('known', locale)}</button>
         </div>
       </div>
     </div>

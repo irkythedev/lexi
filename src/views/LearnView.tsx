@@ -53,18 +53,27 @@ export default function LearnView() {
 
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">
-      <div className="relative overflow-hidden rounded-[var(--radius-hero)] p-6 text-white" style={{ background: 'var(--grad-cta)' }}>
-        <div className="absolute h-64 w-64 rounded-full opacity-50" style={{ background: 'rgba(255,255,255,0.18)', filter: 'blur(46px)', top: '-80px', right: '-40px' }} />
-        <div className="absolute h-48 w-48 rounded-full opacity-50" style={{ background: 'rgba(120,80,255,0.5)', filter: 'blur(50px)', bottom: '-90px', left: '12%' }} />
+      {/* 单元封面卡（纸面 + 墨线，非绿满铺） */}
+      <div className="relative overflow-hidden rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-panel)]">
         <div className="relative">
-          <div className="text-[calc(12px*var(--type-scale))] font-semibold tracking-[0.14em] opacity-80">{unit.editionName} · Unit {unit.unit}</div>
-          <h2 className="mt-1.5 text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{unit.title}</h2>
-          <div className="mt-3 flex gap-4 text-[calc(13px*var(--type-scale))]">
-            <span className="glass-chip rounded-[var(--radius-sm)] px-3 py-1">{t('words', locale)} {groups[0].items.length}</span>
-            <span className="glass-chip rounded-[var(--radius-sm)] px-3 py-1">{t('phrases', locale)} {groups[1].items.length}</span>
-            <span className="glass-chip rounded-[var(--radius-sm)] px-3 py-1">{t('patterns', locale)} {groups[2].items.length}</span>
+          <div className="text-[calc(12px*var(--type-scale))] font-semibold tracking-[0.12em] text-[var(--color-accent)]">{unit.editionName} · Unit {unit.unit}</div>
+          <h2 className="mt-1.5 text-[calc(clamp(24px,5vw,34px)*var(--type-scale))] font-bold leading-tight tracking-[-0.03em] text-[var(--color-text)]">{unit.title}</h2>
+          {/* 3 张 KPI 小卡：大数字 + 脚下小胶囊 */}
+          <div className="mt-4 grid grid-cols-3 gap-3">
+            {(
+              [
+                { kind: 'vocab' as const, n: groups[0].items.length, label: t('words', locale), tint: 'var(--color-vocab)', deep: 'var(--color-vocab-deep)' },
+                { kind: 'phrase' as const, n: groups[1].items.length, label: t('phrases', locale), tint: 'var(--color-phrase)', deep: 'var(--color-phrase-deep)' },
+                { kind: 'pattern' as const, n: groups[2].items.length, label: t('patterns', locale), tint: 'var(--color-pattern)', deep: 'var(--color-pattern-deep)' },
+              ]
+            ).map((k) => (
+              <div key={k.kind} className="rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-center shadow-[var(--shadow-card)]">
+                <div className="tnum text-[calc(clamp(26px,6vw,36px)*var(--type-scale))] font-extrabold leading-none" style={{ color: k.tint }}>{k.n}</div>
+                <span className="mt-2 inline-block rounded-[var(--radius-pill)] px-2 py-0.5 text-[calc(10px*var(--type-scale))] font-semibold" style={{ background: 'var(--color-track)', color: k.deep }}>{k.label}</span>
+              </div>
+            ))}
           </div>
-          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press mt-4 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] bg-white/20 px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold backdrop-blur">
+          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">
             {t('startLearning', locale)} <ArrowRight size={16} />
           </button>
         </div>
@@ -77,7 +86,7 @@ export default function LearnView() {
         return (
           <div className="mt-4 overflow-hidden rounded-[var(--radius-hero)] border border-[var(--color-hairline)]">
             <div className="flex items-center gap-3 p-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-white" style={{ background: 'var(--grad-cta)' }}><BookOpen size={20} /></span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-white shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}><BookOpen size={20} /></span>
               <div className="min-w-0 flex-1">
                 <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('reading', locale)}</span>
                 <span className="mt-0.5 block truncate text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
@@ -98,13 +107,13 @@ export default function LearnView() {
         <div className="overflow-hidden transition-all duration-200" style={{ maxHeight: modesOpen ? '400px' : '0px' }}>
           <div className="border-t border-[var(--color-hairline)] p-3 space-y-2">
             {MODES.map((m) => { const Icon = m.icon; return (
-              <div key={m.id} className="flex items-center gap-3 rounded-[var(--radius-card)] border border-[var(--color-hairline)] p-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-white" style={{ background: m.grad }}><Icon size={20} /></span>
+              <div key={m.id} className="flex items-center gap-3 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] p-3">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[12px] text-white shadow-[var(--shadow-card)]" style={{ background: m.grad, border: '2px solid var(--color-hairline)' }}><Icon size={20} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{m.title}</span>
                   <span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{m.desc}</span>
                 </span>
-                <button onClick={() => setMode(m.id as 'flash')} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white"><span>{t('enter', locale)}</span><ArrowRight size={14} /></button>
+                <button onClick={() => setMode(m.id as 'flash')} className="press inline-flex min-h-9 items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-cta)]"><span>{t('enter', locale)}</span><ArrowRight size={14} /></button>
               </div>
             ); })}
           </div>
@@ -114,7 +123,7 @@ export default function LearnView() {
       <div className="mt-5 flex items-center justify-between">
         <div className="flex gap-2">
           {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
-            <button key={f} onClick={() => { setFilter(f); pager.reset(); }} className="press rounded-[var(--radius-sm)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ background: filter === f ? 'var(--color-accent)' : 'var(--color-track)', color: filter === f ? '#fff' : 'var(--color-text-2)' }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
+            <button key={f} onClick={() => { setFilter(f); pager.reset(); }} className="press rounded-[var(--radius-sm)] border-2 px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-semibold transition" style={filter === f ? { background: 'var(--color-surface)', borderColor: 'var(--color-accent)', color: 'var(--color-accent)' } : { background: 'var(--color-track)', borderColor: 'color-mix(in_srgb,var(--color-hairline)_60%,transparent)', color: 'var(--color-text-2)' }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
           ))}
         </div>
         <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} /> : <Eye size={15} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
@@ -137,20 +146,20 @@ export default function LearnView() {
                     </div>
                     <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
                   </div>
-                  {/* 朗读 + AI 操作成组，gap 8px */}
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} compact />
-                    <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind, quote: quote ?? undefined }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
+                  {/* 朗读 + AI 操作成组，gap 8px；每钮热区 44px */}
+                  <div className="flex shrink-0 items-center gap-1">
+                    <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />
+                    <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind, quote: quote ?? undefined }); setAiOpen(true); }} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
                   </div>
                   {/* 展开指示：仅当词条在课文实际出现时显示，放最右；无 quote 时用同宽占位保持图标对齐 */}
                   {quote
-                    ? <ChevronDown size={14} className={`shrink-0 text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
-                    : <span className="w-3.5 shrink-0" aria-hidden="true" />}
+                    ? <span className="flex h-11 w-11 shrink-0 items-center justify-center"><ChevronDown size={14} className={`text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} /></span>
+                    : <span className="h-11 w-11 shrink-0" aria-hidden="true" />}
                 </div>
-                {/* 课文原句展开区：仅当词条在课文实际出现时显示 */}
+                {/* 课文原句展开区：仅当词条在课文实际出现时显示；内嵌浅底条 + 左 kind tint 竖线 */}
                 {expanded && quote && (
-                  <div className="mt-3 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-3">
-                    <div className="flex items-center justify-between">
+                  <div className="mt-3 overflow-hidden rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)]">
+                    <div className="flex items-center justify-between border-l-4 py-2 pl-3 pr-2" style={{ borderLeftColor: meta.tint }}>
                       <span className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('textbookQuote', locale)}</span>
                       <SpeakButton text={quote} accent={tts.accent} rate={tts.rate} size={13} color={meta.tint} compact />
                     </div>
@@ -161,13 +170,13 @@ export default function LearnView() {
                       const long = short !== quote;
                       return (
                         <>
-                          <p className="mt-1.5 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">
+                          <p className="px-3 pb-3 pt-1 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">
                             <WordHighlight text={full ? quote : short} word={item.label} color={meta.tint} />
                           </p>
                           {long && (
                             <button
                               onClick={(e) => { e.stopPropagation(); setQuoteFull((prev) => { const n = new Set(prev); if (full) n.delete(item.id); else n.add(item.id); return n; }); }}
-                              className="press mt-1.5 text-[calc(12px*var(--type-scale))] font-medium text-[var(--color-accent)]"
+                              className="press ml-3 mb-3 text-[calc(12px*var(--type-scale))] font-medium text-[var(--color-accent)]"
                             >
                               {full ? t('quoteCollapse', locale) : t('quoteExpand', locale)}
                             </button>

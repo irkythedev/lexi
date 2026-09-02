@@ -38,12 +38,12 @@ export default function GlassNav() {
       <header className={`glass-nav fixed inset-x-0 top-0 z-50 ${scrolled ? 'scrolled' : ''}`}>
         <div className="mx-auto flex h-14 max-w-[var(--max-grid)] items-center justify-between px-[var(--pad-x)]">
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
-            <span className="flex h-7 w-7 items-center justify-center rounded-[10px] text-white" style={{ background: 'var(--grad-cta)' }}>
+            <span className="flex h-7 w-7 items-center justify-center rounded-[10px] text-white shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}>
               <BookOpen size={16} />
             </span>
             <span className="flex items-baseline gap-1">
               <span className="text-[calc(15px*var(--type-scale))] font-semibold tracking-[-0.01em] text-[var(--color-text)]">Lexi</span>
-              <button type="button" onClick={() => setShowChangelog(true)} title={t('changelogTitle', locale)} className="tnum press text-[calc(10px*var(--type-scale))] font-medium text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors">v{FOOTER.version}</button>
+              <button type="button" onClick={() => setShowChangelog(true)} title={t('changelogTitle', locale)} className="tnum press rounded-[var(--radius-pill)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-2 py-0.5 text-[calc(10px*var(--type-scale))] font-semibold text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors">v{FOOTER.version}</button>
             </span>
           </div>
           {/* 桌面端导航：顶部横排，替代底部 tab 栏 */}
@@ -52,10 +52,9 @@ export default function GlassNav() {
               const Icon = tabItem.icon;
               const isActive = activeTab === tabItem.id || (location.pathname === '/' && tabItem.id === 'learn');
               return (
-                <button key={tabItem.id} onClick={() => go(tabItem.id)} className="press relative flex h-full items-center gap-1.5 px-3.5" style={{ background: 'none', border: 'none', cursor: 'pointer', color: isActive ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
+                <button key={tabItem.id} onClick={() => go(tabItem.id)} className="press relative flex h-9 items-center gap-1.5 rounded-full border-2 px-3.5 transition" style={{ cursor: 'pointer', borderColor: isActive ? 'var(--color-accent)' : 'transparent', background: isActive ? 'var(--color-accent)' : 'transparent', color: isActive ? '#fff' : 'var(--color-text-2)' }}>
                   <Icon size={16} className={isActive ? '' : 'opacity-60'} />
                   <span className="text-[calc(14px*var(--type-scale))] font-medium">{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
-                  {isActive && <span className="absolute inset-x-3 -bottom-px h-0.5 rounded-full" style={{ background: 'var(--color-accent)' }} />}
                 </button>
               );
             })}
@@ -74,7 +73,7 @@ export default function GlassNav() {
               {!aiReady && <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[var(--color-trap)]" />}
             </button>
             {/* 语言切换 */}
-            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-11 items-center justify-center rounded-[var(--radius-md)] px-2 text-[13px] font-bold text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('langSwitch', locale)}>
+            <button onClick={() => { const next: Locale = locale === 'zh' ? 'en' : 'zh'; setLocale(next); useToastStore.getState().show(next === 'en' ? 'Language: English' : '已切换语言：中文', 'info'); }} className="press flex h-11 items-center justify-center rounded-[var(--radius-md)] px-2 text-[calc(13px*var(--type-scale))] font-bold text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)] dark:hover:bg-white/10" aria-label={t('langSwitch', locale)}>
               {locale === 'zh' ? 'EN' : '中文'}
             </button>
           </div>

@@ -97,7 +97,7 @@ export default function TextbookSwitcher({ onSelected }: { onSelected?: () => vo
           return (
             <button key={ed.editionId} onClick={() => handlePick(ed)}
               className="press card flex items-start gap-3 p-4 text-left">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: 'var(--grad-cta)' }}>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-[var(--shadow-card)]" style={{ background: 'var(--grad-cta)', border: '2px solid var(--color-hairline)' }}>
                 <BookOpen size={20} />
               </span>
               <div className="min-w-0 flex-1">

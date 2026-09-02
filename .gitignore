@@ -3,3 +3,5 @@ dist
 *.tsbuildinfo
 .DS_Store
 *.local
+shots/
+design-audit-lexi.md
