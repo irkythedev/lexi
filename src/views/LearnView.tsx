@@ -142,15 +142,17 @@ export default function LearnView() {
                     <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} compact />
                     <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind, quote: quote ?? undefined }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
                   </div>
-                  {/* 展开指示：仅当词条在课文实际出现时显示，放最右 */}
-                  {quote && <ChevronDown size={14} className={`shrink-0 text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />}
+                  {/* 展开指示：仅当词条在课文实际出现时显示，放最右；无 quote 时用同宽占位保持图标对齐 */}
+                  {quote
+                    ? <ChevronDown size={14} className={`shrink-0 text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+                    : <span className="w-3.5 shrink-0" aria-hidden="true" />}
                 </div>
                 {/* 课文原句展开区：仅当词条在课文实际出现时显示 */}
                 {expanded && quote && (
                   <div className="mt-3 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('textbookQuote', locale)}</span>
-                      <SpeakButton text={quote} accent={tts.accent} rate={tts.rate} size={13} color="var(--color-accent)" />
+                      <SpeakButton text={quote} accent={tts.accent} rate={tts.rate} size={13} color={meta.tint} compact />
                     </div>
                     {/* 长句默认只展示高亮词所在片段，点击展开全文 */}
                     {(() => {
@@ -160,7 +162,7 @@ export default function LearnView() {
                       return (
                         <>
                           <p className="mt-1.5 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">
-                            <WordHighlight text={full ? quote : short} word={item.label} />
+                            <WordHighlight text={full ? quote : short} word={item.label} color={meta.tint} />
                           </p>
                           {long && (
                             <button

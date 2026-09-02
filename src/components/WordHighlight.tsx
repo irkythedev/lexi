@@ -7,9 +7,10 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-export default function WordHighlight({ text, word, className = '' }: {
+export default function WordHighlight({ text, word, color = 'var(--color-accent)', className = '' }: {
   text: string;
   word: string;
+  color?: string;
   className?: string;
 }): React.ReactNode {
   if (!text || !word) return text;
@@ -23,7 +24,7 @@ export default function WordHighlight({ text, word, className = '' }: {
     <React.Fragment>
       {parts.flatMap((p, i) =>
         i < matches.length
-          ? [p, <mark key={i} className={`rounded-[3px] bg-[var(--color-accent)]/20 px-0.5 font-bold text-[var(--color-accent)] ${className}`} style={{ textDecoration: 'underline', textUnderlineOffset: '2px' }}>{matches[i]}</mark>]
+          ? [p, <mark key={i} className={`rounded-[3px] px-0.5 font-bold ${className}`} style={{ color, backgroundColor: color + '33', textDecoration: 'underline', textUnderlineOffset: '2px' }}>{matches[i]}</mark>]
           : [p]
       )}
     </React.Fragment>
