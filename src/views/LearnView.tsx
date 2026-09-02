@@ -14,6 +14,7 @@ import SpeakButton from '../components/SpeakButton.tsx';
 import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
 import PaginationBar from '../components/PaginationBar.tsx';
 import { usePagination } from '../lib/pagination.ts';
+import { findQuote } from '../data/textbooks/unit_texts.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 
 export default function LearnView() {
@@ -25,6 +26,7 @@ export default function LearnView() {
   const [modesOpen, setModesOpen] = useState(false);
   const [aiTarget, setAiTarget] = useState<AssistContext | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const groups = [
     { kind: 'vocab', items: studyItems.filter((i) => i.kind === 'vocab') },
@@ -119,19 +121,34 @@ export default function LearnView() {
       <Panel className="mt-3">
         {pagedItems.map((item) => {
           const meta = KIND_META[item.kind];
+          const expanded = expandedId === item.id;
+          const quote = unit ? findQuote(item, unit.unit) : null;
           return (
-            <Row key={item.id}>
-              <div className="flex items-center gap-3">
-                <Tag kind={item.kind}>{meta.label[locale]}</Tag>
-                <div className="min-w-0 flex-1">
-                  <div className="min-w-0">
-                    <span className="block break-words text-[calc(16px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{item.label}</span>
-                    {item.phonetic && <span className="mt-0.5 block break-words font-mono text-[calc(12px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{item.phonetic}</span>}
+            <Row key={item.id} onClick={() => setExpandedId(expanded ? null : item.id)}>
+              <div className="w-full">
+                <div className="flex items-center gap-3">
+                  <Tag kind={item.kind}>{meta.label[locale]}</Tag>
+                  <div className="min-w-0 flex-1">
+                    <div className="min-w-0">
+                      <span className="block break-words text-[calc(16px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{item.label}</span>
+                      {item.phonetic && <span className="mt-0.5 block break-words font-mono text-[calc(12px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{item.phonetic}</span>}
+                    </div>
+                    <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
                   </div>
-                  <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
+                  <ChevronDown size={16} className={`shrink-0 text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+                  <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />
+                  <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind }); setAiOpen(true); }} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={15} /></button>
                 </div>
-                <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />
-                <button onClick={() => { setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind }); setAiOpen(true); }} className="press flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={15} /></button>
+                {/* 课文原句展开区：仅当词条在课文实际出现时显示 */}
+                {expanded && quote && (
+                  <div className="mt-3 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('textbookQuote', locale)}</span>
+                      <SpeakButton text={quote} accent={tts.accent} rate={tts.rate} size={13} color="var(--color-accent)" />
+                    </div>
+                    <p className="mt-1.5 text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{quote}</p>
+                  </div>
+                )}
               </div>
             </Row>
           );
