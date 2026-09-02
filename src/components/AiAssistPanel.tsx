@@ -4,7 +4,7 @@
 //   type:"speak" 段 = 整段一个朗读按钮（完整词/短语/句子），文本不可再拆。
 // 桌面端为可拖拽/缩放的浮窗，移动端为底部 sheet。
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Sparkles, Loader2, Volume2 } from 'lucide-react';
+import { X, Sparkles, Loader2, Volume2, Pause } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, isNetworkError,
@@ -37,7 +37,7 @@ function SpeakInline({ text, accent, rate, size = 12, fontSize = 'inherit', bold
         aria-label={t('listenAgain', locale)}
         title={text.trim().slice(0, 60)}
       >
-        {ttsState === 'synthesizing' ? <Loader2 size={size} className="animate-spin" /> : <Volume2 size={size} />}
+        {ttsState === 'synthesizing' ? <Loader2 size={size} className="animate-spin" /> : (active ? <Pause size={size} className="animate-pulse" /> : <Volume2 size={size} />)}
       </button>
       <span className={bold ? 'font-semibold text-[var(--color-text)]' : ''} style={{ fontSize }}>{text}</span>
     </span>
@@ -81,10 +81,10 @@ function StudyCardView({ card, accent, rate, highlight }: { card: StudyCard; acc
           <div className="mt-1 flex items-start gap-1.5 rounded-[var(--radius-md)] border border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">
             <button
               onClick={() => { if (active) stop(); else speak(card.example.en.trim(), { accent, rate, lang: 'en' }); }}
-              className="press mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] hover:opacity-100"
+              className={`press mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] ${active ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}
               aria-label={t('listenAgain', locale)}
             >
-              {ttsState === 'synthesizing' ? <Loader2 size={13} className="animate-spin" /> : <Volume2 size={13} />}
+              {ttsState === 'synthesizing' ? <Loader2 size={13} className="animate-spin" /> : (active ? <Pause size={13} className="animate-pulse" /> : <Volume2 size={13} />)}
             </button>
             <div className="min-w-0">
               <p className="text-[calc(14.5px*var(--type-scale))] font-medium leading-relaxed text-[var(--color-text)]"><WordHighlight text={card.example.en} word={highlight ?? card.word} /></p>
