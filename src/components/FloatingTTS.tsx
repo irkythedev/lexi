@@ -5,7 +5,13 @@ import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
 import type { SpeakOptions } from '../lib/useSpeak.ts';
 
-interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; onEnd?: () => void; }
+/** 广播停止播放信号（供 SessionView 等组件在自动播放前调用，避免跨实例重叠） */
+export function requestStopTts(): void {
+  current = null;
+  listeners.forEach((fn) => fn({ text: '', accent: 'us', rate: 1, _stop: true }));
+}
+
+interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; onEnd?: () => void; _stop?: boolean; }
 
 const listeners = new Set<(t: SpeakTarget) => void>();
 const stateListeners = new Set<(s: 'idle' | 'synthesizing' | 'playing') => void>();
@@ -66,7 +72,11 @@ export default function FloatingTTS() {
   useEffect(() => {
     // 用 playRef.current 而非闭包 play：play 会随 tts.accent/rate 重建，
     // 闭包捕获首次渲染的 play 会导致口音/语速切换不生效（陈旧默认值）。
-    const fn = (t: SpeakTarget) => { setActive(t); playRef.current(t, t.accent, t.rate, t.onEnd); };
+    const fn = (t: SpeakTarget) => {
+      // 停止信号：仅停止当前播放，不切换 active 文本
+      if (t._stop) { stop(); setPlaying(false); return; }
+      setActive(t); playRef.current(t, t.accent, t.rate, t.onEnd);
+    };
     listeners.add(fn);
     return () => { listeners.delete(fn); stop(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps

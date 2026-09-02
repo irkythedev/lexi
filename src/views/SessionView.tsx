@@ -9,6 +9,7 @@ import { useSessionEngine, type TaskResult } from '../lib/session-engine.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { KIND_META, shuffle } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
+import { requestStopTts } from '../components/FloatingTTS.tsx';
 import { Tag } from '../components/ui/primitives.tsx';
 
 export default function SessionView() {
@@ -40,6 +41,8 @@ export default function SessionView() {
   useEffect(() => {
     if (!task || task.type !== 'listen') return;
     setShownWord(0);
+    // 先停止 FloatingTTS 的独立播放实例，避免两份读音重叠
+    requestStopTts();
     speak(task.item.label, {
       accent: tts.accent,
       rate: tts.rate,

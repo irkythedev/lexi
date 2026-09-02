@@ -143,6 +143,8 @@ export function useSpeak() {
 
   const speak = useCallback(async (text: string, options: SpeakOptions = {}) => {
     if (!text) return;
+    // 自停：停止当前实例的任何遗留播放，避免重叠
+    stopSource();
     optsRef.current = options;
     const { accent = 'us', rate = 1.0, onEnd } = options;
     wasStoppedRef.current = false;
