@@ -84,14 +84,18 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   const clearAll = () => { clearConfig(); setApiKey(''); setModel(''); setLiveModels([]); useToastStore.getState().show(t('aiClearedToast', locale), 'info', 'alert'); };
 
   const currentProvider = AI_PROVIDERS.find((p) => p.id === provider);
+  const providerName = (pid: AiProviderId): string => {
+    const key = `aiProvider${pid.charAt(0).toUpperCase()}${pid.slice(1)}`;
+    return t(key, locale);
+  };
 
   return (
     <div className="rounded-[var(--radius-hero)] border p-5 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
       <div className="text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiChooseProvider', locale)}</div>
       <div className="mt-2 flex flex-wrap gap-2">
-        {AI_PROVIDERS.map((p) => <button key={p.id} onClick={() => onProvider(p.id)} className="press rounded-full border px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: provider === p.id ? 'var(--color-accent)' : 'var(--color-hairline)', background: provider === p.id ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: provider === p.id ? 'var(--color-accent)' : 'var(--color-text-2)' }}>{p.name}</button>)}
+        {AI_PROVIDERS.map((p) => <button key={p.id} onClick={() => onProvider(p.id)} className="press rounded-full border px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: provider === p.id ? 'var(--color-accent)' : 'var(--color-hairline)', background: provider === p.id ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: provider === p.id ? 'var(--color-accent)' : 'var(--color-text-2)' }}>{providerName(p.id)}</button>)}
       </div>
-      {currentProvider?.note && <p className="mt-1.5 text-[calc(12px*var(--type-scale))] text-[var(--color-trap)]">{currentProvider.note}</p>}
+      {currentProvider?.id === 'doubao' && <p className="mt-1.5 text-[calc(12px*var(--type-scale))] text-[var(--color-trap)]">{t('aiProviderDoubaoNote', locale)}</p>}
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiApiKeyLabel', locale)}</div>
       <div className="relative mt-2">
