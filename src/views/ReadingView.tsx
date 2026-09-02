@@ -27,8 +27,9 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
   const [aiOpen, setAiOpen] = useState(false);
   const aiContext: AssistContext | null = reading ? {
     label: reading.title,
-    extra: reading.paragraphs[0]?.slice(0, 200) ?? '',
-    questions: [t('aiReadSummary', locale), t('aiReadPhrase', locale), t('aiReadGrammar', locale)],
+    meaning: `Unit ${unit} 课文：${reading.title}`,
+    kind: 'pattern',
+    extra: reading.paragraphs.slice(0, 3).join('\n'),
   } : null;
 
   // 展平为句子数组

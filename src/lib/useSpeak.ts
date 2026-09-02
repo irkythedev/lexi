@@ -45,10 +45,25 @@ function splitForTTS(text: string, max = 800): string[] {
   if (!text) return [];
   const out: string[] = [];
   let buf = '';
+  // 按句末标点优先切，无标点时按空格切（保证词边界），绝不从单词中间硬切。
   for (const ch of text) {
     buf += ch;
-    if ('.!?;，。！？；'.includes(ch) && buf.length >= 4) { out.push(buf); buf = ''; }
-    else if (buf.length >= max) { out.push(buf); buf = ''; }
+    // 句末标点 -> 切句
+    if ('.!?;，。！？；'.includes(ch) && buf.length >= 4) {
+      out.push(buf); buf = '';
+      continue;
+    }
+    // 超过 max 时回退到最近空格切，不切单词
+    if (buf.length >= max) {
+      const lastSpace = buf.lastIndexOf(' ', max);
+      if (lastSpace > 0) {
+        out.push(buf.slice(0, lastSpace));
+        buf = buf.slice(lastSpace + 1);
+      } else {
+        // 无空格（超长无空格字符串，如 URL），冒风险切
+        out.push(buf); buf = '';
+      }
+    }
   }
   if (buf) out.push(buf);
   return out;

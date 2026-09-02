@@ -168,15 +168,22 @@ export function examPointPrompt(phrase: string, meaning: string): string {
 短语：${phrase}（${meaning || ''}）。题目考查该短语的固定搭配、介词或用法，难度贴近中考/高考。`;
 }
 
-export function roleplaySystemPrompt(unitTitle: string | undefined, targetVocab: string[]): string {
-  const base = buildSystemPrompt({ unitTitle });
-  const words = targetVocab.join(', ');
-  return (
-    base +
-    `\n情境对话模式：请用中文引导一场关于「${unitTitle || '本单元'}」的情境对话，` +
-    `鼓励用户用英语、并尽量使用这些目标词：${words || '本单元词汇'}。` +
-    `当用户说英语时，先自然回应，再温和指出可改进的搭配或语法。`
-  );
+/**
+ * 合并学习卡片 prompt：一次请求生成 释义/用法/例句/考点 四段。
+ * 纯文本输出（无 markdown），总长受限，方便朗读与展示。
+ */
+export function studyCardPrompt(label: string, meaning?: string, kind?: string): string {
+  const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : '单词';
+  return `请针对这个${kindLabel}「${label}」${meaning ? `（${meaning}）` : ''}生成一份学习卡片，按以下结构输出，每项都用简短的一句话，总共不超过 180 字：
+
+1. 释义：用中文解释含义（若已有中文释义可简化为更易记的说法）。
+2. 用法：一句话说明常见用法或搭配。
+3. 例句：给出 1 个简单英语例句，并附中文翻译。
+4. 考点：一句话指出常考或易错点。
+
+输出要求：
+- 只用纯文本，不要任何 markdown 标记（不要 **、#、-、反引号、星号）。
+- 用数字 1. 2. 3. 4. 开头分行，不要额外总结。`;
 }
 
 export function extractJson(text: string): CorrectionResult | ExamPointResult | null {

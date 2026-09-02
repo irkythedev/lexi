@@ -251,8 +251,8 @@ export default function SessionView() {
       {task && (
         <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={{
           label: task.item.label,
-          extra: task.item.meaning ?? '',
-          questions: [t('aiWordMeaning', locale), t('aiWordUsage', locale), t('aiWordExample', locale)],
+          meaning: task.item.meaning ?? '',
+          kind: task.item.kind,
         }} />
       )}
     </div>
