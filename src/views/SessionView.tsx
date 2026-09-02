@@ -156,7 +156,7 @@ export default function SessionView() {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-[var(--max-read)] flex-col px-[var(--pad-x)] py-4">
       <div className="flex items-center justify-between">
-        <button onClick={() => { stop(); navigate('/'); }} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]"><ArrowLeft size={18} /> {t('exitSession', locale)}</button>
+        <button onClick={() => { stop(); navigate('/learn'); }} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]"><ArrowLeft size={18} /> {t('exitSession', locale)}</button>
         <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{pos + 1} / {total}</span>
       </div>
 
