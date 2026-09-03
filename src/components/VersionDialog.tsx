@@ -1,8 +1,16 @@
 // VersionDialog — 点击顶部版本号弹出的更新日志面板（面向用户，zh/en 双语）
-import { X, Info } from 'lucide-react';
+import { X, Info, Plus, ArrowUp, Wrench } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { CHANGELOG, APP_VERSION } from '../lib/changelog.ts';
+
+/** 变更类别 → 语义图标（zh + en 标签共用，accent 描边点 + 墨线文本）。
+ *  注意：用 Plus/ArrowUp/Wrench 而非 Sparkles —— Sparkles 是本应用约定俗成的 AI 图标。 */
+const CATEGORY_ICON: Record<string, typeof Plus> = {
+  '[新增]': Plus, '[New]': Plus,
+  '[优化]': ArrowUp, '[Improved]': ArrowUp,
+  '[修复]': Wrench, '[Fixed]': Wrench,
+};
 
 export default function VersionDialog({ onClose }: { onClose: () => void }) {
   const locale = useAppStore((s) => s.locale);
@@ -25,16 +33,12 @@ export default function VersionDialog({ onClose }: { onClose: () => void }) {
             <ul className="space-y-1.5">
               {(locale === 'zh' ? entry.zh : entry.en).map((line, i) => {
                 const m = line.match(/^(\[[^\]]+\])\s*(.*)$/);
+                const CatIcon = m ? CATEGORY_ICON[m[1]] : null;
                 return (
                   <li key={i} className="flex gap-2 text-[calc(12.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">
-                    <span className="shrink-0 text-[var(--color-text-4)]">•</span>
+                    <span className="mt-[3px] shrink-0">{CatIcon ? <CatIcon size={13} style={{ color: 'var(--color-accent)' }} /> : <span className="text-[var(--color-text-4)]">•</span>}</span>
                     <span>
-                      {m ? (
-                        <>
-                          <strong className="font-bold text-[var(--color-text)]">{m[1]}</strong>{' '}
-                          {m[2]}
-                        </>
-                      ) : line}
+                      {m ? m[2] : line}
                     </span>
                   </li>
                 );
