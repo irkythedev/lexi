@@ -43,7 +43,7 @@ export default function ReviewView() {
   if (!unit) return <div className="mx-auto flex min-h-[70vh] max-w-[var(--max-read)] items-center justify-center px-[var(--pad-x)] py-10 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewNoUnit', locale)}</div>;
 
   return (
-    <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">
+    <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] pb-28 pt-4">
       <div className="mb-3"><h2 className="text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('reviewTitle', locale)}</h2><p className="mt-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewDesc', locale)}</p></div>
 
       <div className="mb-4 flex gap-2">

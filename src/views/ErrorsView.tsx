@@ -24,7 +24,7 @@ export default function ErrorsView() {
   const resolve = async (id: number) => { await markErrorResolved(id); load(); toast(t('errorsResolvedToast', locale), 'success', 'check'); };
 
   return (
-    <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">
+    <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] pb-28 pt-4">
       <div className="mb-3 flex items-end justify-between">
         <div><h2 className="text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('errorsTitle', locale)}</h2><p className="mt-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{unit ? `${unit.editionName} · ${unit.title}` : t('errorsFilterHint', locale)} · {t('errorsCount', locale, { count: unitErrors.length })}</p></div>
         {unitErrors.length > 0 && <GhostButton onClick={async () => { await clearResolvedErrors(); load(); toast(t('errorsClearedToast', locale), 'success', 'check'); }}>{t('errorsClear', locale)}</GhostButton>}

@@ -79,12 +79,12 @@ export default function GlassNav() {
       </header>
 
       <nav className="glass-nav glass-nav-top fixed inset-x-0 bottom-0 z-50 safe-b md:hidden">
-        <div className="mx-auto flex max-w-[var(--max-grid)] items-center justify-around px-2">
+        <div className="mx-auto flex max-w-[var(--max-grid)] items-center justify-around px-2 pb-2">
           {TABS.map((tabItem) => {
             const Icon = tabItem.icon;
             const isActive = activeTab === tabItem.id || (location.pathname === '/' && tabItem.id === 'learn');
             return (
-              <button key={tabItem.id} onClick={() => go(tabItem.id)} className={`press relative flex flex-1 flex-col items-center gap-0.5 rounded-[var(--radius-md)] py-2 transition ${isActive ? 'border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]' : 'border-2 border-transparent'}`} style={{ cursor: 'pointer' }}>
+              <button key={tabItem.id} onClick={() => go(tabItem.id)} className={`press relative mx-1 flex flex-1 flex-col items-center gap-0.5 rounded-[var(--radius-md)] py-2 transition ${isActive ? 'border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]' : 'border-2 border-transparent'}`} style={{ cursor: 'pointer' }}>
                 <span className="relative">
                   <Icon size={22} strokeWidth={ICON_STROKE} style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-2)' }} />
                 </span>

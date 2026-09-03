@@ -52,7 +52,7 @@ export default function LearnView() {
   if (mode === 'reading' && unit) return <ReadingView unit={unit.unit} onExit={() => setMode(null)} />;
 
   return (
-    <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">
+    <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] pb-28 pt-4">
       {/* 单元封面卡（纸面 + 墨线，非绿满铺） */}
       <div className="relative overflow-hidden rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-panel)]">
         <div className="relative">
