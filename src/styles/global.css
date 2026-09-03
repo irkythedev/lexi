@@ -86,17 +86,17 @@
 
 /* Dark mode tokens — 暖黑纸 + 浅描边卡（同一套语言的夜间版） */
 .dark {
-  --color-ground: #161411;
-  --color-surface: #241F1B;
-  --color-surface-2: #2E2924;
+  --color-ground: #12100E;
+  --color-surface: #302A24;
+  --color-surface-2: #3B342C;
   --color-text: #F3EBE0;
   --color-text-body: #C9C0B5;
   --color-text-2: #9A9186;
   --color-text-3: #6E675F;
   --color-text-4: #524D46;
   --color-hairline: #E4D9CC;
-  --color-input-border: #8A837C;
-  --color-input-bg: #2E2924;
+  --color-input-border: #E4D9CC;
+  --color-input-bg: #2C2722;
   --color-track: #3A342E;
   /* semantic text lightened for dark backgrounds (deep 提亮，soft 低透明) */
   --color-vocab-deep: #7FA896;
@@ -113,10 +113,11 @@
   --color-trap-border: rgba(224, 131, 104, 0.5);
   --color-live: #7FA896;
   /* accent is theme-driven; dark uses same theme accent (set below) */
-  --shadow-card: 2px 2px 0 rgba(0, 0, 0, 0.7);
-  --shadow-panel: 3px 3px 0 rgba(0, 0, 0, 0.7);
-  --shadow-lift: 3px 5px 0 rgba(0, 0, 0, 0.7);
-  --shadow-cta: 2px 2px 0 rgba(0, 0, 0, 0.7);
+  /* 印章浮起：暗底上黑阶比浅色多 1px，纯黑硬偏移（贴纸/印章，非模糊影） */
+  --shadow-card: 3px 3px 0 #000000;
+  --shadow-panel: 3px 3px 0 #000000;
+  --shadow-lift: 4px 4px 0 #000000;
+  --shadow-cta: 3px 3px 0 #000000;
 }
 
 /* ── Theme color variants — user-selectable, override --color-accent ──
