@@ -1,6 +1,6 @@
 // Footer — Lexi 页脚：品牌 + 版本、作者、作品集、仓库链接、许可
 // 参考 stem_digt_labs Footer 架构，适配 Lexi token 体系 + i18n
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Library, Mail, Share2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
@@ -29,7 +29,19 @@ export default function Footer() {
   const [showWorks, setShowWorks] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const worksRef = useRef<HTMLSpanElement>(null);
   const authorName = locale === 'en' ? 'Ricky' : 'Ricky';
+
+  useEffect(() => {
+    if (!showWorks) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (worksRef.current && !worksRef.current.contains(e.target as Node)) {
+        setShowWorks(false);
+      }
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
+  }, [showWorks]);
 
   return (
     <footer className="mt-8 w-full border-t border-[var(--color-hairline)] px-[var(--pad-x)] py-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">
@@ -43,8 +55,8 @@ export default function Footer() {
           <span className="hidden sm:inline text-[var(--color-text-4)]">·</span>
           <span className="hidden sm:inline">{t('footerRole', locale)}</span>
           <a href={`mailto:${FOOTER.email}`} aria-label={t('footerContact', locale)} className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors"><Mail size={14} /></a>
-          {/* 其他作品：icon + 数字角标，点击展开 */}
-          <span className="relative inline-flex items-center">
+          {/* 其他作品：icon + 数字角标，点击展开；点击外部收起 */}
+          <span ref={worksRef} className="relative inline-flex items-center">
             <button type="button" onClick={() => setShowWorks((v) => !v)} aria-expanded={showWorks} aria-label={t('footerMoreWorks', locale)}
               className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors">
               <span className="relative inline-flex items-center">
