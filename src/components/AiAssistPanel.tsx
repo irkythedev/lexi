@@ -215,7 +215,7 @@ export default function AiAssistPanel({
           style={{ cursor: 'grab' }}
         >
           <h2 className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-bold text-[var(--color-text)]">
-            <Sparkles size={16} strokeWidth={2.5} style={{ color: 'var(--color-ai)' }} /> {t('aiStudyTitle', locale)}
+            <Sparkles size={16} strokeWidth={2.5} className="ai-breathe" style={{ color: 'var(--color-ai)' }} /> {t('aiStudyTitle', locale)}
             {context && <span className="truncate text-[calc(12px*var(--type-scale))] font-normal text-[var(--color-text-2)]">· {context.label}</span>}
           </h2>
           <button type="button" onClick={onClose} onPointerDown={(e) => e.stopPropagation()} aria-label={t('close', locale)} className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]"><X size={16} /></button>

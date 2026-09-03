@@ -21,7 +21,7 @@ export default function AiView() {
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-[calc(clamp(20px,5vw,28px)*var(--type-scale))] font-bold tracking-[-0.02em]"><Sparkles size={22} strokeWidth={2.5} style={{ color: 'var(--color-ai)' }} /> {t('aiTitle', locale)}</h2>
+        <h2 className="flex items-center gap-2 text-[calc(clamp(20px,5vw,28px)*var(--type-scale))] font-bold tracking-[-0.02em]"><Sparkles size={22} strokeWidth={2.5} className="ai-breathe" style={{ color: 'var(--color-ai)' }} /> {t('aiTitle', locale)}</h2>
         {cfg && <button onClick={() => setView('settings')} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><Settings2 size={15} strokeWidth={2.25} /> {t('aiConfigure', locale)}</button>}
       </div>
       {view === 'terms' && <ConsentView onAgree={() => setView('settings')} />}

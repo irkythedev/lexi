@@ -228,6 +228,18 @@ textarea:focus-visible {
 .press { transition: transform 0.12s ease; }
 .press:active { transform: scale(0.97); }
 
+@keyframes ai-breathe {
+  0%, 100% { opacity: 0.72; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.07); }
+}
+.ai-breathe {
+  animation: ai-breathe 2.6s ease-in-out infinite;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-breathe { animation: none; }
+}
+
 .safe-b { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
 /* 矩形滑块缩略图（字体/语速拖动条） */
