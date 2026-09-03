@@ -60,7 +60,7 @@ export default function SettingsView() {
                 className="press relative flex h-11 w-11 items-center justify-center rounded-full transition"
                 style={{ background: ACCENT_COLORS[a], border: '1.5px solid var(--color-hairline)', boxShadow: accent === a ? '0 0 0 2px var(--color-ground), 0 0 0 4px var(--color-accent)' : 'none' }}
                 aria-label={ACCENT_META[a].name}>
-                {accent === a && <span className="text-white"><Check size={13} strokeWidth={3} /></span>}
+                {accent === a && <span className="text-white"><Check size={13} strokeWidth={2.25} /></span>}
               </button>
             ))}
           </div>
@@ -130,7 +130,7 @@ export default function SettingsView() {
           </div>
           {/* 试听当前口音 + 语速 */}
           <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] shadow-[var(--shadow-card)] hover:bg-[var(--color-surface-2)] disabled:opacity-60">
-            {previewState === 'synthesizing' ? <Loader2 size={15} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={15} /> : <Play size={15} />}
+            {previewState === 'synthesizing' ? <Loader2 size={15} strokeWidth={2.25} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={15} strokeWidth={2.25} /> : <Play size={15} strokeWidth={2.25} />}
             {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('previewPlaying', locale) : t('previewVoice', locale)}
           </button>
         </div>
@@ -234,7 +234,7 @@ function Scale({ min, max, step, majorStep, majorAnchor = min, inset, captions, 
 function Section({ icon: Icon, title, children }: { icon: typeof BookOpen; title: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center gap-2 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]"><Icon size={15} /> {title}</div>
+      <div className="flex items-center gap-2 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]"><Icon size={15} strokeWidth={2.25} /> {title}</div>
       <div className="rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)] p-2.5">{children}</div>
     </div>
   );

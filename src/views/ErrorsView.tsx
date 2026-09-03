@@ -30,7 +30,7 @@ export default function ErrorsView() {
         {unitErrors.length > 0 && <GhostButton onClick={async () => { await clearResolvedErrors(); load(); toast(t('errorsClearedToast', locale), 'success', 'check'); }}>{t('errorsClear', locale)}</GhostButton>}
       </div>
 
-      {unitErrors.length === 0 ? <Panel><div className="flex flex-col items-center p-10 text-center"><CheckCircle2 size={40} className="text-[var(--color-vocab)]" /><p className="mt-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('errorsEmptyUnit', locale)}</p><p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('errorsEmptyDesc', locale)}</p></div></Panel>
+      {unitErrors.length === 0 ? <Panel><div className="flex flex-col items-center p-10 text-center"><CheckCircle2 size={40} strokeWidth={2} className="text-[var(--color-vocab)]" /><p className="mt-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('errorsEmptyUnit', locale)}</p><p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('errorsEmptyDesc', locale)}</p></div></Panel>
       : <Panel>
         {pagedErrors.map((e) => {
           const item = studyItems.find((i) => i.id === e.itemId);
@@ -39,7 +39,7 @@ export default function ErrorsView() {
           return (
             <Row key={e.id}>
               <div className="flex items-start gap-3">
-                <span className="mt-0.5"><AlertTriangle size={18} style={{ color: 'var(--color-trap)' }} /></span>
+                <span className="mt-0.5"><AlertTriangle size={18} strokeWidth={2.25} style={{ color: 'var(--color-trap)' }} /></span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     {item && <Tag kind={item.kind}>{meta.label[locale]}</Tag>}

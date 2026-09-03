@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Layers, Puzzle, Zap } from 'lucide-react';
+import { RectangleHorizontal, Puzzle, Timer } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import Flashcard from '../components/Flashcard.tsx';
@@ -8,10 +8,12 @@ import Sprint from '../components/Sprint.tsx';
 
 type PracticeMode = 'flash' | 'connector' | 'sprint';
 
-const MODES: { id: PracticeMode; titleKey: string; descKey: string; icon: typeof Layers; grad: string }[] = [
-  { id: 'flash', titleKey: 'modeFlash', descKey: 'modeFlashDesc', icon: Layers, grad: 'var(--grad-cta)' },
+const ICON_STROKE = 2.5;
+
+const MODES: { id: PracticeMode; titleKey: string; descKey: string; icon: typeof RectangleHorizontal; grad: string }[] = [
+  { id: 'flash', titleKey: 'modeFlash', descKey: 'modeFlashDesc', icon: RectangleHorizontal, grad: 'var(--grad-cta)' },
   { id: 'connector', titleKey: 'modeConnector', descKey: 'modeConnectorDesc', icon: Puzzle, grad: 'var(--grad-cta)' },
-  { id: 'sprint', titleKey: 'modeSprint', descKey: 'modeSprintDesc', icon: Zap, grad: 'var(--grad-cta)' },
+  { id: 'sprint', titleKey: 'modeSprint', descKey: 'modeSprintDesc', icon: Timer, grad: 'var(--grad-cta)' },
 ];
 
 export default function PracticeView() {
@@ -28,7 +30,7 @@ export default function PracticeView() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         {MODES.map((m) => { const Icon = m.icon; return (
           <button key={m.id} onClick={() => setMode(m.id)} className="press card flex items-center gap-4 p-4 text-left">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-white" style={{ background: m.grad }}><Icon size={22} /></span>
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-white" style={{ background: m.grad }}><Icon size={22} strokeWidth={ICON_STROKE} /></span>
             <span><span className="block text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t(m.titleKey, locale)}</span><span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{t(m.descKey, locale)}</span></span>
           </button>
         ); })}

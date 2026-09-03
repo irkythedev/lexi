@@ -3,7 +3,7 @@
 // 数据：UNIT_READINGS（阅读数据，按单元索引）
 // 播放：useSpeak 单句 TTS；onEnd 自动播下一句
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Play, Pause, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Loader2, ScanText } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
@@ -106,7 +106,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
       {/* 播放控制栏 */}
       <div className="mt-4 flex items-center gap-3 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 py-3 shadow-[var(--shadow-card)]">
         <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px] disabled:opacity-60" aria-label={playing ? t('playPause', locale) : t('play', locale)}>
-          {ttsState === 'synthesizing' ? <Loader2 size={18} className="animate-spin" /> : playing ? <Pause size={18} /> : <Play size={18} />}
+          {ttsState === 'synthesizing' ? <Loader2 size={18} strokeWidth={2.25} className="animate-spin" /> : playing ? <Pause size={18} strokeWidth={2.25} /> : <Play size={18} strokeWidth={2.25} />}
         </button>
         <div className="flex-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
           {sentenceIdx + 1} / {total} 句
@@ -150,7 +150,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
       </div>
 
       {/* AI 辅助 */}
-      <button onClick={() => setAiOpen(true)} className="press mt-5 inline-flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-accent)] hover:underline"><Sparkles size={14} /> {t('aiReading', locale)}</button>
+      <button onClick={() => setAiOpen(true)} className="press mt-5 inline-flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-accent)] hover:underline"><ScanText size={14} strokeWidth={2.25} /> {t('aiReading', locale)}</button>
       <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiContext} />
     </div>
   );

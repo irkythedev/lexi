@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Brain, AlertTriangle, Flame, X } from 'lucide-react';
+import { Clock, History, Shuffle, X } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem, Kind } from '../types/index.ts';
 import { getAllProgress, getErrors } from '../db/db.ts';
@@ -47,9 +47,9 @@ export default function ReviewView() {
       <div className="mb-3"><h2 className="text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('reviewTitle', locale)}</h2><p className="mt-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewDesc', locale)}</p></div>
 
       <div className="mb-4 flex gap-2">
-        <FilterTab active={tab === 'due'} onClick={() => setTab('due')} icon={Brain} label={t('reviewDue', locale)} count={dueItems.length} />
-        <FilterTab active={tab === 'recent'} onClick={() => setTab('recent')} icon={AlertTriangle} label={t('reviewRecent', locale)} count={recentMistakes.length} />
-        <FilterTab active={tab === 'traps'} onClick={() => setTab('traps')} icon={Flame} label={t('reviewTraps', locale)} count={traps.length} />
+        <FilterTab active={tab === 'due'} onClick={() => setTab('due')} icon={Clock} label={t('reviewDue', locale)} count={dueItems.length} />
+        <FilterTab active={tab === 'recent'} onClick={() => setTab('recent')} icon={History} label={t('reviewRecent', locale)} count={recentMistakes.length} />
+        <FilterTab active={tab === 'traps'} onClick={() => setTab('traps')} icon={Shuffle} label={t('reviewTraps', locale)} count={traps.length} />
       </div>
 
       {list.length === 0 ? <Panel><div className="p-8 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">
@@ -85,9 +85,9 @@ export default function ReviewView() {
   );
 }
 
-function FilterTab({ active, onClick, icon: Icon, label, count }: { active: boolean; onClick: () => void; icon: typeof Brain; label: string; count: number }) {
+function FilterTab({ active, onClick, icon: Icon, label, count }: { active: boolean; onClick: () => void; icon: typeof Clock; label: string; count: number }) {
   return <button onClick={onClick} className="press flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 py-2 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: active ? 'var(--color-accent)' : 'var(--color-hairline)', background: active ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
-      <Icon size={15} /> {label}<span className="tnum ml-0.5 rounded-[var(--radius-sm)] bg-[var(--color-track)] px-1.5 text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">{count}</span></button>;
+      <Icon size={15} strokeWidth={2.25} /> {label}<span className="tnum ml-0.5 rounded-[var(--radius-sm)] bg-[var(--color-track)] px-1.5 text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">{count}</span></button>;
 }
 
 function QuickReview({ item, onClose, onGraded, selection }: { item: StudyItem; onClose: () => void; onGraded: () => void; selection: { editionId: string } | null }) {
@@ -112,7 +112,7 @@ function QuickReview({ item, onClose, onGraded, selection }: { item: StudyItem; 
         {flip && <p className="mt-3 text-center text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.meaning}</p>}
         <button onClick={() => setFlip((v) => !v)} className="press mt-4 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{flip ? t('reviewHideAnswer', locale) : t('reviewShowAnswer', locale)}</button>
         <div className="mt-3 grid grid-cols-2 gap-3">
-          <button onClick={() => grade(2)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap-deep)]"><X size={16} /> {t('reviewStillWrong', locale)}</button>
+          <button onClick={() => grade(2)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap-deep)]"><X size={16} strokeWidth={2.25} /> {t('reviewStillWrong', locale)}</button>
           <button onClick={() => grade(5)} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab-deep)]">{t('known', locale)}</button>
         </div>
       </div>

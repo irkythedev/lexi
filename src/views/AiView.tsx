@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Settings2, AlertCircle, EyeOff, Eye } from 'lucide-react';
+import { ScanText, Settings2, AlertCircle, EyeOff, Eye } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
@@ -21,8 +21,8 @@ export default function AiView() {
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-[calc(clamp(20px,5vw,28px)*var(--type-scale))] font-bold tracking-[-0.02em]"><Sparkles size={22} style={{ color: 'var(--color-accent)' }} /> {t('aiTitle', locale)}</h2>
-        {cfg && <button onClick={() => setView('settings')} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><Settings2 size={15} /> {t('aiConfigure', locale)}</button>}
+        <h2 className="flex items-center gap-2 text-[calc(clamp(20px,5vw,28px)*var(--type-scale))] font-bold tracking-[-0.02em]"><ScanText size={22} strokeWidth={2.5} style={{ color: 'var(--color-accent)' }} /> {t('aiTitle', locale)}</h2>
+        {cfg && <button onClick={() => setView('settings')} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><Settings2 size={15} strokeWidth={2.25} /> {t('aiConfigure', locale)}</button>}
       </div>
       {view === 'terms' && <ConsentView onAgree={() => setView('settings')} />}
       {view === 'settings' && <SettingsViewInline onSaved={onSaved} initial={cfg} />}
@@ -100,7 +100,7 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiApiKeyLabel', locale)}</div>
       <div className="relative mt-2">
         <input type={showKey ? 'text' : 'password'} value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="sk-..." className="w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] py-2.5 pl-4 pr-11 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
-        <button onClick={() => setShowKey((v) => !v)} className="press absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[var(--color-text-2)]" aria-label={t('aiToggleKey', locale)}>{showKey ? <EyeOff size={16} /> : <Eye size={16} />}</button>
+        <button onClick={() => setShowKey((v) => !v)} className="press absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[var(--color-text-2)]" aria-label={t('aiToggleKey', locale)}>{showKey ? <EyeOff size={16} strokeWidth={2.25} /> : <Eye size={16} strokeWidth={2.25} />}</button>
       </div>
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiBaseUrlLabel', locale)}</div>

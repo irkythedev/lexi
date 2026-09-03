@@ -56,14 +56,14 @@ export default function CollocationConnector({ onExit }: { onExit: () => void })
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
       <div className="mb-3 flex items-center justify-between">
         <button onClick={onExit} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]"><span>←</span> {t('back', locale)}</button>
-        <button onClick={reset} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><RefreshCw size={15} /> {t('connectorReset', locale)}</button>
+        <button onClick={reset} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><RefreshCw size={15} strokeWidth={2.25} /> {t('connectorReset', locale)}</button>
       </div>
       <h2 className="text-[calc(20px*var(--type-scale))] font-bold tracking-[-0.01em]">{t('connector', locale)}</h2>
       <p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('connectorHint', locale)}</p>
 
       {done ? (
         <div className="mt-8 flex flex-col items-center rounded-[var(--radius-hero)] p-8 text-center" style={{ background: 'var(--color-vocab-soft)', border: '1px solid var(--color-vocab-border)' }}>
-          <Trophy size={40} className="text-[var(--color-vocab)]" />
+          <Trophy size={40} strokeWidth={2} className="text-[var(--color-vocab)]" />
           <p className="mt-3 text-[calc(18px*var(--type-scale))] font-bold text-[var(--color-text)]">{t('connectorAllCorrect', locale)}</p>
           <button onClick={reset} className="press mt-4 rounded-[var(--radius-md)] bg-[var(--color-text)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-surface)]">{t('connectorAgain', locale)}</button>
         </div>
@@ -75,7 +75,7 @@ export default function CollocationConnector({ onExit }: { onExit: () => void })
               {pairs.map((p) => (
                 <button key={p.id} disabled={matched[p.id]} onClick={() => pickLeft(p)}
                   className={`press rounded-[var(--radius-card)] border-2 px-4 py-3 text-left text-[calc(15px*var(--type-scale))] font-semibold transition ${matched[p.id] ? 'opacity-40' : selectedLeft?.id === p.id ? 'border-[var(--color-accent)] bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)]' : 'border-[var(--color-hairline)] bg-[var(--color-surface)]'} ${wrong?.leftId === p.id ? 'animate-shake' : ''}`}>
-                  <span className="flex items-center justify-between">{p.left}{matched[p.id] && <Check size={16} className="text-[var(--color-vocab)]" />}</span>
+                  <span className="flex items-center justify-between">{p.left}{matched[p.id] && <Check size={16} strokeWidth={2.25} className="text-[var(--color-vocab)]" />}</span>
                 </button>
               ))}
             </div>
@@ -86,7 +86,7 @@ export default function CollocationConnector({ onExit }: { onExit: () => void })
               {rights.map((r) => (
                 <button key={r.id} disabled={matched[r.id]} onClick={() => pickRight(r)}
                   className={`press rounded-[var(--radius-card)] border-2 px-4 py-3 text-left text-[calc(15px*var(--type-scale))] transition ${matched[r.id] ? 'border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] opacity-40' : wrong?.rightId === r.id ? 'border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] animate-shake' : selectedLeft ? 'border-[var(--color-hairline)] bg-[var(--color-surface)] hover:border-[var(--color-phrase-border)]' : 'border-[var(--color-hairline)] bg-[var(--color-surface)]'}`}>
-                  <span className="flex items-center justify-between">{r.text}{matched[r.id] && <Check size={16} className="text-[var(--color-vocab)]" />}</span>
+                  <span className="flex items-center justify-between">{r.text}{matched[r.id] && <Check size={16} strokeWidth={2.25} className="text-[var(--color-vocab)]" />}</span>
                 </button>
               ))}
             </div>

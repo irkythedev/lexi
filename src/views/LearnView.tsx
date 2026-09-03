@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Puzzle, Zap, ChevronDown, Eye, EyeOff, BookText, ArrowRight, BookOpen, Sparkles, LayoutGrid } from 'lucide-react';
+import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, ScanText, LayoutGrid } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -40,12 +40,12 @@ export default function LearnView() {
   const pagedItems = pager.slice;
 
   const MODES = [
-    { id: 'flash', title: t('flashcard', locale), desc: t('flashcardDesc', locale), icon: Layers },
+    { id: 'flash', title: t('flashcard', locale), desc: t('flashcardDesc', locale), icon: RectangleHorizontal },
     { id: 'connector', title: t('connector', locale), desc: t('connectorDesc', locale), icon: Puzzle },
-    { id: 'sprint', title: t('sprint', locale), desc: t('sprintDesc', locale), icon: Zap },
+    { id: 'sprint', title: t('sprint', locale), desc: t('sprintDesc', locale), icon: Timer },
   ];
 
-  if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-6"><BookText size={42} className="mx-auto text-[var(--color-text-3)]" /><p className="mt-3 mb-4 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('learnEmpty', locale)}</p><TextbookSwitcher onSelected={() => {}} /></div>;
+  if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-6"><BookText size={42} strokeWidth={2} className="mx-auto text-[var(--color-text-3)]" /><p className="mt-3 mb-4 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('learnEmpty', locale)}</p><TextbookSwitcher onSelected={() => {}} /></div>;
   if (mode === 'flash') return <Flashcard items={studyItems} onExit={() => setMode(null)} />;
   if (mode === 'connector') return <CollocationConnector onExit={() => setMode(null)} />;
   if (mode === 'sprint') return <Sprint onExit={() => setMode(null)} />;
@@ -86,12 +86,12 @@ export default function LearnView() {
         return (
           <div className="mt-4 overflow-hidden rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
             <div className="flex items-center gap-3 p-4">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" style={{ background: 'var(--color-surface)', border: '2px solid var(--color-hairline)' }}><BookOpen size={20} /></span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" style={{ background: 'var(--color-surface)', border: '2px solid var(--color-hairline)' }}><TextQuote size={20} strokeWidth={2.5} /></span>
               <div className="min-w-0 flex-1">
                 <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('reading', locale)}</span>
                 <span className="mt-0.5 block truncate text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
               </div>
-              <button onClick={() => setMode('reading')} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('enter', locale)} <ArrowRight size={14} /></button>
+              <button onClick={() => setMode('reading')} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('enter', locale)} <ArrowRight size={14} strokeWidth={2.25} /></button>
             </div>
           </div>
         );
@@ -102,18 +102,18 @@ export default function LearnView() {
         <button onClick={() => setModesOpen((v) => !v)} className="press flex w-full items-center gap-3 p-4 text-left">
           <span className="text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('practiceModes', locale)}</span>
           <span className="ml-auto text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{t('tapToExpand', locale)}</span>
-          <ChevronDown size={18} className="text-[var(--color-text-3)] transition-transform duration-200" style={{ transform: modesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+          <ChevronDown size={18} strokeWidth={2.25} className="text-[var(--color-text-3)] transition-transform duration-200" style={{ transform: modesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
         </button>
         <div className="overflow-hidden transition-all duration-200" style={{ maxHeight: modesOpen ? '400px' : '0px' }}>
           <div className="border-t border-[var(--color-hairline)] p-3 space-y-2">
             {MODES.map((m) => { const Icon = m.icon; return (
               <div key={m.id} className="flex items-center gap-3 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] p-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" style={{ background: 'var(--color-surface)', border: '2px solid var(--color-hairline)' }}><Icon size={20} /></span>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" style={{ background: 'var(--color-surface)', border: '2px solid var(--color-hairline)' }}><Icon size={20} strokeWidth={2.5} /></span>
                 <span className="min-w-0 flex-1">
                   <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{m.title}</span>
                   <span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{m.desc}</span>
                 </span>
-                <button onClick={() => setMode(m.id as 'flash')} className="press inline-flex min-h-9 items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)]"><span>{t('enter', locale)}</span><ArrowRight size={14} /></button>
+                <button onClick={() => setMode(m.id as 'flash')} className="press inline-flex min-h-9 items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)]"><span>{t('enter', locale)}</span><ArrowRight size={14} strokeWidth={2.25} /></button>
               </div>
             ); })}
           </div>
@@ -131,7 +131,7 @@ export default function LearnView() {
             </button>
           ))}
         </div>
-        <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} /> : <Eye size={15} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
+        <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} strokeWidth={2.25} /> : <Eye size={15} strokeWidth={2.25} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
       </div>
 
       <Panel className="mt-3">
@@ -154,10 +154,10 @@ export default function LearnView() {
                   {/* 朗读 + AI + 展开指示 统一成组，gap 2px（紧凑可点）；每钮热区 36px */} 
                   <div className="flex shrink-0 items-center gap-0.5">
                     <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} compact />
-                    <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind, quote: quote ?? undefined }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
+                    <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind, quote: quote ?? undefined }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><ScanText size={16} strokeWidth={2.25} /></button>
                     {/* 展开指示：仅当词条在课文实际出现时显示，放最右；无 quote 时用同宽占位保持图标对齐 */}
                     {quote
-                      ? <span className="flex h-9 w-9 shrink-0 items-center justify-center"><ChevronDown size={14} className={`text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} /></span>
+                      ? <span className="flex h-9 w-9 shrink-0 items-center justify-center"><ChevronDown size={14} strokeWidth={2.25} className={`text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} /></span>
                       : <span className="h-9 w-9 shrink-0" aria-hidden="true" />}
                   </div>
                 </div>

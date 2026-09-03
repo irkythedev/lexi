@@ -51,8 +51,8 @@ export default function SpeakButton({
 
   // 图标随阶段变化：合成中旋转 Loader，播放中脉冲 Volume2，其余静态。
   const Icon = phase === 'synth'
-    ? <Loader2 size={size} className="animate-spin" style={{ color }} />
-    : <Volume2 size={size} className={phase === 'play' ? 'animate-pulse' : ''} style={{ color }} />;
+    ? <Loader2 size={size} strokeWidth={2.25} className="animate-spin" style={{ color }} />
+    : <Volume2 size={size} strokeWidth={2.25} className={phase === 'play' ? 'animate-pulse' : ''} style={{ color }} />;
 
   return (
     <button

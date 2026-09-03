@@ -133,7 +133,7 @@ export default function FloatingTTS() {
         className={`press fixed left-[-8px] z-40 flex h-14 w-7 items-center rounded-r-full border-2 border-l-0 border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-accent)] shadow-[var(--shadow-card)] transition-opacity duration-300 ${open ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
         style={{ top: 'calc(50% - 28px)', paddingLeft: '11px' }}
       >
-        <Volume2 size={14} />
+        <Volume2 size={14} strokeWidth={2.25} />
       </button>
       {/* 展开态：面板从左侧滑出，闲置6秒自动收起（播放中不收起） */}
       <div
@@ -143,19 +143,19 @@ export default function FloatingTTS() {
       >
         <span className="hidden max-w-[110px] truncate px-1.5 text-[calc(11px*var(--type-scale))] font-medium text-[var(--color-text-2)] sm:inline">{active.text}</span>
         <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
-          {state === 'synthesizing' ? <Loader2 size={14} className="animate-spin" /> : playing ? <Pause size={14} /> : <Play size={14} />}
+          {state === 'synthesizing' ? <Loader2 size={14} strokeWidth={2.25} className="animate-spin" /> : playing ? <Pause size={14} strokeWidth={2.25} /> : <Play size={14} strokeWidth={2.25} />}
         </button>
         <button onClick={() => { clearLoopTimer(); const v = !loop; setLoop(v); toast(v ? t('toastLoopOn', locale) : t('toastLoopOff', locale), 'info'); }} className="press flex h-8 w-8 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
-          <Repeat size={13} />
+          <Repeat size={13} strokeWidth={2.25} />
         </button>
         <button onClick={() => { const a = tts.accent === 'us' ? 'uk' : 'us'; setTts({ accent: a }); toast(a === 'us' ? t('toastAccentUs', locale) : t('toastAccentUk', locale), 'info'); if (state === 'playing' || playing) play(active, a, tts.rate); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('switchAccent', locale)} title={tts.accent === 'us' ? t('accentUs', locale) : t('accentUk', locale)}>
-          <Globe size={13} />
+          <Globe size={13} strokeWidth={2.25} />
         </button>
         <button onClick={() => { const next = tts.rate === 1.0 ? 1.2 : tts.rate === 1.2 ? 0.8 : 1.0; setTts({ rate: next }); toast(t('toastRate', locale, { rate: next }), 'info'); if (playing) play(active, tts.accent, next); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-2)]" aria-label={t('speed', locale)} title={t('speedTitle', locale, { speed: tts.rate })}>
-          <Gauge size={13} />
+          <Gauge size={13} strokeWidth={2.25} />
         </button>
         <button onClick={() => { clearAutoHide(); setOpen(false); }} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)]" aria-label={t('ttsCollapse', locale)}>
-          <ChevronLeft size={14} />
+          <ChevronLeft size={14} strokeWidth={2.25} />
         </button>
       </div>
     </>

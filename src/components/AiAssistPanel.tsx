@@ -4,7 +4,7 @@
 //   type:"speak" 段 = 整段一个朗读按钮（完整词/短语/句子），文本不可再拆。
 // 桌面端为可拖拽/缩放的浮窗，移动端为底部 sheet。
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Sparkles, Loader2, Volume2, Pause } from 'lucide-react';
+import { X, ScanText, Loader2, Volume2, Pause } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, isNetworkError,
@@ -215,7 +215,7 @@ export default function AiAssistPanel({
           style={{ cursor: 'grab' }}
         >
           <h2 className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-bold text-[var(--color-text)]">
-            <Sparkles size={16} style={{ color: 'var(--color-accent)' }} /> {t('aiStudyTitle', locale)}
+            <ScanText size={16} strokeWidth={2.5} style={{ color: 'var(--color-accent)' }} /> {t('aiStudyTitle', locale)}
             {context && <span className="truncate text-[calc(12px*var(--type-scale))] font-normal text-[var(--color-text-2)]">· {context.label}</span>}
           </h2>
           <button type="button" onClick={onClose} onPointerDown={(e) => e.stopPropagation()} aria-label={t('close', locale)} className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]"><X size={16} /></button>
@@ -233,7 +233,7 @@ export default function AiAssistPanel({
             {!card && !busy && context && (
               <div className="flex flex-col gap-2 pt-1">
                 <button onClick={() => void study()} className="press inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-4 py-2.5 text-[calc(13.5px*var(--type-scale))] font-semibold text-white">
-                  <Sparkles size={14} /> {t('aiStudyGenerate', locale)}
+                  <ScanText size={14} strokeWidth={2.25} /> {t('aiStudyGenerate', locale)}
                 </button>
                 <p className="text-center text-[calc(11.5px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiStudyHint', locale)}</p>
               </div>

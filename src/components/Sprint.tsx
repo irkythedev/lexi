@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Mic, Check, X, ArrowRight, Trophy, Send, Sparkles } from 'lucide-react';
+import { Mic, Check, X, ArrowRight, Trophy, Send, ScanText } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem, Unit } from '../types/index.ts';
 import SpeakButton from './SpeakButton.tsx';
@@ -98,7 +98,7 @@ function StepShadow({ items, tts, onNext, onPrev }: { items: StudyItem[]; tts: T
       <p className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-surface-2)] p-4 text-[calc(17px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{sentence}</p>
       <div className="mt-4 flex items-center gap-3">
         <SpeakButton text={sentence} accent={tts.accent} rate={tts.rate} size={16} color="#fff" className="h-auto rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white hover:bg-[var(--color-accent)]">{t('sprintListen', locale)}</SpeakButton>
-        {supported ? <button onClick={() => (listening ? stop() : start())} className={`press flex items-center gap-1.5 rounded-[var(--radius-md)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold ${listening ? 'bg-[var(--color-trap)] text-white' : 'border-2 border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}><Mic size={16} /> {listening ? t('sprintRecording', locale) : t('sprintStartShadow', locale)}</button>
+        {supported ? <button onClick={() => (listening ? stop() : start())} className={`press flex items-center gap-1.5 rounded-[var(--radius-md)] px-4 py-2 text-[calc(15px*var(--type-scale))] font-semibold ${listening ? 'bg-[var(--color-trap)] text-white' : 'border-2 border-[var(--color-hairline)] text-[var(--color-text-2)]'}`}><Mic size={16} strokeWidth={2.25} /> {listening ? t('sprintRecording', locale) : t('sprintStartShadow', locale)}</button>
           : <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('sprintNoSpeechRecognition', locale)}</span>}
       </div>
       {showCompare && comparison && (
@@ -184,7 +184,7 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
 
   return (
     <Panel><div className="p-5">
-      <div className="flex items-center gap-2 text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]"><Sparkles size={14} /> {t('sprintAiLabel', locale)}</div>
+      <div className="flex items-center gap-2 text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]"><ScanText size={14} strokeWidth={2.25} /> {t('sprintAiLabel', locale)}</div>
       <div className="mt-3 flex flex-wrap gap-2">
         {phrases.map((p) => (
           <button key={p.id} onClick={() => setTarget(p)} className="press rounded-[var(--radius-md)] border px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-medium"
@@ -196,7 +196,7 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
       <div className="mt-3 flex items-center justify-between">
         <button onClick={onPrev} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))]">{t('sprintPrev', locale)}</button>
         <div className="flex items-center gap-2">
-          <button onClick={run} disabled={loading} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-50">{loading ? t('sprintAiLoading', locale) : <>{t('sprintAiSubmit', locale)} <Send size={15} /></>}</button>
+          <button onClick={run} disabled={loading} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-50">{loading ? t('sprintAiLoading', locale) : <>{t('sprintAiSubmit', locale)} <Send size={15} strokeWidth={2.25} /></>}</button>
           <button onClick={onNext} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-accent)]">{t('sprintEnterQuiz', locale)} <ArrowRight size={16} /></button>
         </div>
       </div>
@@ -240,7 +240,7 @@ function StepQuiz({ items, selection, onPrev, onExit }: { items: StudyItem[]; se
 
   if (finished) return (
     <Panel><div className="flex flex-col items-center p-8 text-center">
-      <Trophy size={42} className="text-[var(--color-vocab)]" />
+      <Trophy size={42} strokeWidth={2} className="text-[var(--color-vocab)]" />
       <p className="mt-3 text-[calc(20px*var(--type-scale))] font-bold text-[var(--color-text)]">{t('sprintQuizComplete', locale)}</p>
       <p className="mt-1 tnum text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sprintQuizScore', locale, { score, total: quiz.length })}</p>
       <p className="mt-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('sprintQuizErrorsSaved', locale)}</p>
