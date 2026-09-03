@@ -2,7 +2,7 @@
 // 语言贴近使用者而非开发者；技术细节与管理规范不在此展示。
 // APP_VERSION 与 package.json / footer.ts 同步维护。
 
-export const APP_VERSION = '0.3.1';
+export const APP_VERSION = '0.3.2';
 
 export interface ChangelogEntry {
   version: string;
@@ -13,6 +13,32 @@ export interface ChangelogEntry {
 
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.3.2',
+    date: '2026-09',
+    zh: [
+      '[新增] 页脚新增反馈入口：学习中遇到问题或想提建议，可直接发送给开发者',
+      '[新增] 页脚新增版权与免责声明：教材内容版权归属、AI 内容仅供参考、隐私保护说明',
+      '[新增] 版本更新提示：有新版本时版本号旁亮起提示点，点击即可一键更新到最新版',
+      '[新增] 句式例句补全：9 上全部 36 个句式均配有教材原句例句，AI 卡片、闪卡、跟读直接采用课文原句',
+      '[优化] 暗色模式重绘为「印章浮起」风格，明暗层次与描边更清晰',
+      '[优化] 全站图标统一纸面笔触：单词/短语/句式分类更直观，AI 入口统一蓝墨水标识',
+      '[优化] 列表与顶栏布局紧凑化、按钮触控区域加大、短页面不再留大片空白',
+      '[修复] 修复冲刺填空练习可能为句式点生成无法作答的题目',
+      '[修复] 修复学习页底部词条被导航遮挡、翻页按钮与导航栏重叠',
+    ],
+    en: [
+      '[New] Feedback entry added to the footer: report problems or suggestions straight to the developer',
+      '[New] Copyright and disclaimer dialog in the footer: textbook content ownership, AI content caveat, privacy statement',
+      '[New] Version update notice: a dot appears next to the version number when a new version is available; tap to refresh to the latest',
+      '[New] Pattern examples completed: all 36 sentence patterns of Grade 9A now carry real textbook sentences, used by AI cards, flashcards and read-aloud',
+      '[Improved] Dark mode redrawn in "ink-stamp lift" style with clearer layers and outlines',
+      '[Improved] Icons unified with a paper-print stroke: clearer word/phrase/pattern categories, AI entry now uses the blue-ink mark',
+      '[Improved] Lists and top bar compacted, touch targets enlarged, short pages no longer leave a big blank area',
+      '[Fixed] Fixed sprint fill-in-the-blank sometimes generating unanswerable questions for sentence patterns',
+      '[Fixed] Fixed bottom rows of the learning list being covered by navigation and the pager overlapping the nav bar',
+    ],
+  },
   {
     version: '0.3.1',
     date: '2026-09',
