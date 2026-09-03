@@ -103,34 +103,33 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   const [showKey, setShowKey] = useState(false);
   const [testing, setTesting] = useState(false);
   const [fetching, setFetching] = useState(false);
-  const [testMsg, setTestMsg] = useState('');
   const [error, setError] = useState('');
 
   const onProvider = (pid: AiProviderId) => {
     const p = AI_PROVIDERS.find((x) => x.id === pid)!;
-    setProvider(pid); setBaseUrl(p.baseUrl || ''); setModel(''); setLiveModels([]); setTestMsg('');
+    setProvider(pid); setBaseUrl(p.baseUrl || ''); setModel(''); setLiveModels([]); setError('');
   };
   const runFetchModels = async () => {
-    if (!baseUrl.trim() || !apiKey.trim()) { setError(t('aiFetchNeedAuth', locale)); return; }
+    if (!baseUrl.trim() || !apiKey.trim()) { useToastStore.getState().show(t('aiFetchNeedAuth', locale), 'info', 'alert'); return; }
     setFetching(true); setError('');
     try {
       const models = await fetchModels(baseUrl, apiKey);
       setLiveModels(models);
       if (models.length && !model) setModel(models[0]);
       saveModels(models, normalizeBaseUrl(baseUrl));
-      setTestMsg(t('aiFetchOkMsg', locale, { count: models.length }));
+      useToastStore.getState().show(t('aiFetchOkMsg', locale, { count: models.length }), 'success', 'check');
     } catch (e) {
-      setError(isNetworkError((e as Error).message) ? t('aiTestUnreachable', locale) : (e as Error).message);
+      useToastStore.getState().show(isNetworkError((e as Error).message) ? t('aiTestUnreachable', locale) : (e as Error).message, 'error', 'alert');
     } finally { setFetching(false); }
   };
   const runTest = async () => {
-    setTesting(true); setError(''); setTestMsg('');
+    setTesting(true); setError('');
     try {
       const res = await testConnection({ provider, baseUrl, key: apiKey, model } as AiConfig);
-      if (res.status === 401) setTestMsg(t('aiTestAuthFailMsg', locale));
-      else if (res.status === 200) setTestMsg(t('aiTestOkMsg', locale));
+      if (res.status === 401) useToastStore.getState().show(t('aiTestAuthFailMsg', locale), 'error', 'alert');
+      else if (res.status === 200) useToastStore.getState().show(t('aiTestOkMsg', locale), 'success', 'check');
       try { const models = await fetchModels(baseUrl, apiKey); setLiveModels(models); if (models.length && !model) setModel(models[0]); saveModels(models, normalizeBaseUrl(baseUrl)); } catch { /* keep manual */ }
-    } catch (e) { setError(isNetworkError((e as Error).message) ? t('aiTestUnreachable', locale) : (e as Error).message); }
+    } catch (e) { useToastStore.getState().show(isNetworkError((e as Error).message) ? t('aiTestUnreachable', locale) : (e as Error).message, 'error', 'alert'); }
     finally { setTesting(false); }
   };
   const save = () => {
@@ -176,7 +175,6 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
         <button onClick={runTest} disabled={testing || fetching} className="press flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{testing ? t('aiTesting', locale) : t('aiTestConnection', locale)}</button>
         <button onClick={runFetchModels} disabled={testing || fetching} className="press flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{fetching ? t('aiFetching', locale) : t('aiFetchModels', locale)}</button>
         {liveModels.length > 0 && <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiModelCount', locale, { count: liveModels.length })}</span>}
-        {testMsg && <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-vocab)]">{testMsg}</span>}
       </div>
       {error && <p className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{error}</p>}
 
