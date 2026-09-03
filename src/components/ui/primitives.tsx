@@ -26,12 +26,13 @@ export function Segmented<T extends string>({ options, value, onChange }: { opti
   );
 }
 
-export function Tag({ kind, locale = 'zh', children }: { kind: Kind; locale?: Locale; children?: ReactNode }) {
+export function Tag({ kind, locale = 'zh', children, icon = false }: { kind: Kind; locale?: Locale; children?: ReactNode; icon?: boolean }) {
   const c = KIND_META[kind];
+  const Icon = c.icon;
   return (
     <span style={{ background: c.soft, border: '1.5px solid var(--color-hairline)', color: c.text }}
-      className="inline-flex items-center rounded-[var(--radius-sm)] px-2.5 py-0.5 text-[calc(11px*var(--type-scale))] font-semibold">
-      {children ?? c.label[locale]}
+      className="inline-flex items-center rounded-[var(--radius-sm)] px-2 py-1 text-[calc(11px*var(--type-scale))] font-semibold">
+      {icon && Icon ? <Icon size={14} strokeWidth={2.25} aria-hidden="true" /> : (children ?? c.label[locale])}
     </span>
   );
 }

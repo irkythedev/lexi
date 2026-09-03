@@ -1,19 +1,20 @@
 import type { Kind, Locale } from '../types/index.ts';
+import { CaseSensitive, Link2, AlignLeft, type LucideIcon } from 'lucide-react';
 
 // Knowledge-type semantic tokens (spec §3). Used as accent only.
-export const KIND_META: Record<Kind, { label: Record<Locale, string>; tint: string; soft: string; border: string; text: string; classes: string }> = {
+export const KIND_META: Record<Kind, { label: Record<Locale, string>; short: Record<Locale, string>; icon: LucideIcon; tint: string; soft: string; border: string; text: string; classes: string }> = {
   vocab: {
-    label: { zh: '单词', en: 'Vocab' },
+    label: { zh: '单词', en: 'Vocab' }, short: { zh: '单词', en: 'Word' }, icon: CaseSensitive,
     tint: 'var(--color-vocab)', soft: 'var(--color-vocab-soft)', border: 'var(--color-vocab-border)', text: 'var(--color-vocab-deep)',
     classes: 'bg-[var(--color-vocab-soft)] border-[var(--color-vocab-border)] text-[var(--color-vocab-deep)]',
   },
   phrase: {
-    label: { zh: '短语/搭配', en: 'Phrase' },
+    label: { zh: '短语/搭配', en: 'Phrase' }, short: { zh: '短语', en: 'Phrase' }, icon: Link2,
     tint: 'var(--color-phrase)', soft: 'var(--color-phrase-soft)', border: 'var(--color-phrase-border)', text: 'var(--color-phrase-deep)',
     classes: 'bg-[var(--color-phrase-soft)] border-[var(--color-phrase-border)] text-[var(--color-phrase-deep)]',
   },
   pattern: {
-    label: { zh: '句式/语法', en: 'Pattern' },
+    label: { zh: '句式/语法', en: 'Pattern' }, short: { zh: '句式', en: 'Pattern' }, icon: AlignLeft,
     tint: 'var(--color-pattern)', soft: 'var(--color-pattern-soft)', border: 'var(--color-pattern-border)', text: 'var(--color-pattern-deep)',
     classes: 'bg-[var(--color-pattern-soft)] border-[var(--color-pattern-border)] text-[var(--color-pattern-deep)]',
   },

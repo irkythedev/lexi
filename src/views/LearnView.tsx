@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Layers, Puzzle, Zap, ChevronDown, Eye, EyeOff, BookText, ArrowRight, BookOpen, Sparkles } from 'lucide-react';
+import { Layers, Puzzle, Zap, ChevronDown, Eye, EyeOff, BookText, ArrowRight, BookOpen, Sparkles, LayoutGrid } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -123,7 +123,12 @@ export default function LearnView() {
       <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="seg">
           {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
-            <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>{f === 'all' ? t('all', locale) : KIND_META[f].label[locale]}</button>
+            <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>
+              <span className="inline-flex items-center gap-1.5">
+                {(() => { const Icon = f === 'all' ? LayoutGrid : KIND_META[f].icon; return <Icon size={14} strokeWidth={2.25} color={f === 'all' ? 'var(--color-text-3)' : KIND_META[f].tint} aria-hidden="true" />; })()}
+                <span>{f === 'all' ? t('all', locale) : KIND_META[f].short[locale]}</span>
+              </span>
+            </button>
           ))}
         </div>
         <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} /> : <Eye size={15} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
@@ -138,7 +143,7 @@ export default function LearnView() {
             <Row key={item.id} onClick={() => setExpandedId(expanded ? null : item.id)}>
               <div className="w-full">
                 <div className="flex items-center gap-3">
-                  <Tag kind={item.kind}>{meta.label[locale]}</Tag>
+                  <Tag kind={item.kind} icon />
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
                       <span className="break-words text-[calc(16px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{item.label}</span>
