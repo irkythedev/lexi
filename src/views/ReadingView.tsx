@@ -3,7 +3,7 @@
 // 数据：UNIT_READINGS（阅读数据，按单元索引）
 // 播放：useSpeak 单句 TTS；onEnd 自动播下一句
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Play, Pause, Loader2, ScanText } from 'lucide-react';
+import { ArrowLeft, Play, Pause, Loader2, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
@@ -150,7 +150,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
       </div>
 
       {/* AI 辅助 */}
-      <button onClick={() => setAiOpen(true)} className="press mt-5 inline-flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-accent)] hover:underline"><ScanText size={14} strokeWidth={2.25} /> {t('aiReading', locale)}</button>
+      <button onClick={() => setAiOpen(true)} className="press mt-5 inline-flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-ai)] hover:underline"><Sparkles size={14} strokeWidth={2.25} /> {t('aiReading', locale)}</button>
       <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiContext} />
     </div>
   );

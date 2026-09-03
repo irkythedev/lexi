@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Mic, Check, X, ArrowRight, Trophy, Send, ScanText } from 'lucide-react';
+import { Mic, Check, X, ArrowRight, Trophy, Send, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem, Unit } from '../types/index.ts';
 import SpeakButton from './SpeakButton.tsx';
@@ -184,7 +184,7 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
 
   return (
     <Panel><div className="p-5">
-      <div className="flex items-center gap-2 text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]"><ScanText size={14} strokeWidth={2.25} /> {t('sprintAiLabel', locale)}</div>
+      <div className="flex items-center gap-2 text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]"><Sparkles size={14} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /> {t('sprintAiLabel', locale)}</div>
       <div className="mt-3 flex flex-wrap gap-2">
         {phrases.map((p) => (
           <button key={p.id} onClick={() => setTarget(p)} className="press rounded-[var(--radius-md)] border px-3 py-1.5 text-[calc(13px*var(--type-scale))] font-medium"

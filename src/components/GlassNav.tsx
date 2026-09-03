@@ -67,7 +67,7 @@ export default function GlassNav() {
             </button>
             {/* AI 配置入口：32px 圆，未配置红点保留；AI 主识别用原始闪光星（Sparkles） */}
             <button onClick={() => navigate('/ai')} className="press relative flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('aiConfigure', locale)}>
-              <Sparkles size={18} strokeWidth={ICON_STROKE} />
+              <Sparkles size={18} strokeWidth={ICON_STROKE} style={{ color: 'var(--color-ai)' }} />
               {!aiReady && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--color-trap)]" />}
             </button>
             {/* 语言切换：与主题/AI 同规格 32px 圆，文字随当前语言（zh→EN / en→中） */}

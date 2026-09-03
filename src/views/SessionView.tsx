@@ -5,7 +5,7 @@
 // navigating away (e.g. to Settings) and back preserves progress.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2, ScanText } from 'lucide-react';
+import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2, Sparkles } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { findQuote } from '../data/textbooks/unit_texts.ts';
 import {
@@ -187,7 +187,7 @@ export default function SessionView() {
             <div className="mt-4 flex items-center justify-center gap-3">
               <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} strokeWidth={2.25} className="animate-spin" /> : <Volume2 size={16} strokeWidth={2.25} />} {t('listenAgain', locale)}</button>
               <button onClick={() => void grade('correct')} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} strokeWidth={2.25} /></button>
-              <button onClick={() => setAiOpen(true)} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><ScanText size={16} strokeWidth={2.25} /></button>
+              <button onClick={() => setAiOpen(true)} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /></button>
             </div>
           </div>
         )}
