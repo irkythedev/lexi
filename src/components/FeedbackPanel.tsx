@@ -77,7 +77,7 @@ export default function FeedbackPanel({ onClose }: { onClose: () => void }) {
             </label>
             {error && <p className="text-[calc(12px*var(--type-scale))] text-[var(--color-trap)]">{t('feedbackError', locale)}</p>}
             <button type="button" onClick={submit} disabled={sending || !message.trim() || !category}
-              className="press w-full rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-4 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white disabled:opacity-40">
+              className="press flex w-full items-center justify-center rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white disabled:opacity-50">
               {sending ? t('feedbackSending', locale) : t('feedbackSubmit', locale)}
             </button>
           </div>

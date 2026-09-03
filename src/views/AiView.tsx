@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Settings2, AlertCircle, EyeOff, Eye } from 'lucide-react';
+import { Sparkles, Settings2, AlertCircle, EyeOff, Eye, ChevronDown } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
@@ -108,9 +108,12 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiModelLabel', locale)}</div>
       {liveModels.length > 0 ? (
-        <select value={model} onChange={(e) => setModel(e.target.value)} className="mt-2 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]">
-          {liveModels.map((m) => <option key={m} value={m}>{m}</option>)}
-        </select>
+        <div className="relative mt-2">
+          <select value={model} onChange={(e) => setModel(e.target.value)} className="w-full appearance-none rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 pr-10 text-[calc(15px*var(--type-scale))] text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]">
+            {liveModels.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <ChevronDown size={18} strokeWidth={2.25} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-3)]" aria-hidden="true" />
+        </div>
       ) : (
         <input value={model} onChange={(e) => setModel(e.target.value)} placeholder={t('aiModelPlaceholder', locale)} className="mt-2 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
       )}
