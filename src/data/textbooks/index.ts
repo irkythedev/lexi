@@ -47,7 +47,7 @@ export function flattenUnit(unit: Unit): StudyItem[] {
     items.push({ id: p.id, kind: 'phrase', label: p.phrase, meaning: p.meaning, fixedPatterns: p.fixedPatterns, exampleEn: p.exampleEn, exampleCn: p.exampleCn });
   }
   for (const s of unit.sentencePatterns) {
-    items.push({ id: s.id, kind: 'pattern', label: s.pattern, meaning: s.grammarPoint, grammarPoint: s.grammarPoint, drillTemplate: s.drillTemplate });
+    items.push({ id: s.id, kind: 'pattern', label: s.pattern, meaning: s.grammarPoint, grammarPoint: s.grammarPoint, drillTemplate: s.drillTemplate, exampleEn: s.exampleEn });
   }
   return items;
 }

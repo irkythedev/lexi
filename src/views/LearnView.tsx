@@ -138,7 +138,7 @@ export default function LearnView() {
         {pagedItems.map((item) => {
           const meta = KIND_META[item.kind];
           const expanded = expandedId === item.id;
-          const quote = unit ? findQuote(item, unit.unit) : null;
+          const quote = item.exampleEn ?? (unit ? findQuote(item, unit.unit) : null);
           return (
             <Row key={item.id} onClick={() => setExpandedId(expanded ? null : item.id)}>
               <div className="w-full">

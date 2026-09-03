@@ -30,6 +30,8 @@ export interface SentencePattern {
   pattern: string;
   grammarPoint: string;
   drillTemplate: string;
+  /** 教材真实例句（Grammar 段摘出） */
+  exampleEn?: string;
 }
 
 // A single unit of a textbook.

@@ -254,7 +254,7 @@ export default function SessionView() {
           label: task.item.label,
           meaning: task.item.meaning ?? '',
           kind: task.item.kind,
-          quote: unit ? (findQuote(task.item, unit.unit) ?? undefined) : undefined,
+          quote: task.item.exampleEn ?? (unit ? (findQuote(task.item, unit.unit) ?? undefined) : undefined),
         }} />
       )}
     </div>
