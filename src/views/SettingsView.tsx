@@ -57,7 +57,7 @@ export default function SettingsView() {
           <div className="flex items-center gap-2">
             {(Object.keys(ACCENT_META) as Accent[]).map((a) => (
               <button key={a} onClick={() => { setAccent(a); toast(t('toastThemeColor', locale, { name: ACCENT_META[a].name }), 'success', 'check'); }} title={ACCENT_META[a].name}
-                className="press relative flex h-8 w-8 items-center justify-center rounded-full transition"
+                className="press relative flex h-11 w-11 items-center justify-center rounded-full transition"
                 style={{ background: ACCENT_COLORS[a], border: '1.5px solid var(--color-hairline)', boxShadow: accent === a ? '0 0 0 2px var(--color-ground), 0 0 0 4px var(--color-accent)' : 'none' }}
                 aria-label={ACCENT_META[a].name}>
                 {accent === a && <span className="text-white"><Check size={13} strokeWidth={3} /></span>}
@@ -81,7 +81,7 @@ export default function SettingsView() {
             style={{ '--fill': `${Math.round(((fontScale - 0.9) / 0.5) * 100)}%` } as React.CSSProperties}
           />
           {/* 字号档位：文本区间标注（无刻度），可点击选档；首尾档贴边避免溢出卡框 */}
-          <div className="relative mt-1.5" style={{ height: '1.5rem' }}>
+          <div className="relative mt-2" style={{ height: '2rem' }}>
             {(() => {
               const tiers = t('fontSizeTiers', locale).split(',');
               const values = [0.9, 1.0, 1.1, 1.2, 1.3, 1.4];
@@ -95,7 +95,7 @@ export default function SettingsView() {
                   : { left: `${pct}%`, transform: 'translateX(-50%)' };
                 return (
                   <button key={i} type="button" onClick={() => { setFontScale(v); toast(t('toastFontSize', locale, { scale: Math.round(v * 100) }), 'info'); }}
-                    className="absolute flex flex-col items-center"
+                    className="absolute flex min-h-full flex-col items-center justify-center px-1"
                     style={{ ...anchor }}>
                     <span className={`whitespace-nowrap rounded px-1 py-0.5 text-[calc(11px*var(--type-scale))] leading-tight transition ${active ? 'font-semibold text-[var(--color-accent)]' : 'text-[var(--color-text-3)] hover:text-[var(--color-text-2)]'}`}>
                       {tiers[i]}

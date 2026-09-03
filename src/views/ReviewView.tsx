@@ -40,7 +40,7 @@ export default function ReviewView() {
   const pagedList = pager.slice;
   const lookupItem = (id: string) => studyItems.find((i) => i.id === id);
 
-  if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-10 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewNoUnit', locale)}</div>;
+  if (!unit) return <div className="mx-auto flex min-h-[70vh] max-w-[var(--max-read)] items-center justify-center px-[var(--pad-x)] py-10 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewNoUnit', locale)}</div>;
 
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">

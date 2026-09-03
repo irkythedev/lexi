@@ -17,7 +17,7 @@ const MODES: { id: PracticeMode; titleKey: string; descKey: string; icon: typeof
 export default function PracticeView() {
   const { unit, locale } = useAppStore();
   const [mode, setMode] = useState<PracticeMode | null>(null);
-  if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-10 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('practiceEmpty', locale)}</div>;
+  if (!unit) return <div className="mx-auto flex min-h-[70vh] max-w-[var(--max-read)] items-center justify-center px-[var(--pad-x)] py-10 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('practiceEmpty', locale)}</div>;
   if (mode === 'flash') return <Flashcard items={useAppStore.getState().studyItems} onExit={() => setMode(null)} />;
   if (mode === 'connector') return <CollocationConnector onExit={() => setMode(null)} />;
   if (mode === 'sprint') return <Sprint onExit={() => setMode(null)} />;
