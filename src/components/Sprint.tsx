@@ -118,7 +118,8 @@ function StepShadow({ items, tts, onNext, onPrev }: { items: StudyItem[]; tts: T
 function StepPractice({ items, selection, onNext, onPrev }: { items: StudyItem[]; selection: { editionId: string } | null; onNext: () => void; onPrev: () => void }) {
   const locale = useAppStore(s => s.locale);
   const questions = useMemo(() => {
-    const pool = items.filter((i) => i.exampleEn);
+    // 句型点 label 是结构式（both...and...），不在例句中出现，挖空不可答 → 只收 vocab/phrase
+    const pool = items.filter((i) => i.exampleEn && i.kind !== 'pattern');
     return shuffle(pool).slice(0, Math.min(4, pool.length)).map((it) => ({ item: it, label: it.label, masked: maskSentence(it.exampleEn!, [it.label]), answer: it.label }));
   }, [items]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
