@@ -149,17 +149,22 @@ html {
 
 .tnum { font-variant-numeric: tabular-nums; }
 
-/* Keyboard focus (WCAG 2.4.7) */
+/* Keyboard focus (WCAG 2.4.7) — applied ONLY to nav/links, not form controls,
+   which use focus:border-accent as their single, intended focus indicator. */
 :focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
   border-radius: 6px;
 }
 
-/* Inputs already have focus:border-accent as their focus indicator;
-   suppress the global :focus-visible outline to avoid double accent ring. */
+/* Form controls already get focus:border-accent (their border-2 turns accent);
+   suppress the global :focus-visible outline on ALL of them so only ONE ring shows.
+   Without this, keyboard/mobile focus stacks the accent outline ON TOP of the
+   border-2 hairline → the "two-thickness frame" the user reported. */
 input:focus-visible,
-textarea:focus-visible {
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
   outline: none;
 }
 

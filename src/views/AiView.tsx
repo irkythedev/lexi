@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, Settings2, AlertCircle, EyeOff, Eye, ChevronDown } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Sparkles, Settings2, AlertCircle, EyeOff, Eye, ChevronDown, Check } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
@@ -8,6 +8,50 @@ import {
   AI_PROVIDERS, loadConfig, saveConfig, clearConfig, normalizeBaseUrl, isNetworkError,
   testConnection, fetchModels,
 } from '../lib/ai.ts';
+
+function ModelSelect({ models, value, onChange }: { models: string[]; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    if (open) document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
+
+  return (
+    <div ref={ref} className="relative mt-2">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="press flex w-full items-center justify-between rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]"
+      >
+        <span className="truncate text-left">{value || '—'}</span>
+        <ChevronDown size={18} strokeWidth={2.25} className={`ml-2 shrink-0 text-[var(--color-text-3)] transition-transform duration-200 ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+      {open && (
+        <ul role="listbox" className="absolute left-0 right-0 top-full z-30 mt-1.5 max-h-60 overflow-auto rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] py-1 shadow-[var(--shadow-overlay)]">
+          {models.map((m) => (
+            <li key={m}>
+              <button
+                type="button"
+                role="option"
+                aria-selected={m === value}
+                onClick={() => { onChange(m); setOpen(false); }}
+                className={`flex w-full items-center justify-between px-4 py-2.5 text-left text-[calc(14px*var(--type-scale))] transition-colors ${m === value ? 'bg-[var(--color-surface-2)] font-semibold text-[var(--color-text)]' : 'text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]'}`}
+              >
+                <span className="truncate">{m}</span>
+                {m === value && <Check size={16} strokeWidth={2.5} className="ml-2 shrink-0 text-[var(--color-accent)]" aria-hidden="true" />}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
 
 export default function AiView() {
   const { refreshAiStatus, locale } = useAppStore();
@@ -108,12 +152,7 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiModelLabel', locale)}</div>
       {liveModels.length > 0 ? (
-        <div className="relative mt-2">
-          <select value={model} onChange={(e) => setModel(e.target.value)} className="w-full appearance-none rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 pr-10 text-[calc(15px*var(--type-scale))] text-[var(--color-text)] outline-none focus:border-[var(--color-accent)]">
-            {liveModels.map((m) => <option key={m} value={m}>{m}</option>)}
-          </select>
-          <ChevronDown size={18} strokeWidth={2.25} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--color-text-3)]" aria-hidden="true" />
-        </div>
+        <ModelSelect models={liveModels} value={model} onChange={setModel} />
       ) : (
         <input value={model} onChange={(e) => setModel(e.target.value)} placeholder={t('aiModelPlaceholder', locale)} className="mt-2 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
       )}
