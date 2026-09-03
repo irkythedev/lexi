@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, PencilLine, Layers, AlertTriangle, Settings, ScanText, Sun, Moon } from 'lucide-react';
+import { BookOpen, PencilLine, RotateCcw, AlertTriangle, Settings, Sparkles, Sun, Moon } from 'lucide-react';
 import { useAppStore, type Tab } from '../stores/useAppStore.ts';
 import type { Locale } from '../types/index.ts';
 import { useToastStore } from '../stores/toastStore.ts';
@@ -13,7 +13,7 @@ const ICON_STROKE = 2.5; // 导航/工具图标统一线宽，贴近 2px 墨线�
 const TABS: { id: Tab; icon: typeof BookOpen; path: string }[] = [
   { id: 'learn', icon: BookOpen, path: '/learn' },
   { id: 'practice', icon: PencilLine, path: '/practice' },
-  { id: 'review', icon: Layers, path: '/review' },
+  { id: 'review', icon: RotateCcw, path: '/review' },
   { id: 'errors', icon: AlertTriangle, path: '/errors' },
   { id: 'settings', icon: Settings, path: '/settings' },
 ];
@@ -65,9 +65,9 @@ export default function GlassNav() {
             <button onClick={() => { const cur = useAppStore.getState().theme; toggleTheme(); useToastStore.getState().show(cur === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', cur === 'dark' ? 'sun' : 'moon'); }} className="press flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('switchTheme', locale)}>
               {theme === 'dark' ? <Sun size={18} strokeWidth={ICON_STROKE} /> : <Moon size={18} strokeWidth={ICON_STROKE} />}
             </button>
-            {/* AI 配置入口：32px 圆，未配置红点保留；AI 主识别用 ScanText（扫词/助读），不再用闪光星 */}
+            {/* AI 配置入口：32px 圆，未配置红点保留；AI 主识别用原始闪光星（Sparkles） */}
             <button onClick={() => navigate('/ai')} className="press relative flex h-8 w-8 items-center justify-center rounded-full border-[1.5px] border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-text)] hover:bg-[var(--color-surface-2)]" aria-label={t('aiConfigure', locale)}>
-              <ScanText size={18} strokeWidth={ICON_STROKE} />
+              <Sparkles size={18} strokeWidth={ICON_STROKE} />
               {!aiReady && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--color-trap)]" />}
             </button>
             {/* 语言切换：与主题/AI 同规格 32px 圆，文字随当前语言（zh→EN / en→中） */}
