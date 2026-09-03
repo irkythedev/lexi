@@ -41,7 +41,7 @@
   /* Brand accent — theme-driven, default emerald. No AI gradient. */
   --color-accent: #2F6F5E;
   --color-accent-2: #4E9A82;
-  --color-ai: #8260D6;
+  --color-ai: #2273A8;
   --color-live: #2F6F5E;
   --color-heat: #D45A3C;
 
@@ -113,7 +113,7 @@
   --color-trap-soft: rgba(212, 90, 60, 0.16);
   --color-trap-border: rgba(224, 131, 104, 0.5);
   --color-live: #7FA896;
-  --color-ai: #A78BFA;
+  --color-ai: #7FB6DF;
   /* accent is theme-driven; dark uses same theme accent (set below) */
   /* 印章浮起：暗底上黑阶比浅色多 1px，纯黑硬偏移（贴纸/印章，非模糊影） */
   --shadow-card: 3px 3px 0 #000000;
