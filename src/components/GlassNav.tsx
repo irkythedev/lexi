@@ -39,9 +39,9 @@ export default function GlassNav() {
         <div className="mx-auto flex h-14 max-w-[var(--max-grid)] items-center justify-between px-[var(--pad-x)]">
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
             <img src="/icon-192.png" alt="Lexi" className="h-10 w-10 shrink-0 rounded-[12px] border-2 border-[var(--color-hairline)] shadow-[var(--shadow-card)]" style={{ background: '#FAEFD9' }} />
-            <span className="flex items-baseline gap-1">
-              <span className="text-[calc(15px*var(--type-scale))] font-semibold tracking-[-0.01em] text-[var(--color-text)]">Lexi</span>
-              <button type="button" onClick={() => setShowChangelog(true)} title={t('changelogTitle', locale)} className="tnum press rounded-[var(--radius-pill)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-2 py-0.5 text-[calc(10px*var(--type-scale))] font-semibold text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors">v{FOOTER.version}</button>
+            <span className="flex flex-col items-start gap-[2px]">
+              <span className="text-[calc(20px*var(--type-scale))] font-bold leading-none tracking-[-0.02em] text-[var(--color-text)]">Lexi</span>
+              <button type="button" onClick={() => setShowChangelog(true)} title={t('changelogTitle', locale)} className="tnum text-[calc(11px*var(--type-scale))] font-medium leading-none text-[var(--color-text-3)] transition-colors hover:text-[var(--color-accent)]">v{FOOTER.version}</button>
             </span>
           </div>
           {/* 桌面端导航：顶部横排，替代底部 tab 栏 */}
