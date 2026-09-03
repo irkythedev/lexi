@@ -75,7 +75,6 @@ export default function GlassNav() {
                 <button key={tabItem.id} onClick={() => go(tabItem.id)} className={`press relative flex h-9 items-center gap-1.5 rounded-full border-2 px-3.5 transition ${isActive ? 'border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]' : 'border-transparent bg-transparent'}`} style={{ cursor: 'pointer', color: isActive ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
                   <Icon size={16} strokeWidth={ICON_STROKE} style={isActive ? { color: 'var(--color-accent)' } : { color: 'var(--color-text-2)' }} />
                   <span className={`text-[calc(14px*var(--type-scale))] ${isActive ? 'font-semibold' : 'font-medium'}`}>{t(`tab${tabItem.id.charAt(0).toUpperCase() + tabItem.id.slice(1)}`, locale)}</span>
-                  {isActive && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" />}
                 </button>
               );
             })}
