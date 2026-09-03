@@ -35,6 +35,21 @@ export function saveConfig(cfg: AiConfig): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
 }
 
+// Persist the fetched model list without clobbering the rest of the config
+// (e.g. after 获取模型, we want to keep the models for next visit).
+export function saveModels(models: string[], baseUrl?: string): void {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const cfg = raw ? (JSON.parse(raw) as AiConfig) : null;
+    if (!cfg) return;
+    const next = { ...cfg, models };
+    if (baseUrl) next.baseUrl = baseUrl;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  } catch {
+    /* ignore */
+  }
+}
+
 export function clearConfig(): void {
   localStorage.removeItem(STORAGE_KEY);
 }

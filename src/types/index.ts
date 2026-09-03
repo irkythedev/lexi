@@ -118,6 +118,7 @@ export interface AiConfig {
   key: string;
   model: string;
   agreed: boolean;
+  models?: string[];
 }
 
 export interface CorrectionResult {

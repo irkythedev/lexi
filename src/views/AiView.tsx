@@ -5,7 +5,7 @@ import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
 import type { AiConfig, AiProviderId } from '../types/index.ts';
 import {
-  AI_PROVIDERS, loadConfig, saveConfig, clearConfig, normalizeBaseUrl, isNetworkError,
+  AI_PROVIDERS, loadConfig, saveConfig, clearConfig, saveModels, normalizeBaseUrl, isNetworkError,
   testConnection, fetchModels,
 } from '../lib/ai.ts';
 
@@ -99,9 +99,10 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   const [baseUrl, setBaseUrl] = useState(initial?.baseUrl ?? AI_PROVIDERS[0].baseUrl);
   const [apiKey, setApiKey] = useState(initial?.key ?? '');
   const [model, setModel] = useState(initial?.model ?? '');
-  const [liveModels, setLiveModels] = useState<string[]>([]);
+  const [liveModels, setLiveModels] = useState<string[]>(initial?.models ?? []);
   const [showKey, setShowKey] = useState(false);
   const [testing, setTesting] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [testMsg, setTestMsg] = useState('');
   const [error, setError] = useState('');
 
@@ -109,19 +110,32 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
     const p = AI_PROVIDERS.find((x) => x.id === pid)!;
     setProvider(pid); setBaseUrl(p.baseUrl || ''); setModel(''); setLiveModels([]); setTestMsg('');
   };
+  const runFetchModels = async () => {
+    if (!baseUrl.trim() || !apiKey.trim()) { setError(t('aiFetchNeedAuth', locale)); return; }
+    setFetching(true); setError('');
+    try {
+      const models = await fetchModels(baseUrl, apiKey);
+      setLiveModels(models);
+      if (models.length && !model) setModel(models[0]);
+      saveModels(models, normalizeBaseUrl(baseUrl));
+      setTestMsg(t('aiFetchOkMsg', locale, { count: models.length }));
+    } catch (e) {
+      setError(isNetworkError((e as Error).message) ? t('aiTestUnreachable', locale) : (e as Error).message);
+    } finally { setFetching(false); }
+  };
   const runTest = async () => {
     setTesting(true); setError(''); setTestMsg('');
     try {
       const res = await testConnection({ provider, baseUrl, key: apiKey, model } as AiConfig);
       if (res.status === 401) setTestMsg(t('aiTestAuthFailMsg', locale));
       else if (res.status === 200) setTestMsg(t('aiTestOkMsg', locale));
-      try { const models = await fetchModels(baseUrl, apiKey); setLiveModels(models); if (models.length && !model) setModel(models[0]); } catch { /* keep manual */ }
+      try { const models = await fetchModels(baseUrl, apiKey); setLiveModels(models); if (models.length && !model) setModel(models[0]); saveModels(models, normalizeBaseUrl(baseUrl)); } catch { /* keep manual */ }
     } catch (e) { setError(isNetworkError((e as Error).message) ? t('aiTestUnreachable', locale) : (e as Error).message); }
     finally { setTesting(false); }
   };
   const save = () => {
     if (!apiKey.trim() || !baseUrl.trim() || !model.trim()) { setError(t('aiSaveHint', locale)); return; }
-    const c: AiConfig = { provider, baseUrl: normalizeBaseUrl(baseUrl), key: apiKey.trim(), model: model.trim(), agreed: true };
+    const c: AiConfig = { provider, baseUrl: normalizeBaseUrl(baseUrl), key: apiKey.trim(), model: model.trim(), agreed: true, models: liveModels };
     saveConfig(c); onSaved(c);
     useToastStore.getState().show(t('aiSavedToast', locale), 'success', 'check');
   };
@@ -158,8 +172,10 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
       )}
       <p className="mt-1 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiTestHint', locale)}</p>
 
-      <div className="mt-4 flex items-center gap-2">
-        <button onClick={runTest} disabled={testing} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{testing ? t('aiTesting', locale) : t('aiTestConnection', locale)}</button>
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <button onClick={runTest} disabled={testing || fetching} className="press flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{testing ? t('aiTesting', locale) : t('aiTestConnection', locale)}</button>
+        <button onClick={runFetchModels} disabled={testing || fetching} className="press flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{fetching ? t('aiFetching', locale) : t('aiFetchModels', locale)}</button>
+        {liveModels.length > 0 && <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiModelCount', locale, { count: liveModels.length })}</span>}
         {testMsg && <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-vocab)]">{testMsg}</span>}
       </div>
       {error && <p className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{error}</p>}
