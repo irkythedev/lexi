@@ -146,8 +146,8 @@ export default function LearnView() {
                     </div>
                     <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
                   </div>
-                  {/* 朗读 + AI + 展开指示 统一成组，gap 4px（紧凑但可点）；每钮热区 36px */} 
-                  <div className="flex shrink-0 items-center gap-1">
+                  {/* 朗读 + AI + 展开指示 统一成组，gap 2px（紧凑可点）；每钮热区 36px */} 
+                  <div className="flex shrink-0 items-center gap-0.5">
                     <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} compact />
                     <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind, quote: quote ?? undefined }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} /></button>
                     {/* 展开指示：仅当词条在课文实际出现时显示，放最右；无 quote 时用同宽占位保持图标对齐 */}
@@ -159,7 +159,7 @@ export default function LearnView() {
                 {/* 课文原句展开区：仅当词条在课文实际出现时显示；内嵌浅底条 + 左 kind tint 竖线 */}
                 {expanded && quote && (
                   <div className="mt-3 overflow-hidden rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)]">
-                    <div className="flex items-center justify-between border-l-4 py-2 pl-3 pr-2" style={{ borderLeftColor: meta.tint }}>
+                    <div className="flex items-center justify-between border-l-4 py-1 pl-3 pr-2" style={{ borderLeftColor: meta.tint }}>
                       <span className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('textbookQuote', locale)}</span>
                       <SpeakButton text={quote} accent={tts.accent} rate={tts.rate} size={13} color={meta.tint} compact />
                     </div>
