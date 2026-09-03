@@ -1,13 +1,14 @@
 // Footer — Lexi 页脚：品牌 + 版本、作者、作品集、仓库链接、许可
 // 参考 stem_digt_labs Footer 架构，适配 Lexi token 体系 + i18n
 import { useEffect, useRef, useState } from 'react';
-import { Library, Mail, Share2 } from 'lucide-react';
+import { Library, Mail, Share2, MessageSquareText } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { FOOTER } from '../lib/footer.ts';
 import InstallAppButton from './InstallAppButton.tsx';
 import ShareDialog from './ShareDialog.tsx';
 import DisclaimerDialog from './DisclaimerDialog.tsx';
+import FeedbackPanel from './FeedbackPanel.tsx';
 
 function GiteeIcon({ size = 14, className = '' }: { size?: number; className?: string }) {
   return (
@@ -30,6 +31,7 @@ export default function Footer() {
   const [showWorks, setShowWorks] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
   const worksRef = useRef<HTMLSpanElement>(null);
   const authorName = locale === 'en' ? 'Ricky' : 'Ricky';
 
@@ -56,6 +58,8 @@ export default function Footer() {
           <span className="hidden sm:inline text-[var(--color-text-4)]">·</span>
           <span className="hidden sm:inline">{t('footerRole', locale)}</span>
           <a href={`mailto:${FOOTER.email}`} aria-label={t('footerContact', locale)} className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors"><Mail size={14} /></a>
+          {/* 反馈：邮件与作品集之间，点击弹出反馈面板 */}
+          <button type="button" onClick={() => setShowFeedback(true)} aria-label={t('feedbackTitle', locale)} title={t('feedbackTitle', locale)} className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors"><MessageSquareText size={14} /></button>
           {/* 其他作品：icon + 数字角标，点击展开；点击外部收起 */}
           <span ref={worksRef} className="relative inline-flex items-center">
             <button type="button" onClick={() => setShowWorks((v) => !v)} aria-expanded={showWorks} aria-label={t('footerMoreWorks', locale)}
@@ -102,6 +106,7 @@ export default function Footer() {
         </div>
         {showDisclaimer && <DisclaimerDialog onClose={() => setShowDisclaimer(false)} />}
         {showShare && <ShareDialog url={typeof window !== 'undefined' ? window.location.href : FOOTER.homepage} onClose={() => setShowShare(false)} />}
+        {showFeedback && <FeedbackPanel onClose={() => setShowFeedback(false)} />}
       </div>
     </footer>
   );
