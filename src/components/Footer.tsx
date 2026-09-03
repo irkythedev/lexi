@@ -7,6 +7,7 @@ import { t } from '../lib/i18n.ts';
 import { FOOTER } from '../lib/footer.ts';
 import InstallAppButton from './InstallAppButton.tsx';
 import ShareDialog from './ShareDialog.tsx';
+import DisclaimerDialog from './DisclaimerDialog.tsx';
 
 function GiteeIcon({ size = 14, className = '' }: { size?: number; className?: string }) {
   return (
@@ -84,7 +85,7 @@ export default function Footer() {
           <span className="h-3 w-px bg-[var(--color-hairline)]" aria-hidden="true" />
           <a href={FOOTER.licenseUrl} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--color-text)] transition-colors">{t('footerLicense', locale)}</a>
           <span className="h-3 w-px bg-[var(--color-hairline)]" aria-hidden="true" />
-          <button type="button" onClick={() => setShowDisclaimer((v) => !v)} aria-expanded={showDisclaimer} className="underline hover:text-[var(--color-text)] transition-colors">{t('footerDisclaimerLabel', locale)}</button>
+          <button type="button" onClick={() => setShowDisclaimer(true)} className="underline hover:text-[var(--color-text)] transition-colors">{t('footerDisclaimerLabel', locale)}</button>
           <span className="h-3 w-px bg-[var(--color-hairline)]" aria-hidden="true" />
           <span className="inline-flex items-center gap-2">
             <a href={FOOTER.giteeUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--color-text-3)] transition-colors hover:text-[#C71D23]" title={t('footerGitee', locale)}>
@@ -99,7 +100,7 @@ export default function Footer() {
             <Share2 size={14} />
           </button>
         </div>
-        {showDisclaimer && <span className="max-w-xs text-[var(--color-text-3)]">{t('footerDisclaimer', locale)}</span>}
+        {showDisclaimer && <DisclaimerDialog onClose={() => setShowDisclaimer(false)} />}
         {showShare && <ShareDialog url={typeof window !== 'undefined' ? window.location.href : FOOTER.homepage} onClose={() => setShowShare(false)} />}
       </div>
     </footer>
