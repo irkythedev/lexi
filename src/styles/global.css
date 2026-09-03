@@ -240,6 +240,19 @@ textarea:focus-visible {
   .ai-breathe { animation: none; }
 }
 
+/* 版本更新提示：accent 呼吸点（纸面风下比纯绿更贴配色；语义=有新版本可点） */
+@keyframes update-dot-breathe {
+  0%, 100% { opacity: 0.45; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+.update-dot {
+  animation: update-dot-breathe 2.8s ease-in-out infinite;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: reduce) {
+  .update-dot { animation: none; }
+}
+
 .safe-b { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
 /* 矩形滑块缩略图（字体/语速拖动条） */

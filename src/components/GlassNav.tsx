@@ -6,6 +6,8 @@ import type { Locale } from '../types/index.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
 import { FOOTER } from '../lib/footer.ts';
+import { useVersionCheck } from '../lib/use-version-check.ts';
+import { refreshToLatest } from '../lib/update.ts';
 import VersionDialog from './VersionDialog.tsx';
 
 const ICON_STROKE = 2.5; // 导航/工具图标统一线宽，贴近 2px 墨线卡（纸面笔触）
@@ -24,6 +26,9 @@ export default function GlassNav() {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [updateToast, setUpdateToast] = useState(false);
+  const { hasUpdate } = useVersionCheck();
+  const showToast = useToastStore((s) => s.show);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -35,15 +40,30 @@ export default function GlassNav() {
 
   const go = (t: Tab) => { setTab(t); navigate(TABS.find((x) => x.id === t)!.path); };
 
+  // 有新版本：下载新 SW → 事件驱动等待接管 → 刷新一次到位
+  const handleRefresh = () => {
+    if (updateToast) return;
+    setUpdateToast(true);
+    showToast(t('refreshingLatest', locale), 'info', 'info');
+    refreshToLatest();
+  };
+
   return (
     <>
       <header className={`glass-nav fixed inset-x-0 top-0 z-50 ${scrolled ? 'scrolled' : ''}`}>
         <div className="mx-auto flex h-14 max-w-[var(--max-grid)] items-center justify-between px-[var(--pad-x)]">
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
-            <img src="/brand.png" alt="Lexi" className="h-10 w-10 shrink-0" />
+            <img src="/brand.png" alt="Lexi" className="h-12 w-12 shrink-0" />
             <span className="flex flex-col items-start gap-[2px]">
               <span className="text-[calc(20px*var(--type-scale))] font-bold leading-none tracking-[-0.02em] text-[var(--color-text)]">Lexi</span>
-              <button type="button" onClick={() => setShowChangelog(true)} title={t('changelogTitle', locale)} className="tnum text-[calc(11px*var(--type-scale))] font-medium leading-none text-[var(--color-text-3)] transition-colors hover:text-[var(--color-accent)]">v{FOOTER.version}</button>
+              <button type="button" onClick={() => { if (hasUpdate) handleRefresh(); else setShowChangelog(true); }} title={hasUpdate ? t('updateAvailable', locale) : t('changelogTitle', locale)} className={`group relative tnum text-[calc(11px*var(--type-scale))] font-medium leading-none text-[var(--color-text-3)] transition-colors hover:text-[var(--color-accent)] ${hasUpdate ? 'pr-2.5' : ''}`}>
+                <span className="inline-flex items-center gap-1.5">
+                  v{FOOTER.version}
+                  {hasUpdate && (
+                    <span className="update-dot inline-block h-1.5 w-1.5 rounded-full bg-[var(--color-accent)]" aria-hidden="true" />
+                  )}
+                </span>
+              </button>
             </span>
           </div>
           {/* 桌面端导航：顶部横排，替代底部 tab 栏 */}
