@@ -5,7 +5,7 @@
 // navigating away (e.g. to Settings) and back preserves progress.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2, Sparkles } from 'lucide-react';
+import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2, Sparkles, Pause } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { findQuote } from '../data/textbooks/unit_texts.ts';
 import {
@@ -160,15 +160,18 @@ export default function SessionView() {
     <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-[var(--max-read)] flex-col px-[var(--pad-x)] py-4">
       <div className="flex items-center justify-between">
         <button onClick={() => { stop(); navigate('/learn'); }} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]"><ArrowLeft size={18} /> {t('exitSession', locale)}</button>
-        <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{pos + 1} / {total}</span>
+        <span className="flex items-center gap-2">
+          <Tag kind={task.item.kind}>{meta.label[locale]}</Tag>
+          <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{pos + 1} / {total}</span>
+        </span>
       </div>
 
-      <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-track)]">
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-track)]">
         <div className="h-full rounded-full transition-all" style={{ width: `${(pos / total) * 100}%`, background: meta.tint }} />
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
-        <Tag kind={task.item.kind}>{meta.label[locale]}</Tag>
+        {/* kind 标签移入顶栏后，正文区移除重复的 Tag 块 */}
 
         {task.type === 'listen' && (
           <div className="mt-6">
@@ -182,10 +185,28 @@ export default function SessionView() {
                   }}
                 >{w}</span>
               ))}
+              {/* 播放钮紧跟单词后：单词逐词高亮由 onWordChange 驱动，从头播放；播放中 Pause、合成中旋转 */}
+              <button
+                onClick={() => {
+                  if (ttsState === 'playing' || ttsState === 'paused') { stop(); return; }
+                  setShownWord(0);
+                  speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) });
+                }}
+                disabled={ttsState === 'synthesizing'}
+                className="press flex h-10 w-10 shrink-0 items-center justify-center self-center rounded-full text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60"
+                aria-label={t('listenAgain', locale)}
+              >
+                {ttsState === 'synthesizing' ? (
+                  <Loader2 size={20} strokeWidth={2.25} className="animate-spin" />
+                ) : ttsState === 'playing' || ttsState === 'paused' ? (
+                  <Pause size={20} strokeWidth={2.25} />
+                ) : (
+                  <Volume2 size={20} strokeWidth={2.25} />
+                )}
+              </button>
             </div>
             {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
-            <div className="mt-4 flex items-center justify-center gap-3">
-              <button onClick={() => { setShownWord(0); speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) }); }} disabled={ttsState === 'synthesizing'} className="press flex h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 text-[calc(14px*var(--type-scale))] disabled:opacity-60" aria-label={t('listenAgain', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} strokeWidth={2.25} className="animate-spin" /> : <Volume2 size={16} strokeWidth={2.25} />} {t('listenAgain', locale)}</button>
+            <div className="mt-3 flex items-center justify-center gap-3">
               <button onClick={() => void grade('correct')} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} strokeWidth={2.25} /></button>
               <button onClick={() => setAiOpen(true)} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /></button>
             </div>
@@ -197,7 +218,7 @@ export default function SessionView() {
             <h2 className="text-[calc(clamp(28px,7vw,40px)*var(--type-scale))] font-bold tracking-[-0.02em]">{task.item.label}</h2>
             {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
             <div className="mt-3 flex justify-center">
-              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} className="press flex h-12 w-12 items-center justify-center rounded-full border-2 border-[var(--color-hairline)]" aria-label={t('cardListen', locale)}><Volume2 size={18} strokeWidth={2.25} /></button>
+              <button onClick={() => { if (ttsState === 'playing' || ttsState === 'paused') { stop(); return; } speak(task.item.label, { accent: tts.accent, rate: tts.rate }); }} className="press flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-accent)] hover:bg-[var(--color-surface-2)]" aria-label={t('cardListen', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} strokeWidth={2.25} className="animate-spin" /> : ttsState === 'playing' || ttsState === 'paused' ? <Pause size={16} strokeWidth={2.25} /> : <Volume2 size={16} strokeWidth={2.25} />}</button>
             </div>
             <div className="mt-6 grid grid-cols-1 gap-2.5">
               {recognizeOptions.map((opt, i) => (
@@ -226,7 +247,7 @@ export default function SessionView() {
           <div className="mt-6 w-full">
             <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('spellHint', locale)}</p>
             <div className="mt-3 flex justify-center">
-              <button onClick={() => speak(task.item.label, { accent: tts.accent, rate: tts.rate })} className="press flex h-12 w-12 items-center justify-center rounded-full border-2 border-[var(--color-hairline)]" aria-label={t('cardListen', locale)}><Volume2 size={18} strokeWidth={2.25} /></button>
+              <button onClick={() => { if (ttsState === 'playing' || ttsState === 'paused') { stop(); return; } speak(task.item.label, { accent: tts.accent, rate: tts.rate }); }} className="press flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-accent)] hover:bg-[var(--color-surface-2)]" aria-label={t('cardListen', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} strokeWidth={2.25} className="animate-spin" /> : ttsState === 'playing' || ttsState === 'paused' ? <Pause size={16} strokeWidth={2.25} /> : <Volume2 size={16} strokeWidth={2.25} />}</button>
             </div>
             <div className="mx-auto mt-5 max-w-sm">
               <input autoFocus value={spellInput} onChange={(e) => setSpellInput(e.target.value)}

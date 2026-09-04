@@ -137,6 +137,12 @@ function blobDurationMs(blob: Blob): Promise<number> {
   });
 }
 
+// 全局音频仲裁：全项目所有 useSpeak 实例共享一个"当前实例"引用。
+// 任何实例 speak/stop 时先停掉上一个实例的播放，防止跨组件音频叠加
+// （如 SessionView 听词与 Learn 词条 SpeakButton 走的是不同实例）。
+type StopFn = () => void;
+let activeStop: StopFn | null = null;
+
 export function useSpeak() {
   const [state, setState] = useState<SpeakState>('idle');
   const [error, setError] = useState('');
@@ -159,8 +165,12 @@ export function useSpeak() {
   // 异步 fetch 完成后仍创建 audio（导致两次读音重叠）。
   const speakSeqRef = useRef(0);
 
+  // 本实例的全局停止句柄：speak 时注册到 activeStop，供其它实例仲裁。
+  const stopFnRef = useRef<StopFn>(() => {});
+
   const stopSource = useCallback(() => {
     speakSeqRef.current += 1; // 使进行中的 speak 请求失效
+    if (activeStop === stopFnRef.current) activeStop = null; // 清掉指向自己的全局引用
     clearTimer();
     if (audioRef.current) {
       try { audioRef.current.onended = null; audioRef.current.pause(); audioRef.current.src = ''; } catch { /* noop */ }
@@ -220,8 +230,13 @@ export function useSpeak() {
 
   const speak = useCallback(async (text: string, options: SpeakOptions = {}) => {
     if (!text) return;
+    // 全局仲裁：停掉其它 useSpeak 实例正在进行的播放，防止跨组件音频叠加。
+    if (activeStop && activeStop !== stopFnRef.current) activeStop();
     // 自停：停止当前实例的任何遗留播放，避免重叠
     stopSource();
+    // 注册本实例为全局当前播放者（登记公开 stop：仲裁停它时同步复位其 UI 状态）
+    stopFnRef.current = stop;
+    activeStop = stopFnRef.current;
     const seq = speakSeqRef.current; // 本次请求序号（stopSource 已自增）
     optsRef.current = options;
     const { accent = 'us', rate = 1.0, lang = 'en', onEnd } = options;

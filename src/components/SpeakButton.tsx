@@ -1,10 +1,10 @@
 // SpeakButton — 朗读按钮（统一动画反馈）。
 // 与 SessionView/FloatingTTS 对齐：合成中显示旋转 Loader，播放中显示
-// 脉冲图标，结束恢复静态。通过订阅全局 TTS 状态驱动动画。
+// Pause（可点击停止），结束恢复静态。通过订阅全局 TTS 状态驱动动画。
 // 支持两种形态：默认圆形图标按钮；传入 children 时渲染为带文字按钮。
 import { useEffect, useRef, useState } from 'react';
-import { Volume2, Loader2 } from 'lucide-react';
-import { requestSpeak, subscribeTtsState } from '../components/FloatingTTS.tsx';
+import { Volume2, Loader2, Pause } from 'lucide-react';
+import { requestSpeak, requestStopTts, subscribeTtsState } from '../components/FloatingTTS.tsx';
 
 export default function SpeakButton({
   text, accent, rate, size = 16, color, className = '', children, compact = false,
@@ -36,7 +36,7 @@ export default function SpeakButton({
 
   const click = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (activeRef.current) return; // 已在播放，忽略连点
+    if (activeRef.current) { requestStopTts(); return; } // 播放中点击 = 停止
     const id = ++reqIdRef.current;
     activeRef.current = true;
     setPhase('synth');
@@ -49,10 +49,12 @@ export default function SpeakButton({
     });
   };
 
-  // 图标随阶段变化：合成中旋转 Loader，播放中脉冲 Volume2，其余静态。
+  // 图标随阶段变化：合成中旋转 Loader，播放中 Pause（点击停止），其余静态。
   const Icon = phase === 'synth'
     ? <Loader2 size={size} strokeWidth={2.25} className="animate-spin" style={{ color }} />
-    : <Volume2 size={size} strokeWidth={2.25} className={phase === 'play' ? 'animate-pulse' : ''} style={{ color }} />;
+    : phase === 'play'
+      ? <Pause size={size} strokeWidth={2.25} style={{ color }} />
+      : <Volume2 size={size} strokeWidth={2.25} style={{ color }} />;
 
   return (
     <button

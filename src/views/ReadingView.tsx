@@ -97,20 +97,20 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
 
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
-      {/* 顶部工具栏 */}
+      {/* 顶部工具栏：返回样式与 SessionView 一致（左箭头+文本），右侧标题 */}
       <div className="flex items-center justify-between">
         <button onClick={onExit} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]"><ArrowLeft size={18} /> {t('exitSession', locale)}</button>
         <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
       </div>
 
-      {/* 播放控制栏 */}
-      <div className="mt-4 flex items-center gap-3 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 py-3 shadow-[var(--shadow-card)]">
-        <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press h-11 w-11 items-center justify-center rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px] disabled:opacity-60" aria-label={playing ? t('playPause', locale) : t('play', locale)}>
-          {ttsState === 'synthesizing' ? <Loader2 size={18} strokeWidth={2.25} className="animate-spin" /> : playing ? <Pause size={18} strokeWidth={2.25} /> : <Play size={18} strokeWidth={2.25} />}
+      {/* 播放控制栏：主播放钮去圆形包裹（纯 icon 可点区），标题放右侧 */}
+      <div className="mt-4 flex items-center gap-1 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] py-1 pl-1 pr-3 shadow-[var(--shadow-card)]">
+        <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60" aria-label={playing ? t('playPause', locale) : t('play', locale)}>
+          {ttsState === 'synthesizing' ? <Loader2 size={20} strokeWidth={2.25} className="animate-spin" /> : playing ? <Pause size={20} strokeWidth={2.25} /> : <Play size={20} strokeWidth={2.25} />}
         </button>
-        <div className="flex-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
-          {sentenceIdx + 1} / {total} 句
-          {playing && <span className="ml-2 text-[var(--color-accent)]">· 朗读中</span>}
+        <div className="flex flex-1 items-center justify-between">
+          <span className="truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
+          <span className="ml-2 shrink-0 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{sentenceIdx + 1} / {total} 句{playing && ' · 朗读中'}</span>
         </div>
       </div>
 
@@ -138,7 +138,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
                           ? 'text-[var(--color-text-3)]'
                           : 'text-[var(--color-text)] hover:bg-[var(--color-surface-2)]'
                     }`}
-                    style={{ borderRadius: 4 }}
+                    style={{ borderRadius: 4, ...(isActive ? { fontSize: 'calc(18px*var(--type-scale))', fontWeight: 700 } : {}) }}
                   >
                     {s}{' '}
                   </button>

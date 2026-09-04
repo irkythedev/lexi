@@ -126,14 +126,14 @@ export default function FloatingTTS() {
 
   return (
     <>
-      {/* 收起态：贴左缘窄条手柄，露出约18px，圆角朝左，点开向左展开面板 */}
+      {/* 收起态：贴左缘窄条手柄，露出约18px，圆角朝左，点开向左展开面板；icon 与展开态同尺寸同粗细 */}
       <button
         onClick={() => { setOpen(true); resetAutoHide(); }}
         aria-label={t('ttsExpand', locale)}
-        className={`press fixed left-[-8px] z-40 flex h-14 w-7 items-center rounded-r-full border-2 border-l-0 border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-accent)] shadow-[var(--shadow-card)] transition-opacity duration-300 ${open ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
-        style={{ top: 'calc(50% - 28px)', paddingLeft: '11px' }}
+        className={`press fixed left-[-8px] z-40 flex h-12 w-7 items-center rounded-r-full border-2 border-l-0 border-[var(--color-hairline)] bg-[var(--color-surface)] text-[var(--color-accent)] shadow-[var(--shadow-card)] transition-opacity duration-300 ${open ? 'pointer-events-none opacity-0' : 'opacity-100'}`}
+        style={{ top: 'calc(50% - 24px)', paddingLeft: '10px' }}
       >
-        <Volume2 size={14} strokeWidth={2.25} />
+        <Volume2 size={16} strokeWidth={2.25} />
       </button>
       {/* 展开态：面板从左侧滑出，闲置6秒自动收起（播放中不收起） */}
       <div
