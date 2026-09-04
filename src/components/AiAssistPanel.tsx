@@ -4,7 +4,7 @@
 //   type:"speak" 段 = 整段一个朗读按钮（完整词/短语/句子），文本不可再拆。
 // 桌面端为可拖拽/缩放的浮窗，移动端为底部 sheet。
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Sparkles, Loader2, Volume2, Pause } from 'lucide-react';
+import { X, Sparkles, Loader2, Volume2, Pause, ShieldCheck } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, isNetworkError,
@@ -13,6 +13,10 @@ import {
 import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
 import WordHighlight from './WordHighlight.tsx';
+import DisclaimerDialog from './DisclaimerDialog.tsx';
+
+/** token 粗估（与 stem 同口径：1 token ≈ 1.8 字符），仅用于成本透明展示。 */
+const estimateTokens = (s: string) => Math.ceil(s.length / 1.8);
 
 export interface AssistContext {
   label: string;       // 当前词/句
@@ -125,6 +129,8 @@ export default function AiAssistPanel({
   const [card, setCard] = useState<StudyCard | null>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [tokens, setTokens] = useState(0); // 本次打开面板的会话累计（估算）
+  const [showDisclaimer, setShowDisclaimer] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 桌面浮窗位置/尺寸（拖拽缩放）
@@ -132,7 +138,7 @@ export default function AiAssistPanel({
   const dragStart = useRef({ x: 0, y: 0, wx: 0, wy: 0 });
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [card, busy]);
-  useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); } }, [open]);
+  useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); setTokens(0); } }, [open]);
 
   // 生成学习卡片（一次请求，JSON 结构化）
   const study = useCallback(async () => {
@@ -140,12 +146,14 @@ export default function AiAssistPanel({
     setBusy(true); setErr(''); setCard(null);
     const msg = studyCardPrompt(context.label, context.meaning, context.kind, context.quote);
     const knowledge = context.extra ?? (unit ? `${unit.editionName} Unit ${unit.unit}` : undefined);
+    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title, knowledge });
+    setTokens((n) => n + estimateTokens(sysPrompt) + estimateTokens(msg));
     try {
       let full = '';
       await new Promise<void>((resolve) => {
         let settled = false;
         streamChat({
-          cfg, systemPrompt: buildSystemPrompt({ unitTitle: unit?.title, knowledge }),
+          cfg, systemPrompt: sysPrompt,
           userMessage: msg,
           onChunk: (_d, f) => { full = f; },
           onEnd: (f) => { if (!settled) { settled = true; full = f; resolve(); } },
@@ -153,6 +161,7 @@ export default function AiAssistPanel({
         const timer = setTimeout(() => { if (!settled) { settled = true; resolve(); } }, 60000);
         void timer;
       });
+      setTokens((n) => n + estimateTokens(full));
       const parsed = parseStudyCard(full);
       if (parsed) setCard(parsed);
       else setErr(t('aiCardParseError', locale));
@@ -193,7 +202,7 @@ export default function AiAssistPanel({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 sm:bg-black/30 sm:backdrop-blur-[1px]" onClick={() => { if (window.innerWidth >= 640) onClose(); }}>
+    <div className="fixed inset-0 z-50 sm:bg-black/30 sm:backdrop-blur-[1px]" onClick={() => { if (window.innerWidth >= 640 && !showDisclaimer) onClose(); }}>
       {/* 桌面：可拖拽浮窗；移动：底部 sheet */}
       <div
         className={`fixed z-10 flex flex-col border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)]
@@ -248,6 +257,34 @@ export default function AiAssistPanel({
             )}
           </div>
         )}
+
+        {/* 底部常驻条：免责 + 模型 + 本次会话 token 估算（米纸墨线转译 stem 同款结构） */}
+        {cfg && (
+          <div className="shrink-0 border-t-2 border-[var(--color-hairline)] px-4 pb-1 pt-2">
+            <div className="flex items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDisclaimer(true)}
+                className="press flex min-w-0 flex-1 items-center gap-1.5 text-left text-[calc(11px*var(--type-scale))] leading-snug text-[var(--color-text-3)]"
+                title={t('disclaimerAiTitle', locale)}
+              >
+                <ShieldCheck size={12} strokeWidth={2.25} className="shrink-0" aria-hidden="true" />
+                <span className="truncate">{t('aiStripDisclaimer', locale)}</span>
+              </button>
+              <p className="flex shrink-0 items-center gap-2 tabular-nums whitespace-nowrap">
+                {cfg.model && <span className="max-w-[38vw] truncate text-[calc(11px*var(--type-scale))] font-semibold text-[var(--color-ai)]">{cfg.model}</span>}
+                {tokens > 0 && (
+                  <span className="text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">
+                    {t('aiStripTokens', locale, { count: tokens.toLocaleString() })}
+                    {busy && <span className="text-[var(--color-text-3)]"> · {t('aiStripGenerating', locale)}</span>}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {showDisclaimer && <DisclaimerDialog onClose={() => setShowDisclaimer(false)} />}
 
         {/* 桌面缩放手柄 */}
         {window.innerWidth >= 640 && (
