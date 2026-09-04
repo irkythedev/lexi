@@ -2,7 +2,7 @@
 // 语言贴近使用者而非开发者；技术细节与管理规范不在此展示。
 // APP_VERSION 与 package.json / footer.ts 同步维护。
 
-export const APP_VERSION = '0.4.0';
+export const APP_VERSION = '0.5.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -13,6 +13,22 @@ export interface ChangelogEntry {
 
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.5.0',
+    date: '2026-09',
+    zh: [
+      '[新增] 词表按教材书后词表原序排列：单词与短语按书本顺序混排，与课本对照更方便',
+      '[新增] 词表行升级：词性直接标注在释义前，可标记重点词（星标），显示课本页码',
+      '[新增] 学习页筛选栏显示各分类数量，一眼看清单元词量构成',
+      '[优化] 安全加固：作者署名规范、AI 学习卡内容长度保护',
+    ],
+    en: [
+      '[New] Word lists now follow the textbook glossary order: words and phrases mixed in book order, easier to cross-check with the book',
+      '[New] Upgraded word list rows: part of speech shown before the meaning, star-marking for key words, and textbook page numbers',
+      '[New] Learning page filter chips now show per-category counts',
+      '[Improved] Security hardening: author attribution and AI study-card content length guards',
+    ],
+  },
   {
     version: '0.4.0',
     date: '2026-09',
