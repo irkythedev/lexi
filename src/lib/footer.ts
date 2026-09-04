@@ -2,7 +2,7 @@
 // 参考 stem_digt_labs Footer 架构，适配 Lexi 英语学习定位
 
 export const FOOTER = {
-  version: '0.3.2',
+  version: '0.4.0',
   authorRole: '英语词汇听说学习 PWA',
   authorLink: 'https://irky.dev/',
   authorIcon: '/icons/pubg-helmet.png',

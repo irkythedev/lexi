@@ -2,7 +2,7 @@
 // 语言贴近使用者而非开发者；技术细节与管理规范不在此展示。
 // APP_VERSION 与 package.json / footer.ts 同步维护。
 
-export const APP_VERSION = '0.3.2';
+export const APP_VERSION = '0.4.0';
 
 export interface ChangelogEntry {
   version: string;
@@ -13,6 +13,40 @@ export interface ChangelogEntry {
 
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
+  {
+    version: '0.4.0',
+    date: '2026-09',
+    zh: [
+      '[新增] AI 学习卡讲义本：生成过的学习卡片自动保存，可随时回看、一键清除',
+      '[新增] AI 追问链：卡片中的关键词可继续追问，逐层深入，回看任何一层无需重复请求',
+      '[新增] AI 用量统计：按天累计 AI 消耗（估算），明细可见，随时清零',
+      '[新增] 课文朗读新增教材原声：官方录音逐句串流播放，可与合成朗读一键切换',
+      '[新增] 学习页一键切换单元：无需返回教材页，当前教材全部单元直接选',
+      '[新增] 顶栏新增分享按钮，应用可分享给同学',
+      '[新增] AI 面板打开即自动生成学习卡片，失败可一键重试',
+      '[优化] 朗读更聪明：缩写、符号（/、=、& 等）按语义朗读，音标不再被误读',
+      '[优化] 原声音频内置应用，播放更稳定；合成朗读等待过久有明确提示',
+      '[优化] 全面屏适配（刘海屏/手势条区域），安装体验对齐 iOS、安卓标准',
+      '[优化] 朗读默认音色改为英式男声；教材名简化',
+      '[修复] 修复 AI 报错被误报为「解析失败」，长报错不再撑破面板',
+      '[修复] 修复多处图标语义、按钮行为与全面屏显示问题',
+    ],
+    en: [
+      '[New] AI study-card booklet: generated study cards are saved automatically for later review, clearable anytime',
+      '[New] AI follow-up chain: keep asking about key phrases card by card, revisit any level without repeating requests',
+      '[New] AI usage statistics: daily token estimates with a detailed breakdown, resettable anytime',
+      '[New] Textbook original audio for text read-aloud: official recordings stream sentence by sentence, switchable with synthesized speech',
+      '[New] One-tap unit switching on the learning page: pick any unit of the current textbook without going back',
+      '[New] Share button in the top bar - share the app with classmates',
+      '[New] AI panel generates the study card automatically on open, with one-tap retry on failure',
+      '[Improved] Smarter read-aloud: abbreviations and symbols (/ = &) are spoken by meaning, phonetic symbols no longer misread',
+      '[Improved] Original audio is bundled in the app for stabler playback; long synthesis waits now show a clear hint',
+      '[Improved] Full-screen adaptation (notch / home-indicator areas); install experience aligned with iOS and Android standards',
+      '[Improved] Default voice changed to a British male voice; textbook name simplified',
+      '[Fixed] Fixed AI errors being misreported as parse failures; long error text no longer breaks the panel',
+      '[Fixed] Fixed several icon semantics, button behaviors and full-screen display issues',
+    ],
+  },
   {
     version: '0.3.2',
     date: '2026-09',
