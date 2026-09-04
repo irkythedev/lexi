@@ -195,8 +195,10 @@ export function correctionPrompt(sentence: string, targetPhrases: string[]): str
 待批改句子：${sentence}`;
 }
 
-/** 学习卡片渲染段：text = 普通文本，speak = 整段一个朗读按钮（不再拆词）。 */
-export interface StudySegment { type: 'text' | 'speak'; text: string; }
+/** 学习卡片渲染段：text = 普通文本，speak = 整段一个朗读按钮（不再拆词）。
+ *  probe（可选，prompt-v3）：AI 对该段内容自评"值得追问"时给出的预设追问句。
+ *  渲染为段尾可点 chip，点击后由 app 构造固定追问请求——用户零输入（合规红线）。 */
+export interface StudySegment { type: 'text' | 'speak'; text: string; probe?: string; }
 
 export interface StudyCard {
   word: string;
@@ -210,7 +212,9 @@ export interface StudyCard {
  * 合并学习卡片 prompt：一次请求生成 释义/用法/例句/考点 四段，输出 JSON。
  * 结构化输出避免前端用字符串替换插朗读按钮（那是破坏性分词）。
  * quote：教材原文例句（存在时要求 AI 优先采用，可微调时态/人称但保留句式骨架），
- *        缺失时 AI 自拟例句，必须自然、必须包含目标词。
+ * 缺失时 AI 自拟例句，必须自然、必须包含目标词。
+ * probe（prompt-v3）：AI 对讲解中特别值得学生追问的具体内容点，可在该段附一个
+ * 预设追问句（0-2 个/卡，宁缺勿滥）。追问由用户点 chip 触发、app 构造请求，无自由输入。
  */
 export function studyCardPrompt(label: string, meaning?: string, kind?: string, quote?: string, peerWords?: string[]): string {
   const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : '单词';
@@ -226,12 +230,12 @@ export function studyCardPrompt(label: string, meaning?: string, kind?: string, 
   "word": "${label}",
   "definition": "一句话中文释义（可用更易记的说法）",
   "usage": [
-    { "type": "text", "text": "一句话说明常见用法或搭配，含中文解释" },
+    { "type": "text", "text": "一句话说明常见用法或搭配，含中文解释", "probe": "（可选）针对这条内容的一个中文追问句" },
     { "type": "speak", "text": "英语示例短语，完整词/短语，不要拆开" }
   ],
   "example": { "en": "一个完整英语例句", "zh": "对应中文翻译" },
   "examTips": [
-    { "type": "text", "text": "中文考点提示" },
+    { "type": "text", "text": "中文考点提示", "probe": "（可选）针对这条考点的中文追问句" },
     { "type": "speak", "text": "需要朗读的英文词/短语（可选，单独列，不要嵌在中文句子里）" }
   ]
 }
@@ -241,7 +245,20 @@ export function studyCardPrompt(label: string, meaning?: string, kind?: string, 
 - 若英文示例是单个字母（如考点里提示别漏字母 e），单独给一个 { "type": "speak", "text": "e" }。
 - example.en 是完整句子，朗读时整句播，不拆词。
 - ${quoteRule}${peerRule ? `\n${peerRule}` : ''}
+- probe（可省略）：只对讲解中特别值得追问的具体内容点给——该点确实有易混点/易错点/引申空间时，在该段 JSON 对象上加一个 "probe" 字段，内容为面向该点的一个简短中文追问句（学生点它即可展开讲解）。整卡最多 2 个 probe；内容平淡无疑问点时一律不加，宁缺勿滥。
 - 总量控制在 180 字以内，每个字段简短。`;
+}
+
+/**
+ * 追问请求 prompt（prompt-v3）：用户点卡片上的 probe chip 后，由 app 用此构造固定请求。
+ * parentSegment 是被追问的原始内容——追问答案必须围绕它展开，不允许发散。
+ * 追问答案同样走学习卡片 JSON schema（可再带 probe），由 followUpDepth 限制链深。
+ */
+export function followUpPrompt(parentSegment: string, probe: string, label: string, depth: number): string {
+  return `学生针对「${label}」讲解卡里的这条内容提了一个追问：
+原内容：${parentSegment}
+追问：${probe}
+请针对这个追问展开讲解（${depth === 1 ? '第一层：把该点讲清楚' : '第二层：在上一层基础上给应用层面的深化，此后不再设新问题'}），只输出 JSON，格式与学习卡片相同（word 填「${label}」，definition 一句话直接回答追问，usage 是 2-3 条展开说明，examTips 可为空数组）。只输出 JSON，不要任何多余文字。`;
 }
 
 /** 批改结果净化：score clamp 0-100 + 非数字容错、字符串字段强转。（prompt-v2 加固） */
@@ -287,17 +304,33 @@ export function parseStudyCard(text: string): StudyCard | null {
       if (!Array.isArray(v)) return [];
       return v
         .filter((x): x is StudySegment => !!x && typeof (x as StudySegment).text === 'string')
-        .map((x) => ({ type: (x as StudySegment).type === 'speak' ? 'speak' : 'text', text: String((x as StudySegment).text) }));
+        .map((x) => ({
+          type: (x as StudySegment).type === 'speak' ? 'speak' : 'text',
+          text: String((x as StudySegment).text),
+          // probe 净化：仅保留非空字符串，探针文本与段文本不同才有效；多级对象/超长截断
+          ...(typeof (x as { probe?: unknown }).probe === 'string' && (x as { probe: string }).probe.trim() && (x as { probe: string }).probe.trim() !== String((x as StudySegment).text)
+            ? { probe: (x as { probe: string }).probe.trim().slice(0, 80) }
+            : {}),
+        }));
     };
+    const usageSegs = seg(raw.usage).length ? seg(raw.usage) : [{ type: 'text' as const, text: String(raw.definition) }];
+    const examSegs = seg(raw.examTips);
+    // 整卡 probe 上限 2（prompt-v3 宁缺勿滥的硬兜底，不依赖 AI 自律）：按出现顺序保留前 2 个
+    let probeBudget = 2;
+    const capProbes = (segs: StudySegment[]): StudySegment[] =>
+      segs.map((s) => {
+        if (s.probe && probeBudget > 0) { probeBudget -= 1; return s; }
+        return s.probe ? { type: s.type, text: s.text } : s;
+      });
     return {
       word: String(raw.word),
       definition: String(raw.definition),
-      usage: seg(raw.usage).length ? seg(raw.usage) : [{ type: 'text' as const, text: String(raw.definition) }],
+      usage: capProbes(usageSegs),
       example: {
         en: String(raw.example?.en ?? ''),
         zh: String(raw.example?.zh ?? ''),
       },
-      examTips: seg(raw.examTips),
+      examTips: capProbes(examSegs),
     };
   } catch {
     return null;

@@ -4,11 +4,11 @@
 //   type:"speak" 段 = 整段一个朗读按钮（完整词/短语/句子），文本不可再拆。
 // 桌面端为可拖拽/缩放的浮窗，移动端为底部 sheet。
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Sparkles, Loader2, Volume2, Pause, ShieldCheck } from 'lucide-react';
+import { X, Sparkles, Loader2, Volume2, Pause, ShieldCheck, HelpCircle, ArrowLeft } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
-  loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, isNetworkError,
-  parseStudyCard, type StudyCard,
+  loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, followUpPrompt, isNetworkError,
+  parseStudyCard, type StudyCard, type StudySegment,
 } from '../lib/ai.ts';
 import { addTokenUsage, estimateTokens } from '../lib/token-usage.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
@@ -49,11 +49,28 @@ function SpeakInline({ text, accent, rate, size = 12, fontSize = 'inherit', bold
   );
 }
 
-/** 学习卡片展示。 */
-function StudyCardView({ card, accent, rate, highlight }: { card: StudyCard; accent: 'us' | 'uk'; rate: number; highlight?: string }) {
+/** 学习卡片展示。onProbe：点击段上的追问 chip（probe 非空时才渲染）。 */
+function StudyCardView({ card, accent, rate, highlight, onProbe }: { card: StudyCard; accent: 'us' | 'uk'; rate: number; highlight?: string; onProbe?: (segText: string, probe: string) => void }) {
   const locale = useAppStore((s) => s.locale);
   const { speak, stop, state: ttsState } = useSpeak();
   const active = ttsState === 'playing' || ttsState === 'synthesizing';
+
+  const renderSeg = (s: StudySegment, i: number) => (
+    <li key={i} className="text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">
+      {s.type === 'speak'
+        ? <SpeakInline text={s.text} accent={accent} rate={rate} bold />
+        : <span>{s.text}</span>}
+      {s.probe && onProbe && (
+        <button
+          onClick={() => onProbe(s.text, s.probe!)}
+          className="press mt-1 flex w-full items-start gap-1.5 rounded-[var(--radius-md)] border border-dashed border-[var(--color-ai)]/40 bg-[var(--color-ai)]/[0.06] px-2.5 py-1.5 text-left"
+        >
+          <HelpCircle size={13} strokeWidth={2.25} className="mt-0.5 shrink-0" style={{ color: 'var(--color-ai)' }} />
+          <span className="text-[calc(12.5px*var(--type-scale))] leading-snug" style={{ color: 'var(--color-ai)' }}>{s.probe}</span>
+        </button>
+      )}
+    </li>
+  );
 
   return (
     <div className="space-y-3">
@@ -68,13 +85,7 @@ function StudyCardView({ card, accent, rate, highlight }: { card: StudyCard; acc
         <div>
           <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardUsage', locale)}</div>
           <ul className="mt-1 space-y-1">
-            {card.usage.map((s, i) => (
-              <li key={i} className="text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">
-                {s.type === 'speak'
-                  ? <SpeakInline text={s.text} accent={accent} rate={rate} bold />
-                  : <span>{s.text}</span>}
-              </li>
-            ))}
+            {card.usage.map(renderSeg)}
           </ul>
         </div>
       )}
@@ -104,13 +115,7 @@ function StudyCardView({ card, accent, rate, highlight }: { card: StudyCard; acc
         <div>
           <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardExam', locale)}</div>
           <ul className="mt-1 space-y-1">
-            {card.examTips.map((s, i) => (
-              <li key={i} className="text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">
-                {s.type === 'speak'
-                  ? <SpeakInline text={s.text} accent={accent} rate={rate} bold />
-                  : <span>{s.text}</span>}
-              </li>
-            ))}
+            {card.examTips.map(renderSeg)}
           </ul>
         </div>
       )}
@@ -132,6 +137,9 @@ export default function AiAssistPanel({
   const [err, setErr] = useState('');
   const [tokens, setTokens] = useState(0); // 本次打开面板的会话累计（估算）
   const [showDisclaimer, setShowDisclaimer] = useState(false);
+  // 追问链（prompt-v3）：depth 0=主卡；1/2=第N层追问。curProbe 记录链上各级（segment, probe）用于面包屑。
+  const [depth, setDepth] = useState(0);
+  const [trail, setTrail] = useState<{ segment: string; probe: string }[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 桌面浮窗位置/尺寸（拖拽缩放）
@@ -139,13 +147,16 @@ export default function AiAssistPanel({
   const dragStart = useRef({ x: 0, y: 0, wx: 0, wy: 0 });
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [card, busy]);
-  useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); setTokens(0); } }, [open]);
+  useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); setTokens(0); setDepth(0); setTrail([]); } }, [open]);
 
-  // 生成学习卡片（一次请求，JSON 结构化）
-  const study = useCallback(async () => {
+  // 统一请求入口：mode='study' 主卡 / mode='follow' 追问（prompt-v3）
+  const requestCard = useCallback(async (mode: 'study' | 'follow', parent?: { segment: string; probe: string; depth: number }) => {
     if (!cfg || busy || !context) return;
     setBusy(true); setErr(''); setCard(null);
-    const msg = studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords);
+    if (mode === 'study') { setDepth(0); setTrail([]); } // 主卡/重试/切词：追问链归零
+    const msg = mode === 'follow' && parent
+      ? followUpPrompt(parent.segment, parent.probe, context.label, parent.depth)
+      : studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords);
     const knowledge = context.extra
       ?? (unit ? `${unit.editionName} Unit ${unit.unit}${context.unitWords?.length ? `\n本单元词表：${context.unitWords.slice(0, 40).join('、')}` : ''}` : undefined)
       ?? (context.unitWords?.length ? `本单元词表：${context.unitWords.slice(0, 40).join('、')}` : undefined);
@@ -168,14 +179,27 @@ export default function AiAssistPanel({
       setTokens((n) => n + estimateTokens(full));
       addTokenUsage(cfg.model, estimateTokens(full));
       const parsed = parseStudyCard(full);
-      if (parsed) setCard(parsed);
-      else setErr(t('aiCardParseError', locale));
+      if (parsed) {
+        setCard(parsed);
+        if (mode === 'follow' && parent) {
+          setDepth(parent.depth);
+          setTrail((tr) => [...tr.slice(0, parent.depth - 1), { segment: parent.segment, probe: parent.probe }]);
+        }
+      } else setErr(t('aiCardParseError', locale));
     } catch (e) {
       setErr(isNetworkError((e as Error).message) ? t('aiNetUnreachable', locale) : (e as Error).message);
     } finally {
       setBusy(false);
     }
   }, [cfg, busy, context, unit, locale]);
+
+  const study = useCallback(() => requestCard('study'), [requestCard]);
+
+  // 点 probe chip → 发起追问（链深限 2：depth 2 的追问答案不再渲染 probe）
+  const onProbe = useCallback((segment: string, probe: string) => {
+    if (busy || depth >= 2) return;
+    void requestCard('follow', { segment, probe, depth: depth + 1 });
+  }, [busy, depth, requestCard]);
 
   // 打开即自动生成学习卡片（词条切换时自动再来一张）
   const autoKey = open ? context?.label : undefined;
@@ -256,7 +280,20 @@ export default function AiAssistPanel({
             {busy && !card && (
               <div className="flex items-center gap-2 p-2"><Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-accent)' }} /><span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStudyBusy', locale)}</span></div>
             )}
-            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} />}
+            {/* 追问面包屑：点击回到链上对应层（浅层直接回看，不用重新请求） */}
+            {depth > 0 && trail.length > 0 && (
+              <div className="flex items-center gap-1 text-[calc(12px*var(--type-scale))]">
+                <button
+                  onClick={() => { setDepth(0); setTrail([]); }}
+                  className="press inline-flex items-center gap-1 font-semibold"
+                  style={{ color: 'var(--color-ai)' }}
+                >
+                  <ArrowLeft size={12} strokeWidth={2.5} /> {context?.label}
+                </button>
+                <span className="truncate text-[var(--color-text-3)]">· {trail[depth - 1]?.probe}</span>
+              </div>
+            )}
+            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={depth >= 2 ? undefined : onProbe} />}
             {err && (
               <div className="rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3">
                 <p className="text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>
@@ -265,7 +302,7 @@ export default function AiAssistPanel({
                 </button>
               </div>
             )}
-            {card && (
+            {card && depth === 0 && (
               <button onClick={() => { setCard(null); void study(); }} className="press text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('aiAskAgain', locale)}</button>
             )}
           </div>
