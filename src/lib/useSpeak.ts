@@ -92,8 +92,37 @@ export function cleanTextForTTS(text: string): string {
   return t;
 }
 
+/** 合成前流水线：净化 → IPA 删除 → 缩写扩展（三条路径共用，顺序：弯引号先删避免音标边界误判） */
+function prepareSpeech(text: string): string {
+  return expandSpeechAbbreviations(stripIpa(sanitizeForSpeech(text)));
+}
+
 /**
- * TTS 朗读文本净化（显示层不做处理，仅送合成前调用）：
+ * SCF 冷启动容错（stem 同思路）：失败/非 200 时 600ms 退避自动重试一次。
+ */
+async function fetchWithRetry(url: string): Promise<Response> {
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res;
+  } catch (e) {
+    await new Promise((r) => setTimeout(r, 600));
+    return fetch(url, { cache: 'no-store' });
+  }
+}
+
+/**
+ * SCF 单段合成 → MP3 Blob（含冷启动重试）。
+ */
+async function synthSegment(text: string, voice: string, rate: number): Promise<Blob> {
+  const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
+  const res = await fetchWithRetry(url);
+  const buf = await res.arrayBuffer();
+  return toMp3Blob(buf);
+}
+
+/**
+ * SCF 朗读文本净化（显示层不做处理，仅送合成前调用）：
  * 弯引号/书名号/省略号等合成音会读出 "quote"/异常停顿，统一替换或删除。
  */
 export function sanitizeForSpeech(text: string): string {
@@ -103,6 +132,21 @@ export function sanitizeForSpeech(text: string): string {
     .replace(/[\u2013\u2014]/g, ', ')                          // – — → 逗号停顿
     .replace(/\u2026/g, '...')                                 // … → ...
     .replace(/\u00b7/g, ' ')                                   // · → 空
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * IPA 音标段删除（stem「视觉信息不进 TTS」同思路）：
+ * AI 解释单词时常带 /ɡʊd/ 式音标，合成器会念乱码；
+ * 且闭斜杠会被斜杠规则误读成 "or"。检测 /.../ 内含 IPA 特征字符即整段删除。
+ * 特征字符（ˈˌːəɪʊɔæʌʃʒθðŋɡɑɒɛɜ playground 无关字符）在正常英文文本中不出现，零误伤。
+ */
+export function stripIpa(text: string): string {
+  const IPA_CHARS = '\u02c8\u02cc\u02d0\u0259\u026a\u028a\u0254\u00e6\u028c\u0283\u0292\u03b8\u00f0\u014b\u0261\u0251\u0252\u025b\u025c\u0250';
+  return text
+    .replace(new RegExp(`/[^/\\s]*[${IPA_CHARS}][^/\\s]*/`, 'g'), ' ')
+    .replace(new RegExp(`[${IPA_CHARS}]`, 'g'), ' ')   // 残余散落音标字符兜底
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -193,11 +237,14 @@ let activeStop: StopFn | null = null;
 export function useSpeak() {
   const [state, setState] = useState<SpeakState>('idle');
   const [error, setError] = useState('');
+  /** 合成等待计时（stem 同思路）：>4 秒 UI 变暖色提示"仍在唤醒服务" */
+  const [waitingLong, setWaitingLong] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const idxRef = useRef(0);
   const wordsRef = useRef<string[]>([]);
   const timerRef = useRef<number | null>(null);
+  const synthStartRef = useRef(0);
   const totalMsRef = useRef(0); // measured total playback ms across all chunks
   const wasStoppedRef = useRef(false);
   const optsRef = useRef<SpeakOptions>({});
@@ -249,11 +296,14 @@ export function useSpeak() {
     const chunks = chunksRef.current;
     if (idx >= chunks.length) {
       clearTimer();
+      setWaitingLong(false);
       optsRef.current.onWordChange?.(wordsRef.current.length - 1, wordsRef.current.length);
       optsRef.current.onEnd?.();
       setState('idle');
       return;
     }
+    // 首段开始出声：结束等待计时
+    if (idx === 0) { clearTimer(); setWaitingLong(false); }
     const audio = new Audio();
     const blobUrl = URL.createObjectURL(chunks[idx]);
     audio.src = blobUrl;
@@ -290,6 +340,13 @@ export function useSpeak() {
     wasStoppedRef.current = false;
     setError('');
     setState('synthesizing');
+    // 合成等待计时：>4 秒置 waitingLong（UI 变暖色），播放/结束/失败即复位
+    synthStartRef.current = Date.now();
+    setWaitingLong(false);
+    if (timerRef.current !== null) window.clearInterval(timerRef.current);
+    timerRef.current = window.setInterval(() => {
+      if (Date.now() - synthStartRef.current > 4000) setWaitingLong(true);
+    }, 500);
 
     // Prefer edge-tts via SCF; fall back to Web Speech on any failure.
     if (TTS_BASE) {
@@ -298,31 +355,25 @@ export function useSpeak() {
         const blobs: Blob[] = [];
 
         if (lang === 'auto') {
-          // 中英混杂模式：清洗+缩写扩展后按语言分段，每段用对应 voice 合成，串行播
-          const cleaned = expandSpeechAbbreviations(sanitizeForSpeech(cleanTextForTTS(text)));
+          // 中英混杂模式：统一流水线（净化+IPA+缩写）后按语言分段，每段用对应 voice 合成，串行播
+          const cleaned = prepareSpeech(cleanTextForTTS(text));
           const segs = splitMixedLang(cleaned);
           wordsRef.current = splitWords(cleaned);
           for (const seg of segs) {
             const voice = seg.lang === 'zh' ? getChineseVoice(gender) : getEdgeVoice(accent, gender);
             const parts = splitForTTS(seg.text);
             for (const part of parts) {
-              const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
-              const res = await fetch(url, { cache: 'no-store' });
-              if (!res.ok) throw new Error(`HTTP ${res.status}`);
-              blobs.push(toMp3Blob(await res.arrayBuffer()));
+              blobs.push(await synthSegment(part, voice, rate));
             }
           }
         } else {
-          // 单语言模式：净化+缩写扩展（sb/sth→完整词、斜杠→or 等），词高亮对齐处理后文本
-          const prepared = expandSpeechAbbreviations(sanitizeForSpeech(text));
+          // 单语言模式：统一流水线（净化+IPA+缩写），词高亮对齐处理后文本
+          const prepared = prepareSpeech(text);
           const parts = splitForTTS(prepared);
           const voice = getEdgeVoice(accent, gender);
           wordsRef.current = splitWords(prepared);
           for (const part of parts) {
-            const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
-            const res = await fetch(url, { cache: 'no-store' });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            blobs.push(toMp3Blob(await res.arrayBuffer()));
+            blobs.push(await synthSegment(part, voice, rate));
           }
         }
 
@@ -349,21 +400,20 @@ export function useSpeak() {
       }
     }
 
-    // Web Speech fallback：与 edge 路径同一套净化+扩展，避免退化为原文直读
+    // Web Speech fallback：与 edge 路径同一套净化+IPA+缩写，避免退化为原文直读
     const fallbackGender = useAppStore.getState().tts.gender;
-    const fallbackText = expandSpeechAbbreviations(
-      lang === 'auto' ? sanitizeForSpeech(cleanTextForTTS(text)) : sanitizeForSpeech(text),
-    );
+    const fallbackText = prepareSpeech(lang === 'auto' ? cleanTextForTTS(text) : text);
     wordsRef.current = splitWords(fallbackText);
     const handle = webSpeak(fallbackText, {
       accent: accent as Accent,
       gender: fallbackGender,
       rate,
-      onEnd: () => { optsRef.current.onWordChange?.(wordsRef.current.length - 1, wordsRef.current.length); onEnd?.(); setState('idle'); },
-      onError: (err) => { setError(String(err)); setState('error'); },
+      onEnd: () => { clearTimer(); setWaitingLong(false); optsRef.current.onWordChange?.(wordsRef.current.length - 1, wordsRef.current.length); onEnd?.(); setState('idle'); },
+      onError: (err) => { clearTimer(); setWaitingLong(false); setError(String(err)); setState('error'); },
     });
     webHandleRef.current = handle;
     setState('playing');
+    clearTimer(); setWaitingLong(false);
     // No reliable word timing on Web Speech — fire word 0 to mark start.
     optsRef.current.onWordChange?.(0, wordsRef.current.length);
   }, [playEdgeChunk]);
@@ -371,8 +421,10 @@ export function useSpeak() {
   const stop = useCallback(() => {
     wasStoppedRef.current = true;
     stopSource();
+    clearTimer();
+    setWaitingLong(false);
     setState('idle');
-  }, [stopSource]);
+  }, [stopSource, clearTimer]);
 
   const pause = useCallback(() => {
     if (state !== 'playing') return;
@@ -396,5 +448,5 @@ export function useSpeak() {
 
   useEffect(() => () => { stopSource(); }, [stopSource]);
 
-  return { state, error, speak, stop, pause, resume, enabled: edgeTtsEnabled };
+  return { state, error, waitingLong, speak, stop, pause, resume, enabled: edgeTtsEnabled };
 }

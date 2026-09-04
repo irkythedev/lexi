@@ -15,7 +15,7 @@ export function requestStopTts(): void {
 interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; onEnd?: () => void; _stop?: boolean; }
 
 const listeners = new Set<(t: SpeakTarget) => void>();
-const stateListeners = new Set<(s: 'idle' | 'synthesizing' | 'playing') => void>();
+const stateListeners = new Set<(s: TtsBroadcastState) => void>();
 let current: SpeakTarget | null = null;
 // 全局请求序号：每次 requestSpeak 递增。SpeakButton 据此判断"当前播放
 // 是否还属于自己"，被新请求抢占的按钮立即复位，不再跟随全局状态闪烁。
@@ -37,13 +37,16 @@ export function getActiveSpeakId(): number {
   return speakReqSeq;
 }
 
-/** 订阅全局 TTS 播放状态（供设置页试听按钮等外部 UI 显示加载/播放态）。返回取消订阅函数。 */
-export function subscribeTtsState(fn: (s: 'idle' | 'synthesizing' | 'playing') => void): () => void {
+/** 订阅全局 TTS 播放状态（供设置页试听按钮等外部 UI 显示加载/播放态）。
+ *  synthesizing-slow = 合成等待超 4 秒（SCF 冷启动），UI 可变暖色提示。
+ *  返回取消订阅函数。 */
+export type TtsBroadcastState = 'idle' | 'synthesizing' | 'synthesizing-slow' | 'playing';
+export function subscribeTtsState(fn: (s: TtsBroadcastState) => void): () => void {
   stateListeners.add(fn);
   return () => { stateListeners.delete(fn); };
 }
 
-function emitTtsState(s: 'idle' | 'synthesizing' | 'playing') {
+function emitTtsState(s: TtsBroadcastState) {
   stateListeners.forEach((fn) => fn(s));
 }
 
@@ -54,7 +57,7 @@ export default function FloatingTTS() {
   const [playing, setPlaying] = useState(false);
   const [loop, setLoop] = useState(false);
   const [open, setOpen] = useState(false); // 默认收起
-  const { speak, stop, resume, state } = useSpeak();
+  const { speak, stop, resume, state, waitingLong } = useSpeak();
   const playRef = useRef<(target: SpeakTarget, accent: 'us' | 'uk', rate: number, onEnd?: () => void) => void>(() => {});
   const loopTimerRef = useRef<number | null>(null);
   const autoHideRef = useRef<number | null>(null);
@@ -111,8 +114,10 @@ export default function FloatingTTS() {
     playRef.current = play;
   }, [play]);
 
-  // 广播播放状态给订阅者（设置页试听等外部 UI）
-  useEffect(() => { emitTtsState(state === 'playing' || state === 'paused' ? 'playing' : state === 'synthesizing' ? 'synthesizing' : 'idle'); }, [state]);
+  // 广播播放状态给订阅者（设置页试听等外部 UI）；合成超 4 秒广播 slow 态
+  useEffect(() => {
+    emitTtsState(state === 'playing' || state === 'paused' ? 'playing' : state === 'synthesizing' ? (waitingLong ? 'synthesizing-slow' : 'synthesizing') : 'idle');
+  }, [state, waitingLong]);
 
   useEffect(() => {
     // 用 playRef.current 而非闭包 play：play 会随 tts.accent/rate 重建，
@@ -153,7 +158,7 @@ export default function FloatingTTS() {
       >
         <span className="hidden max-w-[110px] truncate px-1.5 text-[calc(11px*var(--type-scale))] font-medium text-[var(--color-text-2)] sm:inline">{active.text}</span>
         <button onClick={toggle} disabled={state === 'synthesizing'} className="press flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-accent)] disabled:opacity-60" aria-label={state === 'synthesizing' ? t('synthesizing', locale) : t('playPause', locale)}>
-          {state === 'synthesizing' ? <Loader2 size={14} strokeWidth={2.25} className="animate-spin" /> : playing ? <Pause size={14} strokeWidth={2.25} /> : <Play size={14} strokeWidth={2.25} />}
+          {state === 'synthesizing' ? <Loader2 size={14} strokeWidth={2.25} className={`animate-spin ${waitingLong ? 'text-[#d97706]' : ''}`} /> : playing ? <Pause size={14} strokeWidth={2.25} /> : <Play size={14} strokeWidth={2.25} />}
         </button>
         <button onClick={() => { clearLoopTimer(); const v = !loop; setLoop(v); toast(v ? t('toastLoopOn', locale) : t('toastLoopOff', locale), 'info'); }} className="press flex h-8 w-8 items-center justify-center rounded-full" style={{ color: loop ? 'var(--color-accent)' : 'var(--color-text-3)' }} aria-label={t('loop', locale)}>
           <Repeat size={13} strokeWidth={2.25} />

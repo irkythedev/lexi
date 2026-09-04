@@ -18,9 +18,10 @@ export default function SpeakButton({
   children?: React.ReactNode;
   compact?: boolean;
 }) {
-  const [phase, setPhase] = useState<'idle' | 'synth' | 'play'>('idle');
+  const [phase, setPhase] = useState<'idle' | 'synth' | 'play' | 'slow'>('idle');
   const activeRef = useRef(false);
   const reqIdRef = useRef(0);
+  const slow = phase === 'slow';
 
   // 全局 TTS 状态驱动：空闲时复位；活动期间区分合成中/播放中。
   // 关键：只有"当前全局播放请求仍属于本按钮"（reqIdRef === 全局最新请求 id）
@@ -37,7 +38,8 @@ export default function SpeakButton({
           activeRef.current = false;
           setPhase('idle');
         } else {
-          setPhase(s === 'synthesizing' ? 'synth' : 'play');
+          if (s === 'synthesizing-slow') setPhase('slow');
+          else setPhase(s === 'synthesizing' ? 'synth' : 'play');
         }
       }
     });
@@ -58,9 +60,9 @@ export default function SpeakButton({
     setPhase('synth');
   };
 
-  // 图标随阶段变化：合成中旋转 Loader，播放中 Pause（点击停止），其余静态。
+  // 图标随阶段变化：合成中旋转 Loader（超 4 秒变暖色提示 SCF 冷启动），播放中 Pause（点击停止），其余静态。
   const Icon = phase === 'synth'
-    ? <Loader2 size={size} strokeWidth={2.25} className="animate-spin" style={{ color }} />
+    ? <Loader2 size={size} strokeWidth={2.25} className={`animate-spin ${slow ? 'text-[#d97706]' : ''}`} style={slow ? undefined : { color }} />
     : phase === 'play'
       ? <Pause size={size} strokeWidth={2.25} style={{ color }} />
       : <Volume2 size={size} strokeWidth={2.25} style={{ color }} />;
