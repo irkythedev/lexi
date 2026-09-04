@@ -4,7 +4,7 @@
 //   type:"speak" 段 = 整段一个朗读按钮（完整词/短语/句子），文本不可再拆。
 // 桌面端为可拖拽/缩放的浮窗，移动端为底部 sheet。
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Sparkles, Loader2, Volume2, Pause, ShieldCheck, HelpCircle, ArrowLeft } from 'lucide-react';
+import { X, Sparkles, Loader2, Volume2, Pause, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, followUpPrompt, isNetworkError,
@@ -26,6 +26,10 @@ export interface AssistContext {
   grade?: number;      // 年级（学段锚定：≥10 高中，否则初中）
   unitTitle?: string;  // 单元标题
 }
+
+/** 追问链视图（prompt-v3.1）：每层答案入栈缓存。segment/probe 记录生成该层的来源
+ *  （主卡为空串），用于"点同一 chip 直接回看缓存"的命中判断与面包屑展示。 */
+interface ChainView { card: StudyCard; segment: string; probe: string; }
 
 /** 朗读按钮：整段一个喇叭 + 文本同行，中间不拆。 */
 function SpeakInline({ text, accent, rate, size = 12, fontSize = 'inherit', bold = false }: {
@@ -137,9 +141,10 @@ export default function AiAssistPanel({
   const [err, setErr] = useState('');
   const [tokens, setTokens] = useState(0); // 本次打开面板的会话累计（估算）
   const [showDisclaimer, setShowDisclaimer] = useState(false);
-  // 追问链（prompt-v3）：depth 0=主卡；1/2=第N层追问。curProbe 记录链上各级（segment, probe）用于面包屑。
-  const [depth, setDepth] = useState(0);
-  const [trail, setTrail] = useState<{ segment: string; probe: string }[]>([]);
+  // 追问链（prompt-v3.1）：views 缓存链上每层答案（index 0=主卡），idx 为当前查看层。
+  // 回看走缓存不发请求；主卡/切词/关面板整体清空。
+  const [views, setViews] = useState<ChainView[]>([]);
+  const [idx, setIdx] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // 桌面浮窗位置/尺寸（拖拽缩放）
@@ -147,13 +152,13 @@ export default function AiAssistPanel({
   const dragStart = useRef({ x: 0, y: 0, wx: 0, wy: 0 });
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [card, busy]);
-  useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); setTokens(0); setDepth(0); setTrail([]); } }, [open]);
+  useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); setTokens(0); setViews([]); setIdx(0); } }, [open]);
 
   // 统一请求入口：mode='study' 主卡 / mode='follow' 追问（prompt-v3）
   const requestCard = useCallback(async (mode: 'study' | 'follow', parent?: { segment: string; probe: string; depth: number }) => {
     if (!cfg || busy || !context) return;
     setBusy(true); setErr(''); setCard(null);
-    if (mode === 'study') { setDepth(0); setTrail([]); } // 主卡/重试/切词：追问链归零
+    if (mode === 'study') { setViews([]); setIdx(0); } // 主卡/重试/切词：追问链归零
     const msg = mode === 'follow' && parent
       ? followUpPrompt(parent.segment, parent.probe, context.label, parent.depth)
       : studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords);
@@ -189,8 +194,13 @@ export default function AiAssistPanel({
         if (parsed) {
           setCard(parsed);
           if (mode === 'follow' && parent) {
-            setDepth(parent.depth);
-            setTrail((tr) => [...tr.slice(0, parent.depth - 1), { segment: parent.segment, probe: parent.probe }]);
+            // 新答案入链缓存并跳到该层；更深层的旧缓存（回看后另点别的 probe 产生分叉）一并截断
+            const next = { card: parsed, segment: parent.segment, probe: parent.probe };
+            setViews((vs) => [...vs.slice(0, parent.depth), next]);
+            setIdx(parent.depth);
+          } else {
+            setViews([{ card: parsed, segment: '', probe: '' }]);
+            setIdx(0);
           }
         } else setErr(!full.trim() ? t('aiEmptyReply', locale) : t('aiCardParseError', locale));
       }
@@ -203,11 +213,15 @@ export default function AiAssistPanel({
 
   const study = useCallback(() => requestCard('study'), [requestCard]);
 
-  // 点 probe chip → 发起追问（链深限 2：depth 2 的追问答案不再渲染 probe）
+  // 点 probe chip：目标层已缓存 → 直接回看（零请求）；未缓存 → 发起追问。
+  // 链深限 2：depth 2 的追问答案不再渲染 probe（onProbe 传 undefined）。
   const onProbe = useCallback((segment: string, probe: string) => {
-    if (busy || depth >= 2) return;
-    void requestCard('follow', { segment, probe, depth: depth + 1 });
-  }, [busy, depth, requestCard]);
+    if (busy) return;
+    const hit = views.findIndex((v, i) => i > 0 && i <= idx + 1 && v.probe === probe && v.segment === segment);
+    if (hit > 0) { setIdx(hit); return; }
+    if (idx >= 2) return;
+    void requestCard('follow', { segment, probe, depth: idx + 1 });
+  }, [busy, views, idx, requestCard]);
 
   // 打开即自动生成学习卡片（词条切换时自动再来一张）
   const autoKey = open ? context?.label : undefined;
@@ -288,20 +302,32 @@ export default function AiAssistPanel({
             {busy && !card && (
               <div className="flex items-center gap-2 p-2"><Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-accent)' }} /><span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStudyBusy', locale)}</span></div>
             )}
-            {/* 追问面包屑：点击回到链上对应层（浅层直接回看，不用重新请求） */}
-            {depth > 0 && trail.length > 0 && (
-              <div className="flex items-center gap-1 text-[calc(12px*var(--type-scale))]">
+            {/* 追问链面包屑：主卡 + 各层追问，点任意一级直接回看缓存（不发请求） */}
+            {views.length > 1 && (
+              <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-[calc(12px*var(--type-scale))]">
                 <button
-                  onClick={() => { setDepth(0); setTrail([]); }}
-                  className="press inline-flex items-center gap-1 font-semibold"
-                  style={{ color: 'var(--color-ai)' }}
+                  onClick={() => setIdx(0)}
+                  className="press font-semibold"
+                  style={{ color: 'var(--color-ai)', opacity: idx === 0 ? 1 : 0.55 }}
                 >
-                  <ArrowLeft size={12} strokeWidth={2.5} /> {context?.label}
+                  {context?.label}
                 </button>
-                <span className="truncate text-[var(--color-text-3)]">· {trail[depth - 1]?.probe}</span>
+                {views.slice(1).map((v, i) => (
+                  <span key={i} className="inline-flex min-w-0 items-center gap-1">
+                    <span className="text-[var(--color-text-3)]">›</span>
+                    <button
+                      onClick={() => setIdx(i + 1)}
+                      className="press max-w-[46vw] truncate sm:max-w-[240px]"
+                      style={{ color: 'var(--color-ai)', opacity: idx === i + 1 ? 1 : 0.55 }}
+                      title={v.probe}
+                    >
+                      {v.probe}
+                    </button>
+                  </span>
+                ))}
               </div>
             )}
-            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={depth >= 2 ? undefined : onProbe} />}
+            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={idx >= 2 ? undefined : onProbe} />}
             {err && (
               <div className="min-w-0 rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3">
                 <p className="max-h-40 overflow-y-auto break-all text-[calc(12.5px*var(--type-scale))] leading-relaxed text-[var(--color-trap)]" style={{ overflowWrap: 'anywhere' }}>{err}</p>
@@ -310,7 +336,7 @@ export default function AiAssistPanel({
                 </button>
               </div>
             )}
-            {card && depth === 0 && (
+            {card && idx === 0 && (
               <button onClick={() => { setCard(null); void study(); }} className="press text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('aiAskAgain', locale)}</button>
             )}
           </div>
