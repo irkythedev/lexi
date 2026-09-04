@@ -218,8 +218,8 @@ export function studyCardPrompt(label: string, meaning?: string, kind?: string, 
     ? `- 例句除目标词外，用词尽量取自本单元已学词表：${peerWords.slice(0, 30).join('、')}；可用少量基础功能词（冠词/介词/代词等），不引入超纲难词。`
     : '';
   const quoteRule = quote
-    ? `- 例句必须采用下面的教材原文（可微调时态/人称适配语境，但保留句式结构与原词形，不要改写含义）：「${quote}」`
-    : '- 例句必须自然地道、像教材或考试题，长度 8-15 词，且必须包含目标词「' + label + '」。';
+    ? `例句必须采用下面的教材原文（可微调时态/人称适配语境，但保留句式结构与原词形，不要改写含义）：「${quote}」`
+    : `例句必须自然地道、像教材或考试题，长度 8-15 词，且必须包含目标词「${label}」。`;
   return `请针对这个${kindLabel}「${label}」${meaning ? `（${meaning}）` : ''}生成一份学习卡片，只输出 JSON，不要任何多余文字或 markdown：
 
 {
