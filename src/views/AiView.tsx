@@ -173,7 +173,7 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <button onClick={runTest} disabled={testing || fetching} className="press flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{testing ? t('aiTesting', locale) : t('aiTestConnection', locale)}</button>
-        <button onClick={runFetchModels} disabled={testing || fetching} className="press flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{fetching ? t('aiFetching', locale) : t('aiFetchModels', locale)}</button>
+        <button onClick={runFetchModels} disabled={testing || fetching} className="press flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{fetching ? t('aiFetching', locale) : (liveModels.length > 0 ? t('aiRefreshModels', locale) : t('aiFetchModels', locale))}</button>
         {liveModels.length > 0 && <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiModelCount', locale, { count: liveModels.length })}</span>}
       </div>
       {error && <p className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{error}</p>}
