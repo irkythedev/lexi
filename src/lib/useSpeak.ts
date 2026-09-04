@@ -93,6 +93,21 @@ export function cleanTextForTTS(text: string): string {
 }
 
 /**
+ * TTS 朗读文本净化（显示层不做处理，仅送合成前调用）：
+ * 弯引号/书名号/省略号等合成音会读出 "quote"/异常停顿，统一替换或删除。
+ */
+export function sanitizeForSpeech(text: string): string {
+  return text
+    .replace(/[\u201c\u201d\u201e\u201f\u00ab\u00bb]/g, '')   // “ ” „ ‟ « » → 删
+    .replace(/[\u2018\u2019\u201b]/g, '\u0027')                // ‘ ’ ‚ → 直撇号（don't）
+    .replace(/[\u2013\u2014]/g, ', ')                          // – — → 逗号停顿
+    .replace(/\u2026/g, '...')                                 // … → ...
+    .replace(/\u00b7/g, ' ')                                   // · → 空
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * 按语言切分文本为交替的中文/英文段（CJK 检测）。
  * 相邻极短段（≤2 字符）并入前一段，避免单个标点/字母造成频繁换 voice。
  */
@@ -266,8 +281,8 @@ export function useSpeak() {
             }
           }
         } else {
-          // 单语言模式（现有行为）
-          const parts = splitForTTS(text);
+          // 单语言模式（现有行为）；合成前净化弯引号/长破折号等会被读出的标点
+          const parts = splitForTTS(sanitizeForSpeech(text));
           const voice = getEdgeVoice(accent, gender);
           wordsRef.current = splitWords(text);
           for (const part of parts) {

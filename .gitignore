@@ -5,3 +5,5 @@ dist
 *.local
 shots/
 design-audit-lexi.md
+# 教材音频不进 git（体积大、版权素材）：scripts/sync_audio.py 从本地源同步
+public/audio/

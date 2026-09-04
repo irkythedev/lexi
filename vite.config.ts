@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Plugin } from 'vite';
@@ -25,12 +25,43 @@ function versionJson(): Plugin {
   };
 }
 
+/**
+ * 构建时生成 dist/audio-manifest.json：扫描 public/audio/<book>/ 下的音频文件，
+ * 前端据此判断内置教材原声可用性（音频本体不进 SW precache 与 git）。
+ */
+function audioManifest(): Plugin {
+  return {
+    name: 'write-audio-manifest',
+    closeBundle() {
+      const base = path.resolve(__dirname, 'public/audio');
+      const manifest: Record<string, Record<string, string>> = {};
+      try {
+        for (const book of readdirSync(base)) {
+          const bookDir = path.join(base, book);
+          if (!statSync(bookDir).isDirectory()) continue;
+          const entries: Record<string, string> = {};
+          for (const f of readdirSync(bookDir)) {
+            const m = /^(u\d+)_reading\.mp3$/.exec(f);
+            if (m) entries[m[1]] = `/audio/${book}/${f}`;
+          }
+          if (Object.keys(entries).length) manifest[book] = entries;
+        }
+      } catch { /* 无音频目录 → 空 manifest，原声入口自动隐藏 */ }
+      writeFileSync(
+        path.resolve(__dirname, 'dist/audio-manifest.json'),
+        JSON.stringify(manifest),
+      );
+    },
+  };
+}
+
 // Vite + React 18 + Tailwind v4 + PWA.
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     versionJson(),
+    audioManifest(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png', 'brand.png'],
