@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, PencilLine, RotateCcw, AlertTriangle, Settings, Sparkles, Sun, Moon, Share2 } from 'lucide-react';
+import { BookOpen, PencilLine, History, ListX, Settings, Sparkles, Sun, Moon, Share2 } from 'lucide-react';
 import { useAppStore, type Tab } from '../stores/useAppStore.ts';
 import type { Locale } from '../types/index.ts';
 import { useToastStore } from '../stores/toastStore.ts';
@@ -16,8 +16,8 @@ const ICON_STROKE = 2.5; // 导航/工具图标统一线宽，贴近 2px 墨线�
 const TABS: { id: Tab; icon: typeof BookOpen; path: string }[] = [
   { id: 'learn', icon: BookOpen, path: '/learn' },
   { id: 'practice', icon: PencilLine, path: '/practice' },
-  { id: 'review', icon: RotateCcw, path: '/review' },
-  { id: 'errors', icon: AlertTriangle, path: '/errors' },
+  { id: 'review', icon: History, path: '/review' },
+  { id: 'errors', icon: ListX, path: '/errors' },
   { id: 'settings', icon: Settings, path: '/settings' },
 ];
 
