@@ -33,7 +33,7 @@ export default function Footer() {
   const [showShare, setShowShare] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const worksRef = useRef<HTMLSpanElement>(null);
-  const authorName = locale === 'en' ? 'Ricky' : 'Ricky';
+  const authorName = 'Ricky';
 
   useEffect(() => {
     if (!showWorks) return;

@@ -346,15 +346,17 @@ export function parseStudyCard(text: string): StudyCard | null {
         if (s.probe && probeBudget > 0) { probeBudget -= 1; return s; }
         return s.probe ? { type: s.type, text: s.text } : s;
       });
+    // 字段长度 clamp（纵深防御：异常/恶意模型输出不撑爆 UI 与 IndexedDB）
+    const clamp = (v: unknown, max: number): string => String(v ?? '').slice(0, max);
     return {
-      word: String(raw.word),
-      definition: String(raw.definition),
-      usage: capProbes(usageSegs),
+      word: clamp(raw.word, 120),
+      definition: clamp(raw.definition, 2000),
+      usage: capProbes(usageSegs).map((x) => ({ ...x, text: x.text.slice(0, 2000) })),
       example: {
-        en: String(raw.example?.en ?? ''),
-        zh: String(raw.example?.zh ?? ''),
+        en: clamp(raw.example?.en, 1200),
+        zh: clamp(raw.example?.zh, 1200),
       },
-      examTips: capProbes(examSegs),
+      examTips: capProbes(examSegs).map((x) => ({ ...x, text: x.text.slice(0, 2000) })),
     };
   } catch {
     return null;
