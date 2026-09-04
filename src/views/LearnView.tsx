@@ -129,18 +129,21 @@ export default function LearnView() {
 
       <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="seg seg--bare">
-          {(['all', 'vocab', 'phrase'] as const).map((f) => (
+          {(['all', 'vocab', 'phrase'] as const).map((f) => {
+            const n = f === 'all' ? studyItems.length : f === 'vocab' ? groups[0].items.length : groups[1].items.length;
+            return (
             <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>
               <span className="inline-flex items-center gap-1.5">
                 {(() => {
                   const Icon = f === 'all' ? ListOrdered : f === 'vocab' ? CaseSensitive : Link2;
                   const label = f === 'all' ? t('wordlistOrder', locale) : KIND_META[f].short[locale];
                   const tint = f === 'all' ? 'var(--color-text-3)' : KIND_META[f].tint;
-                  return <><Icon size={14} strokeWidth={2.25} color={tint} aria-hidden="true" /><span>{label}</span></>;
+                  return <><Icon size={14} strokeWidth={2.25} color={tint} aria-hidden="true" /><span>{label}</span><span className="text-[calc(11px*var(--type-scale))] tabular-nums text-[var(--color-text-3)]">{n}</span></>;
                 })()}
               </span>
             </button>
-          ))}
+            );
+          })}
         </div>
         <button onClick={() => setHideCn((v) => !v)} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? <EyeOff size={15} strokeWidth={2.25} /> : <Eye size={15} strokeWidth={2.25} />}{hideCn ? t('showMeaning', locale) : t('hideMeaning', locale)}</button>
       </div>
