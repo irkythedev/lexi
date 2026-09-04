@@ -2,14 +2,14 @@ import type { Edition } from '../../types/index.ts';
 
 const yilinG9a: Edition = {
   editionId: 'yilin_junior_g9a',
-  editionName: '译林版 (9年级上) 2022课标版',
+  editionName: '译林版 (9年级上)',
   publisher: '译林版',
   stage: '初中',
   region: '江苏',
   grades: [{ grade: 9, volumes: [{ volume: 1, title: '9年级上' }] }],
   units: [
     {
-      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上) 2022课标版', grade: 9, volume: 1, unit: 1,
+      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上)', grade: 9, volume: 1, unit: 1,
       title: 'Know yourself',
       vocabularies: [
         { id: 'y9au01_v01', word: 'energetic', phonetic: '/ˌenəˈdʒetɪk/', pos: 'adj.', meaning: '精力充沛的', collocations: [], examTips: '', exampleEn: 'Both Kitty and Simon are energetic.' },
@@ -71,7 +71,7 @@ const yilinG9a: Edition = {
       ],
     },
     {
-      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上) 2022课标版', grade: 9, volume: 1, unit: 2,
+      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上)', grade: 9, volume: 1, unit: 2,
       title: 'Teenage problems',
       vocabularies: [
         { id: 'y9au02_v38', word: 'teenage', phonetic: '/ˈti:neɪdʒ/', pos: 'adj.', meaning: '青少年的,十几岁的', collocations: [], examTips: '', exampleEn: 'Teenage life can be full of problems.' },
@@ -133,7 +133,7 @@ const yilinG9a: Edition = {
       ],
     },
     {
-      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上) 2022课标版', grade: 9, volume: 1, unit: 3,
+      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上)', grade: 9, volume: 1, unit: 3,
       title: 'Never give up',
       vocabularies: [
         { id: 'y9au03_v10', word: 'final', phonetic: '/ˈfaɪnl/', pos: 'adj.', meaning: '最终的，最后的', collocations: [], examTips: '', exampleEn: 'In his final years, he could move just one muscle in his face, but he continued to work until he died at 76.' },
@@ -190,7 +190,7 @@ const yilinG9a: Edition = {
       ],
     },
     {
-      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上) 2022课标版', grade: 9, volume: 1, unit: 4,
+      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上)', grade: 9, volume: 1, unit: 4,
       title: 'Life is beautiful',
       vocabularies: [
         { id: 'y9au04_v28', word: 'cactus', phonetic: '/ˈkæktəs/', pos: 'n.', meaning: '仙人掌', collocations: [], examTips: '', exampleEn: 'A cactus can take in in tough conditions.' },
@@ -240,7 +240,7 @@ const yilinG9a: Edition = {
       ],
     },
     {
-      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上) 2022课标版', grade: 9, volume: 1, unit: 5,
+      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上)', grade: 9, volume: 1, unit: 5,
       title: 'Music speaks',
       vocabularies: [
         { id: 'y9au05_v01', word: 'strength', phonetic: '/streŋθ; streŋkθ/', pos: 'n.', meaning: '强度, 力度; 力量', collocations: [], examTips: '', exampleEn: 'There are so many keys and it requires a lot of finger strength.' },
@@ -288,7 +288,7 @@ const yilinG9a: Edition = {
       ],
     },
     {
-      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上) 2022课标版', grade: 9, volume: 1, unit: 6,
+      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上)', grade: 9, volume: 1, unit: 6,
       title: 'The art of the brush',
       vocabularies: [
         { id: 'y9au06_v01', word: 'calligrapher', phonetic: '/kəˈlɪɡrəfə(r)/', pos: 'n.', meaning: '书法家', collocations: [], examTips: '', exampleEn: 'A calligrapher is someone.' },
@@ -328,7 +328,7 @@ const yilinG9a: Edition = {
       ],
     },
     {
-      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上) 2022课标版', grade: 9, volume: 1, unit: 7,
+      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上)', grade: 9, volume: 1, unit: 7,
       title: 'The big screen',
       vocabularies: [
         { id: 'y9au07_v40', word: 'big screen', phonetic: '', pos: 'n.', meaning: '大银幕；电影', collocations: [], examTips: '', exampleEn: 'Soon after that, Hepburn was chosen to play the lead role of a young princess in the Hollywood film Roman Holiday. The film was such a big success that Hepburn soon became world famous.' },
@@ -390,7 +390,7 @@ const yilinG9a: Edition = {
       ],
     },
     {
-      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上) 2022课标版', grade: 9, volume: 1, unit: 8,
+      editionId: 'yilin_junior_g9a', editionName: '译林版 (9年级上)', grade: 9, volume: 1, unit: 8,
       title: 'The world of literature',
       vocabularies: [
         { id: 'y9au08_v24', word: 'classic', phonetic: '/ˈklæsɪk/', pos: 'adj.', meaning: '最优秀的；典型的；典雅的', collocations: [], examTips: '', exampleEn: '' },
