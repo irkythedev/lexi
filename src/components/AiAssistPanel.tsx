@@ -155,7 +155,7 @@ export default function AiAssistPanel({
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [card, busy]);
   useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); setTokens(0); setViews([]); setIdx(0); } }, [open]);
 
-  // 讲义本去重键：edition:unit:kind:label（个人导入无教材上下文时 editionId 置 'personal'）
+  // 讲义本去重键：edition:unit:kind:label（ReadingView 场景 selection 由 Learn 单元入口保证非空）
   const noteKey = context && unit && selection
     ? `${selection.editionId}:u${selection.unit}:${context.kind ?? 'vocab'}:${context.label}`
     : null;

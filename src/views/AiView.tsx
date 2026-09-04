@@ -179,7 +179,7 @@ export default function AiView() {
                     <ChevronLeft size={14} strokeWidth={2.25} /> {t('aiNotesMain', locale)}
                   </button>
                 )}
-                <StudyCardView card={cur} accent={tts.accent} rate={tts.rate} highlight={undefined} />
+                <StudyCardView card={cur} accent={tts.accent} rate={tts.rate} highlight={chainIdx === 0 ? replay.label : undefined} />
                 {chainIdx > 0 && (
                   <p className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-surface-2)] p-3 text-[calc(12px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">
                     <span className="font-semibold">{seg}</span> — {probe}
