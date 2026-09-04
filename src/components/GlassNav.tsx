@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { BookOpen, PencilLine, RotateCcw, AlertTriangle, Settings, Sparkles, Sun, Moon } from 'lucide-react';
+import { BookOpen, PencilLine, RotateCcw, AlertTriangle, Settings, Sparkles, Sun, Moon, Share2 } from 'lucide-react';
 import { useAppStore, type Tab } from '../stores/useAppStore.ts';
 import type { Locale } from '../types/index.ts';
 import { useToastStore } from '../stores/toastStore.ts';
@@ -9,6 +9,7 @@ import { FOOTER } from '../lib/footer.ts';
 import { useVersionCheck } from '../lib/use-version-check.ts';
 import { refreshToLatest } from '../lib/update.ts';
 import VersionDialog from './VersionDialog.tsx';
+import ShareDialog from './ShareDialog.tsx';
 
 const ICON_STROKE = 2.5; // 导航/工具图标统一线宽，贴近 2px 墨线卡（纸面笔触）
 
@@ -26,6 +27,7 @@ export default function GlassNav() {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [showShare, setShowShare] = useState(false);
   const [updateToast, setUpdateToast] = useState(false);
   const { hasUpdate } = useVersionCheck();
   const showToast = useToastStore((s) => s.show);
@@ -55,7 +57,13 @@ export default function GlassNav() {
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
             <img src="/brand.png" alt="Lexi" className="h-12 w-12 shrink-0" />
             <span className="flex flex-col items-start gap-[2px]">
-              <span className="text-[calc(20px*var(--type-scale))] font-bold leading-none tracking-[-0.02em] text-[var(--color-text)]">Lexi</span>
+              <span className="flex items-center gap-1">
+                <span className="text-[calc(20px*var(--type-scale))] font-bold leading-none tracking-[-0.02em] text-[var(--color-text)]">Lexi</span>
+                {/* 分享：复用底部分享的 icon + ShareDialog；stopPropagation 防触发品牌区回首页 */}
+                <button type="button" onClick={(e) => { e.stopPropagation(); setShowShare(true); }} title={t('share', locale)} aria-label={t('share', locale)} className="press flex h-6 w-6 items-center justify-center rounded-full text-[var(--color-text-3)] transition-colors hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]">
+                  <Share2 size={14} strokeWidth={ICON_STROKE} />
+                </button>
+              </span>
               <button type="button" onClick={() => { if (hasUpdate) handleRefresh(); else setShowChangelog(true); }} title={hasUpdate ? t('updateAvailable', locale) : t('changelogTitle', locale)} className={`group relative tnum text-[calc(11px*var(--type-scale))] font-medium leading-none text-[var(--color-text-3)] transition-colors hover:text-[var(--color-accent)] ${hasUpdate ? 'pr-2.5' : ''}`}>
                 <span className="inline-flex items-center gap-1.5">
                   v{FOOTER.version}
@@ -114,6 +122,7 @@ export default function GlassNav() {
         </div>
       </nav>
       {showChangelog && <VersionDialog onClose={() => setShowChangelog(false)} />}
+      {showShare && <ShareDialog url={typeof window !== 'undefined' ? window.location.href : FOOTER.homepage} onClose={() => setShowShare(false)} />}
     </>
   );
 }
