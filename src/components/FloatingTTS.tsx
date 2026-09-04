@@ -17,14 +17,24 @@ interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; onEnd?:
 const listeners = new Set<(t: SpeakTarget) => void>();
 const stateListeners = new Set<(s: 'idle' | 'synthesizing' | 'playing') => void>();
 let current: SpeakTarget | null = null;
+// 全局请求序号：每次 requestSpeak 递增。SpeakButton 据此判断"当前播放
+// 是否还属于自己"，被新请求抢占的按钮立即复位，不再跟随全局状态闪烁。
+let speakReqSeq = 0;
 
-export function requestSpeak(text: string, accent?: 'us' | 'uk', rate?: number, onEnd?: () => void): void {
-  if (!text) return;
+export function requestSpeak(text: string, accent?: 'us' | 'uk', rate?: number, onEnd?: () => void): number {
+  if (!text) return speakReqSeq;
   // 默认取当前设置，避免任何调用点漏传时偏离用户配置。
   const tts = useAppStore.getState().tts;
+  speakReqSeq += 1;
   current = { text, accent: accent ?? tts.accent, rate: rate ?? tts.rate, onEnd };
   const c = current;
   if (c) listeners.forEach((fn) => fn(c));
+  return speakReqSeq;
+}
+
+/** 当前全局播放请求 id（仍拥有播放权的按钮 = 它最近一次 requestSpeak 的返回值）。 */
+export function getActiveSpeakId(): number {
+  return speakReqSeq;
 }
 
 /** 订阅全局 TTS 播放状态（供设置页试听按钮等外部 UI 显示加载/播放态）。返回取消订阅函数。 */
