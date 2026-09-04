@@ -108,6 +108,38 @@ export function sanitizeForSpeech(text: string): string {
 }
 
 /**
+ * 教材缩写/符号朗读扩展（显示层不处理，仅送合成前调用）：
+ * sb/sth 这类词典缩写按字母读出来不可懂，展开为完整词；
+ * 斜杠/等号/箭头等符号按其语义读。
+ */
+export function expandSpeechAbbreviations(text: string): string {
+  return text
+    .replace(/\bsb's\b/g, "somebody's")
+    .replace(/\bsth's\b/g, "something's")
+    .replace(/\bsb\b/g, 'somebody')
+    .replace(/\bsth\b/g, 'something')
+    .replace(/\bs\.b\.\b/gi, 'somebody')
+    .replace(/\bs\.t\.h\.\b/gi, 'something')
+    .replace(/\be\.g\./gi, 'for example,')
+    .replace(/\bi\.e\./gi, 'that is,')
+    .replace(/\betc\b/gi, 'etcetera')
+    .replace(/\bvs\.?\b/gi, 'versus')
+    .replace(/\bMr\b/g, 'Mister')
+    .replace(/\bMrs\b/g, 'Misses')
+    .replace(/\bMs\b/g, 'Miss')
+    .replace(/\bDr\b/g, 'Doctor')
+    .replace(/&/g, ' and ')
+    .replace(/→|=>/g, ', ')
+    .replace(/=/g, ' equals ')
+    .replace(/(?<=\S)\/(?=\S)/g, ' or ')   // if/whether、sb/sth 展开后的 somebody/something → "or"
+    .replace(/(?<=[a-zA-Z,])\/(?=\s|$)/g, ' or ')  // 句尾斜杠
+    .replace(/\(([^)]*)\)/g, ' $1 ')           // 英文括号删符号留内容（(to sb) → to somebody）
+    .replace(/（([^）]*)）/g, ' $1 ')            // 中文括号同规则：删符号留注释
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
  * 按语言切分文本为交替的中文/英文段（CJK 检测）。
  * 相邻极短段（≤2 字符）并入前一段，避免单个标点/字母造成频繁换 voice。
  */
@@ -266,8 +298,8 @@ export function useSpeak() {
         const blobs: Blob[] = [];
 
         if (lang === 'auto') {
-          // 中英混杂模式：清洗后按语言分段，每段用对应 voice 合成，串行播
-          const cleaned = cleanTextForTTS(text);
+          // 中英混杂模式：清洗+缩写扩展后按语言分段，每段用对应 voice 合成，串行播
+          const cleaned = expandSpeechAbbreviations(sanitizeForSpeech(cleanTextForTTS(text)));
           const segs = splitMixedLang(cleaned);
           wordsRef.current = splitWords(cleaned);
           for (const seg of segs) {
@@ -281,10 +313,11 @@ export function useSpeak() {
             }
           }
         } else {
-          // 单语言模式（现有行为）；合成前净化弯引号/长破折号等会被读出的标点
-          const parts = splitForTTS(sanitizeForSpeech(text));
+          // 单语言模式：净化+缩写扩展（sb/sth→完整词、斜杠→or 等），词高亮对齐处理后文本
+          const prepared = expandSpeechAbbreviations(sanitizeForSpeech(text));
+          const parts = splitForTTS(prepared);
           const voice = getEdgeVoice(accent, gender);
-          wordsRef.current = splitWords(text);
+          wordsRef.current = splitWords(prepared);
           for (const part of parts) {
             const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(part)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
             const res = await fetch(url, { cache: 'no-store' });
@@ -316,9 +349,11 @@ export function useSpeak() {
       }
     }
 
-    // Web Speech fallback
+    // Web Speech fallback：与 edge 路径同一套净化+扩展，避免退化为原文直读
     const fallbackGender = useAppStore.getState().tts.gender;
-    const fallbackText = lang === 'auto' ? cleanTextForTTS(text) : text;
+    const fallbackText = expandSpeechAbbreviations(
+      lang === 'auto' ? sanitizeForSpeech(cleanTextForTTS(text)) : sanitizeForSpeech(text),
+    );
     wordsRef.current = splitWords(fallbackText);
     const handle = webSpeak(fallbackText, {
       accent: accent as Accent,
