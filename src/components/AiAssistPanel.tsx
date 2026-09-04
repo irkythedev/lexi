@@ -147,7 +147,7 @@ export default function AiAssistPanel({
     setBusy(true); setErr(''); setCard(null);
     const msg = studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords);
     const knowledge = context.extra
-      ?? (unit ? `${unit.editionName} Unit ${unit.unit}` : undefined)
+      ?? (unit ? `${unit.editionName} Unit ${unit.unit}${context.unitWords?.length ? `\n本单元词表：${context.unitWords.slice(0, 40).join('、')}` : ''}` : undefined)
       ?? (context.unitWords?.length ? `本单元词表：${context.unitWords.slice(0, 40).join('、')}` : undefined);
     const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, grade: context.grade });
     setTokens((n) => n + estimateTokens(sysPrompt) + estimateTokens(msg));

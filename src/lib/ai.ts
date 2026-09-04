@@ -240,7 +240,7 @@ export function studyCardPrompt(label: string, meaning?: string, kind?: string, 
 - usage 和 examTips 各 2-4 项；speak 项的 text 必须是完整英文词/短语（如 "be energetic"、"more energetic"），禁止拆成字母或词缀。
 - 若英文示例是单个字母（如考点里提示别漏字母 e），单独给一个 { "type": "speak", "text": "e" }。
 - example.en 是完整句子，朗读时整句播，不拆词。
-- ${quoteRule}${peerRule ? `\n- ${peerRule}` : ''}
+- ${quoteRule}${peerRule ? `\n${peerRule}` : ''}
 - 总量控制在 180 字以内，每个字段简短。`;
 }
 
