@@ -276,6 +276,11 @@ export default function SessionView() {
           meaning: task.item.meaning ?? '',
           kind: task.item.kind,
           quote: task.item.exampleEn ?? (unit ? (findQuote(task.item, unit.unit) ?? undefined) : undefined),
+          unitWords: unit
+            ? [...unit.vocabularies.map((v) => v.word), ...unit.phrases.map((p) => p.phrase)]
+            : undefined,
+          grade: unit?.grade,
+          unitTitle: unit?.title,
         }} />
       )}
     </div>

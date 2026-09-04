@@ -129,16 +129,7 @@ export interface CorrectionResult {
   examCollocationScore: number;
 }
 
-export interface ExamQuestion {
-  stem: string;
-  options: [string, string, string, string];
-  answer: number;
-  explanation: string;
-}
-
-export interface ExamPointResult {
-  questions: ExamQuestion[];
-}
+// ExamPointResult/ExamQuestion 已删（prompt-v2）：examPointPrompt 从未接线，与 Sprint Quiz 功能重叠；需要时从 git 历史找回。
 
 // ── i18n ──
 export type Locale = 'zh' | 'en';

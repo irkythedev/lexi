@@ -4,7 +4,7 @@
 // COMPLIANCE: zero backend. Browser -> provider API directly. Key + config in
 // localStorage only; conversations are not persisted. Three-party responsibility
 // split (site / user / provider). Student-safe system prompt; input length cap.
-import type { AiConfig, AiProviderId, CorrectionResult, ExamPointResult } from '../types/index.ts';
+import type { AiConfig, AiProviderId, CorrectionResult } from '../types/index.ts';
 
 interface Provider { id: AiProviderId; name: string; baseUrl: string; models: string[]; note?: string; }
 
@@ -83,15 +83,36 @@ export async function fetchModels(baseUrl: string, apiKey: string): Promise<stri
   return (data.data ?? []).map((m) => m.id).filter(Boolean);
 }
 
-export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string } = {}): string {
-  const k = args.knowledge ? `\n当前单元内容（请基于它作答，内容不足时说明并建议查阅教材）：\n${args.knowledge}` : '';
+// prompt-v2 (2026-09-04): 拆分卡片/批改两套 system prompt（v1 单套混杂两种职责）。
+// 批改口径：三档评价（好/可/需改）+ 0-100 粗估分，明确"AI 估算"性质，禁止伪精度。
+// 卡片口径：knowledge 支持传单元词表（词+释义），例句词汇受已学词约束（i+1）。
+export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string; grade?: number } = {}): string {
+  const stage = args.grade ? (args.grade >= 10 ? '高中' : '初中') : '初中/高中';
+  const k = args.knowledge ? `\n当前单元词表（讲解深度、例句用词请对齐这个范围，内容不足时说明并建议查阅教材）：\n${args.knowledge}` : '';
   return [
-    '你是一名面向中国初中/高中学生的英语学霸辅导老师，专注课本词汇、短语、固定搭配与句式语法。',
+    `你是一名面向中国${stage}学生的英语学霸辅导老师，专注课本词汇、短语、固定搭配与句式语法。`,
     '职责范围：仅做知识讲解、概念辨析、造句批改、考点拓展与情境对话；',
     '拒绝医疗/法律/金融等非学习建议，拒绝违法违规内容，面向未成年人输出积极健康。',
     '回答用简体中文为主，英语例句附中文释义；条理清晰，便于记忆。',
     '若要求结构化 JSON，请只输出可解析的 JSON，不要额外解释文字。',
     `当前学习单元：${args.unitTitle || '未指定'}。${k}`,
+    '免责：AI 生成内容仅供参考，请以学校教材和任课老师讲解为准。',
+  ].join('\n');
+}
+
+/** 批改专用 system prompt（v2）：与卡片职责分离，评分锚定三档语义。 */
+export function buildCorrectionSystemPrompt(args: { unitTitle?: string; grade?: number } = {}): string {
+  const stage = args.grade ? (args.grade >= 10 ? '高中' : '初中') : '初中/高中';
+  return [
+    `你是一名中国${stage}英语老师，正在批改学生用本单元目标短语造的句子。`,
+    '职责范围：仅做句子批改——判断正误、给出修正句、用简体中文简要说明错误理由；拒绝其他话题。',
+    '评分锚定（examCollocationScore 为 0-100 的粗估分，非精确评分）：',
+    '- 90-100 = 优秀：句子正确自然，目标短语使用准确；',
+    '- 60-89 = 合格：意思可达，有小错误（拼写/冠词/单复数等）；',
+    '- 0-59 = 需改进：短语误用或句子结构错误。',
+    'examCollocationScore 必须是 0-100 的整数，与上述三档语义一致。',
+    '若要求结构化 JSON，请只输出可解析的 JSON，不要额外解释文字。',
+    `当前学习单元：${args.unitTitle || '未指定'}。`,
     '免责：AI 生成内容仅供参考，请以学校教材和任课老师讲解为准。',
   ].join('\n');
 }
@@ -117,6 +138,7 @@ export function streamChat(args: {
           model: args.cfg.model,
           messages: [{ role: 'system', content: args.systemPrompt }, { role: 'user', content: args.userMessage }],
           stream: true, temperature: 0.5,
+          max_tokens: 800, // 学习卡片/批改 JSON 足够；防失控输入放大 BYOK 账单
         }),
         signal: controller.signal,
       });
@@ -173,16 +195,6 @@ export function correctionPrompt(sentence: string, targetPhrases: string[]): str
 待批改句子：${sentence}`;
 }
 
-export function examPointPrompt(phrase: string, meaning: string): string {
-  return `基于下列短语出 2 道典型的初中/高中选择题（单选），用于考点巩固，只返回 JSON：
-{
-  "questions": [
-    { "stem": string, "options": [string,string,string,string], "answer": number, "explanation": string }
-  ]
-}
-短语：${phrase}（${meaning || ''}）。题目考查该短语的固定搭配、介词或用法，难度贴近中考/高考。`;
-}
-
 /** 学习卡片渲染段：text = 普通文本，speak = 整段一个朗读按钮（不再拆词）。 */
 export interface StudySegment { type: 'text' | 'speak'; text: string; }
 
@@ -200,8 +212,11 @@ export interface StudyCard {
  * quote：教材原文例句（存在时要求 AI 优先采用，可微调时态/人称但保留句式骨架），
  *        缺失时 AI 自拟例句，必须自然、必须包含目标词。
  */
-export function studyCardPrompt(label: string, meaning?: string, kind?: string, quote?: string): string {
+export function studyCardPrompt(label: string, meaning?: string, kind?: string, quote?: string, peerWords?: string[]): string {
   const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : '单词';
+  const peerRule = !quote && peerWords && peerWords.length
+    ? `- 例句除目标词外，用词尽量取自本单元已学词表：${peerWords.slice(0, 30).join('、')}；可用少量基础功能词（冠词/介词/代词等），不引入超纲难词。`
+    : '';
   const quoteRule = quote
     ? `- 例句必须采用下面的教材原文（可微调时态/人称适配语境，但保留句式结构与原词形，不要改写含义）：「${quote}」`
     : '- 例句必须自然地道、像教材或考试题，长度 8-15 词，且必须包含目标词「' + label + '」。';
@@ -225,18 +240,34 @@ export function studyCardPrompt(label: string, meaning?: string, kind?: string, 
 - usage 和 examTips 各 2-4 项；speak 项的 text 必须是完整英文词/短语（如 "be energetic"、"more energetic"），禁止拆成字母或词缀。
 - 若英文示例是单个字母（如考点里提示别漏字母 e），单独给一个 { "type": "speak", "text": "e" }。
 - example.en 是完整句子，朗读时整句播，不拆词。
-- ${quoteRule}
+- ${quoteRule}${peerRule ? `\n- ${peerRule}` : ''}
 - 总量控制在 180 字以内，每个字段简短。`;
 }
 
-export function extractJson(text: string): CorrectionResult | ExamPointResult | null {
+/** 批改结果净化：score clamp 0-100 + 非数字容错、字符串字段强转。（prompt-v2 加固） */
+export function sanitizeCorrection(r: CorrectionResult): CorrectionResult {
+  const raw = (r as { examCollocationScore?: unknown }).examCollocationScore;
+  let score = 0;
+  if (typeof raw === 'number' && Number.isFinite(raw)) score = Math.round(raw);
+  else if (typeof raw === 'string') { const n = parseInt(raw, 10); if (Number.isFinite(n)) score = n; }
+  score = Math.max(0, Math.min(100, score));
+  return {
+    isCorrect: !!r.isCorrect,
+    originalSentence: String(r.originalSentence ?? ''),
+    correctedSentence: String(r.correctedSentence ?? ''),
+    grammarBreakdown: String(r.grammarBreakdown ?? ''),
+    examCollocationScore: score,
+  };
+}
+
+export function extractJson(text: string): CorrectionResult | null {
   if (!text) return null;
   const s = text.trim();
   const start = s.indexOf('{');
   const end = s.lastIndexOf('}');
   if (start === -1 || end === -1) return null;
   try {
-    return JSON.parse(s.slice(start, end + 1)) as CorrectionResult | ExamPointResult;
+    return JSON.parse(s.slice(start, end + 1)) as CorrectionResult;
   } catch {
     return null;
   }

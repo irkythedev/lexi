@@ -22,6 +22,9 @@ export interface AssistContext {
   kind?: string;       // vocab | phrase | pattern
   quote?: string;      // 教材原文例句（可选，命中课文时 AI 例句优先采用）
   extra?: string;      // 额外上下文（如课文段落）
+  unitWords?: string[]; // 本单元词表（词+短语），用于讲解对齐与例句 i+1 约束
+  grade?: number;      // 年级（学段锚定：≥10 高中，否则初中）
+  unitTitle?: string;  // 单元标题
 }
 
 /** 朗读按钮：整段一个喇叭 + 文本同行，中间不拆。 */
@@ -142,9 +145,11 @@ export default function AiAssistPanel({
   const study = useCallback(async () => {
     if (!cfg || busy || !context) return;
     setBusy(true); setErr(''); setCard(null);
-    const msg = studyCardPrompt(context.label, context.meaning, context.kind, context.quote);
-    const knowledge = context.extra ?? (unit ? `${unit.editionName} Unit ${unit.unit}` : undefined);
-    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title, knowledge });
+    const msg = studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords);
+    const knowledge = context.extra
+      ?? (unit ? `${unit.editionName} Unit ${unit.unit}` : undefined)
+      ?? (context.unitWords?.length ? `本单元词表：${context.unitWords.slice(0, 40).join('、')}` : undefined);
+    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, grade: context.grade });
     setTokens((n) => n + estimateTokens(sysPrompt) + estimateTokens(msg));
     addTokenUsage(cfg.model, estimateTokens(sysPrompt) + estimateTokens(msg));
     try {

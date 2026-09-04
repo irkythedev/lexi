@@ -6,7 +6,8 @@ import SpeakButton from './SpeakButton.tsx';
 import { useSpeechRecognition, compareWords } from '../lib/speechRecognition.ts';
 import { KIND_META, maskSentence, shuffle } from '../lib/utils.ts';
 import { addError, recordReview } from '../db/db.ts';
-import { loadConfig, buildSystemPrompt, correctionPrompt, extractJson, streamChat } from '../lib/ai.ts';
+import { loadConfig, buildCorrectionSystemPrompt, correctionPrompt, extractJson, streamChat } from '../lib/ai.ts';
+import { sanitizeCorrection } from '../lib/ai.ts';
 import { t } from '../lib/i18n.ts';
 import { Panel } from './ui/primitives.tsx';
 
@@ -175,9 +176,9 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
     setLoading(true); setError(''); setResult(null);
     try {
       await streamChat({
-        cfg, systemPrompt: buildSystemPrompt({ unitTitle: unit.title, knowledge: `${unit.title}\n目标短语：${target?.label} (${target?.meaning})` }),
+        cfg, systemPrompt: buildCorrectionSystemPrompt({ unitTitle: unit.title, grade: unit.grade }),
         userMessage: correctionPrompt(sentence, [target?.label ?? '']),
-        onChunk: (_d, full) => { const j = extractJson(full); if (j && 'isCorrect' in j) setResult(j as import('../types/index.ts').CorrectionResult); },
+        onChunk: (_d, full) => { const j = extractJson(full); if (j && 'isCorrect' in j) setResult(sanitizeCorrection(j as import('../types/index.ts').CorrectionResult)); },
       });
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
@@ -192,7 +193,7 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
             style={{ borderColor: target?.id === p.id ? 'var(--color-accent)' : 'var(--color-hairline)', background: target?.id === p.id ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: target?.id === p.id ? 'var(--color-accent)' : 'var(--color-text-2)' }}>{p.label}</button>
         ))}
       </div>
-      <textarea value={sentence} onChange={(e) => setSentence(e.target.value)} rows={3} placeholder={t('sprintAiPlaceholder', locale, { word: target?.label ?? '', example: target?.exampleEn ?? '' })}
+      <textarea value={sentence} onChange={(e) => setSentence(e.target.value)} rows={3} maxLength={200} placeholder={t('sprintAiPlaceholder', locale, { word: target?.label ?? '', example: target?.exampleEn ?? '' })}
         className="mt-3 w-full resize-none rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
       <div className="mt-3 flex items-center justify-between">
         <button onClick={onPrev} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(15px*var(--type-scale))]">{t('sprintPrev', locale)}</button>
@@ -205,9 +206,10 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
       {result && (
         <div className="mt-4 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] p-4">
           <div className="flex items-center justify-between"><span className="text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('sprintAiResult', locale)}</span>
-            <span className={`rounded-[var(--radius-sm)] px-2.5 py-0.5 text-[calc(12px*var(--type-scale))] font-bold ${result.isCorrect ? 'bg-[var(--color-vocab-soft)] text-[var(--color-vocab)]' : 'bg-[var(--color-trap-soft)] text-[var(--color-trap)]'}`}>{t('sprintCollocationScore', locale)} {result.examCollocationScore}</span></div>
+            <span className={`rounded-[var(--radius-sm)] px-2.5 py-0.5 text-[calc(12px*var(--type-scale))] font-bold ${result.examCollocationScore >= 90 ? 'bg-[var(--color-vocab-soft)] text-[var(--color-vocab)]' : result.examCollocationScore >= 60 ? 'bg-[var(--color-surface-2)] text-[var(--color-text-2)]' : 'bg-[var(--color-trap-soft)] text-[var(--color-trap)]'}`}>{t('sprintGradeLabel', locale)} · {result.examCollocationScore >= 90 ? t('sprintGradeGood', locale) : result.examCollocationScore >= 60 ? t('sprintGradeOk', locale) : t('sprintGradeFix', locale)}</span></div>
           <p className="mt-2 text-[calc(15px*var(--type-scale))] text-[var(--color-text-body)]">{result.correctedSentence}</p>
           <p className="mt-1.5 text-[calc(13px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{result.grammarBreakdown}</p>
+          <p className="mt-2 text-[calc(11px*var(--type-scale))] text-[var(--color-text-3)]">{t('sprintAiEstimateNote', locale)}</p>
         </div>
       )}
       <p className="mt-3 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('sprintAiDisclaimer', locale)}</p>
