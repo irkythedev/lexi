@@ -276,6 +276,7 @@ const zh: Record<string, string> = {
   footerHomepage: 'lexi.irky.dev',
   installApp: '安装应用',
   installIosHint: '点击浏览器工具栏「分享」→ 选择「添加到主屏幕」即可从桌面打开。',
+  installWechatHint: '微信内无法直接安装，请点击右上角「···」选择「在浏览器中打开」，再按提示安装。',
   installWebviewHint: '当前为内置浏览器，请在系统浏览器中打开本站后，再通过浏览器菜单安装。',
   installMenuHint: '点击浏览器右上角菜单「⋮」→ 选择「添加到主屏幕 / 安装应用」即可从桌面打开。',
 
@@ -741,6 +742,7 @@ Object.assign(en, {
   footerHomepage: 'lexi.irky.dev',
   installApp: 'Install App',
   installIosHint: 'Tap the Share icon in the browser toolbar, then select "Add to Home Screen".',
+  installWechatHint: 'Installation is blocked inside WeChat — tap "···" at the top right, choose "Open in Browser", then follow the install steps there.',
   installWebviewHint: 'Open this site in your system browser, then install via the browser menu.',
   installMenuHint: 'Tap the browser menu (⋮) and select "Add to Home Screen" or "Install App".',
   importLabelMissing: 'Missing label field',

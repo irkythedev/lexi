@@ -51,7 +51,7 @@ export default function InstallAppButton() {
       {showHint && (
         <div className="max-w-xs rounded-lg border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-2.5 text-left shadow-[var(--shadow-overlay)]" role="status">
           <p className="text-[calc(12px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">
-            {env.isIOS ? t('installIosHint', locale) : env.isWebView ? t('installWebviewHint', locale) : t('installMenuHint', locale)}
+            {env.isIOS ? t('installIosHint', locale) : env.isWechat ? t('installWechatHint', locale) : env.isWebView ? t('installWebviewHint', locale) : t('installMenuHint', locale)}
           </p>
           <button onClick={() => setShowHint(false)} className="press mt-1.5 text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('close', locale)}</button>
         </div>
