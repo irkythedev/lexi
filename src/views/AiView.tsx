@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Sparkles, Settings2, AlertCircle, EyeOff, Eye, ChevronDown, Check } from 'lucide-react';
+import { Sparkles, Settings2, AlertCircle, EyeOff, Eye, ChevronDown, Check, BarChart3, Trash2 } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { t } from '../lib/i18n.ts';
 import type { AiConfig, AiProviderId } from '../types/index.ts';
+import { loadTokenUsage, clearTokenUsage, tokenUsageTotal, type TokenUsageData } from '../lib/token-usage.ts';
+import TokenUsageDialog from '../components/TokenUsageDialog.tsx';
 import {
   AI_PROVIDERS, loadConfig, saveConfig, clearConfig, saveModels, normalizeBaseUrl, isNetworkError,
   testConnection, fetchModels,
@@ -57,10 +59,18 @@ export default function AiView() {
   const { refreshAiStatus, locale } = useAppStore();
   const [cfg, setCfg] = useState<AiConfig | null>(null);
   const [view, setView] = useState<'terms' | 'settings'>('terms');
+  const [usage, setUsage] = useState<TokenUsageData>({});
+  const [showUsage, setShowUsage] = useState(false);
 
-  useEffect(() => { const c = loadConfig(); setCfg(c); setView(c ? 'settings' : 'terms'); }, []);
+  useEffect(() => { const c = loadConfig(); setCfg(c); setView(c ? 'settings' : 'terms'); setUsage(loadTokenUsage()); }, []);
 
   const onSaved = (c: AiConfig) => { setCfg(c); refreshAiStatus(); setView('settings'); };
+
+  const resetUsage = () => {
+    clearTokenUsage(); setUsage({});
+    useToastStore.getState().show(t('usageResetDone', locale), 'info', 'check');
+  };
+  const usageTotal = tokenUsageTotal(usage);
 
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
@@ -70,6 +80,25 @@ export default function AiView() {
       </div>
       {view === 'terms' && <ConsentView onAgree={() => setView('settings')} />}
       {view === 'settings' && <SettingsViewInline onSaved={onSaved} initial={cfg} />}
+      {/* 累计用量（有记录才显示；纸面印刷风同款结构） */}
+      {usageTotal > 0 && (
+        <div className="mt-4 rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-panel)]">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">
+                <BarChart3 size={14} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} aria-hidden="true" /> {t('usageSectionTitle', locale)}
+              </div>
+              <p className="tnum mt-1 text-[calc(15px*var(--type-scale))] font-bold text-[var(--color-text)]">≈{usageTotal.toLocaleString()} <span className="text-[calc(12px*var(--type-scale))] font-normal text-[var(--color-text-3)]">tokens</span></p>
+              <p className="mt-0.5 text-[calc(11.5px*var(--type-scale))] text-[var(--color-text-3)]">{t('usageEmptyLine', locale)}</p>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button onClick={() => setShowUsage(true)} className="press flex items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-3 py-1.5 text-[calc(12.5px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('usageDetail', locale)}</button>
+              <button onClick={resetUsage} aria-label={t('usageReset', locale)} title={t('usageReset', locale)} className="press flex h-8 w-8 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]"><Trash2 size={15} strokeWidth={2.25} /></button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showUsage && <TokenUsageDialog usage={usage} locale={locale} onClose={() => { setShowUsage(false); setUsage(loadTokenUsage()); }} />}
     </div>
   );
 }

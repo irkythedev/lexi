@@ -10,13 +10,11 @@ import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, isNetworkError,
   parseStudyCard, type StudyCard,
 } from '../lib/ai.ts';
+import { addTokenUsage, estimateTokens } from '../lib/token-usage.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
 import WordHighlight from './WordHighlight.tsx';
 import DisclaimerDialog from './DisclaimerDialog.tsx';
-
-/** token 粗估（与 stem 同口径：1 token ≈ 1.8 字符），仅用于成本透明展示。 */
-const estimateTokens = (s: string) => Math.ceil(s.length / 1.8);
 
 export interface AssistContext {
   label: string;       // 当前词/句
@@ -148,6 +146,7 @@ export default function AiAssistPanel({
     const knowledge = context.extra ?? (unit ? `${unit.editionName} Unit ${unit.unit}` : undefined);
     const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title, knowledge });
     setTokens((n) => n + estimateTokens(sysPrompt) + estimateTokens(msg));
+    addTokenUsage(cfg.model, estimateTokens(sysPrompt) + estimateTokens(msg));
     try {
       let full = '';
       await new Promise<void>((resolve) => {
@@ -162,6 +161,7 @@ export default function AiAssistPanel({
         void timer;
       });
       setTokens((n) => n + estimateTokens(full));
+      addTokenUsage(cfg.model, estimateTokens(full));
       const parsed = parseStudyCard(full);
       if (parsed) setCard(parsed);
       else setErr(t('aiCardParseError', locale));
