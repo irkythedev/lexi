@@ -10,6 +10,8 @@ export interface Vocabulary {
   phonetic: string;
   pos: string;
   meaning: string;
+  /** wordlist 词性绑定词义的显示串 */
+  sense?: string;
   collocations: string[];
   examTips: string;
   exampleEn?: string;
@@ -26,6 +28,8 @@ export interface Phrase {
   id: string;
   phrase: string;
   meaning: string;
+  /** wordlist 词性绑定词义的显示串 */
+  sense?: string;
   fixedPatterns: string;
   exampleEn: string;
   exampleCn: string;
@@ -79,6 +83,8 @@ export interface StudyItem {
   phonetic?: string;
   pos?: string;
   meaning: string;
+  /** wordlist 词性绑定词义的显示串（vocab/phrase 用） */
+  sense?: string;
   collocations?: string[];
   fixedPatterns?: string;
   exampleEn?: string;

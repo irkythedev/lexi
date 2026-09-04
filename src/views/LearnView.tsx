@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library } from 'lucide-react';
+import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library, Asterisk } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -157,10 +157,17 @@ export default function LearnView() {
                   <Tag kind={item.kind} icon />
                   <div className="min-w-0 flex-1">
                     <div className="flex min-w-0 flex-wrap items-baseline gap-x-2">
-                      <span className="break-words text-[calc(16px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{item.label}</span>
+                      <span className="break-words text-[calc(16px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">
+                        {item.receptive && <Asterisk size={14} strokeWidth={2.75} className="mr-0.5 inline-block align-baseline text-[var(--color-accent)]" aria-label="只读词" />}
+                        {item.label}
+                      </span>
                       {item.phonetic && <span className="break-words font-mono text-[calc(12px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{item.phonetic}</span>}
                     </div>
-                    <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : item.meaning}</p>
+                    {/* 词表行: 词性绑定词义(sense 串, 如 "n. 手机"); 无 sense 的句式回退 meaning; 有页码时尾注 */}
+                    <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">
+                      {hideCn ? '————' : item.sense || item.meaning}
+                      {item.page != null && !hideCn && <span className="ml-1.5 shrink-0 text-[calc(11px*var(--type-scale))] text-[var(--color-text-3)]">p.{item.page}</span>}
+                    </p>
                   </div>
                   {/* 朗读 + AI + 展开指示 统一成组，gap 2px（紧凑可点）；每钮热区 36px */} 
                   <div className="flex shrink-0 items-center gap-0.5">

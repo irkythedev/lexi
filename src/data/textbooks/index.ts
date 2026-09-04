@@ -41,10 +41,10 @@ export function findUnit(sel: { editionId: string; grade: number; volume: number
 export function flattenUnit(unit: Unit): StudyItem[] {
   const items: StudyItem[] = [];
   for (const v of unit.vocabularies) {
-    items.push({ id: v.id, kind: 'vocab', label: v.word, phonetic: v.phonetic, pos: v.pos, meaning: v.meaning, collocations: v.collocations, examTips: v.examTips, exampleEn: v.exampleEn, exampleCn: v.exampleCn, seq: v.seq, receptive: v.receptive, page: v.page });
+    items.push({ id: v.id, kind: 'vocab', label: v.word, phonetic: v.phonetic, pos: v.pos, meaning: v.meaning, sense: v.sense, collocations: v.collocations, examTips: v.examTips, exampleEn: v.exampleEn, exampleCn: v.exampleCn, seq: v.seq, receptive: v.receptive, page: v.page });
   }
   for (const p of unit.phrases) {
-    items.push({ id: p.id, kind: 'phrase', label: p.phrase, meaning: p.meaning, fixedPatterns: p.fixedPatterns, exampleEn: p.exampleEn, exampleCn: p.exampleCn, seq: p.seq, receptive: p.receptive, page: p.page });
+    items.push({ id: p.id, kind: 'phrase', label: p.phrase, meaning: p.meaning, sense: p.sense, fixedPatterns: p.fixedPatterns, exampleEn: p.exampleEn, exampleCn: p.exampleCn, seq: p.seq, receptive: p.receptive, page: p.page });
   }
   // wordlist 视图 = seq 升序（教材词表混排原序），无 seq 的条目（句式）稳定追加在后
   const rank = (i: StudyItem) => (typeof i.seq === 'number' ? i.seq : Number.MAX_SAFE_INTEGER);
