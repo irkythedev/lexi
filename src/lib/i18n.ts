@@ -430,6 +430,7 @@ const zh: Record<string, string> = {
   aiStudyTitle: 'AI 学习',
   aiStudyGenerate: '生成学习卡片',
   aiStudyHint: '将一次生成释义、用法、例句与考点',
+  aiRetry: '重试',
   aiStudyBusy: '正在生成学习卡片…',
   aiStripDisclaimer: '内容由 AI 生成，仅供参考',
   aiStripTokens: '≈{count} tokens',

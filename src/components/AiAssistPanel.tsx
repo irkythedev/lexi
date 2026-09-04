@@ -177,6 +177,16 @@ export default function AiAssistPanel({
     }
   }, [cfg, busy, context, unit, locale]);
 
+  // 打开即自动生成学习卡片（词条切换时自动再来一张）
+  const autoKey = open ? context?.label : undefined;
+  const lastAutoKey = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (open && autoKey && autoKey !== lastAutoKey.current) {
+      lastAutoKey.current = autoKey;
+      void study();
+    }
+  }, [open, autoKey, study]);
+
   // 拖拽 / 缩放（桌面端 pointer 事件）
   const startDrag = (e: React.PointerEvent) => {
     if (window.innerWidth < 640) return;
@@ -243,22 +253,20 @@ export default function AiAssistPanel({
           </div>
         ) : (
           <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-2">
-            {/* 单按钮：一次生成学习卡片 */}
-            {!card && !busy && context && (
-              <div className="flex flex-col gap-2 pt-1">
-                <button onClick={() => void study()} className="press inline-flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-4 py-2.5 text-[calc(13.5px*var(--type-scale))] font-semibold text-white">
-                  <Sparkles size={14} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /> {t('aiStudyGenerate', locale)}
-                </button>
-                <p className="text-center text-[calc(11.5px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiStudyHint', locale)}</p>
-              </div>
-            )}
             {busy && !card && (
               <div className="flex items-center gap-2 p-2"><Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-accent)' }} /><span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStudyBusy', locale)}</span></div>
             )}
             {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} />}
-            {err && <p className="rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3 text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>}
+            {err && (
+              <div className="rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3">
+                <p className="text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>
+                <button onClick={() => void study()} className="press mt-2 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-3.5 py-1.5 text-[calc(12.5px*var(--type-scale))] font-semibold text-[var(--color-text)]">
+                  <Sparkles size={13} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /> {t('aiRetry', locale)}
+                </button>
+              </div>
+            )}
             {card && (
-              <button onClick={() => { setCard(null); }} className="press text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('aiAskAgain', locale)}</button>
+              <button onClick={() => { setCard(null); void study(); }} className="press text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('aiAskAgain', locale)}</button>
             )}
           </div>
         )}
