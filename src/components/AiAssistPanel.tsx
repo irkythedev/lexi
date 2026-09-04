@@ -165,27 +165,35 @@ export default function AiAssistPanel({
     addTokenUsage(cfg.model, estimateTokens(sysPrompt) + estimateTokens(msg));
     try {
       let full = '';
+      let failure: string | null = null;
+      let timedOut = false;
       await new Promise<void>((resolve) => {
         let settled = false;
+        const done = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
+        const timer = setTimeout(() => { timedOut = true; done(); }, 60000);
         streamChat({
           cfg, systemPrompt: sysPrompt,
           userMessage: msg,
+          maxTokens: 1800, // 卡片 JSON + probe；给推理类模型的思考留余量
           onChunk: (_d, f) => { full = f; },
-          onEnd: (f) => { if (!settled) { settled = true; full = f; resolve(); } },
+          onEnd: (f) => { full = f; done(); },
+          onError: (e) => { failure = e.message || String(e); done(); }, // HTTP/网络错误直达用户（prompt-v3）
         });
-        const timer = setTimeout(() => { if (!settled) { settled = true; resolve(); } }, 60000);
-        void timer;
       });
       setTokens((n) => n + estimateTokens(full));
       addTokenUsage(cfg.model, estimateTokens(full));
-      const parsed = parseStudyCard(full);
-      if (parsed) {
-        setCard(parsed);
-        if (mode === 'follow' && parent) {
-          setDepth(parent.depth);
-          setTrail((tr) => [...tr.slice(0, parent.depth - 1), { segment: parent.segment, probe: parent.probe }]);
-        }
-      } else setErr(t('aiCardParseError', locale));
+      if (timedOut) setErr(t('aiBusyGone', locale));
+      else if (failure) setErr(failure);
+      else {
+        const parsed = parseStudyCard(full);
+        if (parsed) {
+          setCard(parsed);
+          if (mode === 'follow' && parent) {
+            setDepth(parent.depth);
+            setTrail((tr) => [...tr.slice(0, parent.depth - 1), { segment: parent.segment, probe: parent.probe }]);
+          }
+        } else setErr(!full.trim() ? t('aiEmptyReply', locale) : t('aiCardParseError', locale));
+      }
     } catch (e) {
       setErr(isNetworkError((e as Error).message) ? t('aiNetUnreachable', locale) : (e as Error).message);
     } finally {

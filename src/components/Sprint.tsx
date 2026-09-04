@@ -179,6 +179,7 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
         cfg, systemPrompt: buildCorrectionSystemPrompt({ unitTitle: unit.title, grade: unit.grade }),
         userMessage: correctionPrompt(sentence, [target?.label ?? '']),
         onChunk: (_d, full) => { const j = extractJson(full); if (j && 'isCorrect' in j) setResult(sanitizeCorrection(j as import('../types/index.ts').CorrectionResult)); },
+        onError: (e) => { setError(e.message || String(e)); },
       });
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }

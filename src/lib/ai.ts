@@ -119,10 +119,29 @@ export function buildCorrectionSystemPrompt(args: { unitTitle?: string; grade?: 
 
 export interface StreamHandle { abort: () => void; }
 
+/** 把 HTTP 状态映射为可读中文提示，保留服务商原始响应体（用户要求展示供应商报错）。 */
+export function friendlyHttpError(status: number, body: string): string {
+  const hint = status === 401 || status === 403
+    ? '密钥无效或无权限，请检查 API Key'
+    : status === 402
+      ? '余额不足，请前往服务商控制台充值'
+      : status === 404
+        ? '模型名或端点地址不对，请检查模型与 Base URL'
+        : status === 429
+          ? '请求过快或配额用尽，请稍后再试'
+          : status >= 500
+            ? '服务商暂时不可用，请稍后再试'
+            : '请求被服务商拒绝';
+  return `HTTP ${status}：${hint}${body ? `｜服务商返回：${body.slice(0, 200)}` : ''}`;
+}
+
 // Streaming chat. onChunk receives (delta, full). Abortable.
+// onError（prompt-v3 加固）：fetch/HTTP/流中断错误通过此回调抵达调用方。
+// 此前错误在 detached async 内 rethrow，永远无人接收 → 调用方误报"解析失败"。
 export function streamChat(args: {
   cfg: AiConfig; systemPrompt: string; userMessage: string;
-  onChunk?: (delta: string, full: string) => void; onEnd?: (full: string) => void; signal?: AbortSignal;
+  onChunk?: (delta: string, full: string) => void; onEnd?: (full: string) => void;
+  onError?: (e: Error) => void; signal?: AbortSignal; maxTokens?: number;
 }): StreamHandle {
   const base = normalizeBaseUrl(args.cfg.baseUrl);
   const controller = new AbortController();
@@ -138,13 +157,13 @@ export function streamChat(args: {
           model: args.cfg.model,
           messages: [{ role: 'system', content: args.systemPrompt }, { role: 'user', content: args.userMessage }],
           stream: true, temperature: 0.5,
-          max_tokens: 800, // 学习卡片/批改 JSON 足够；防失控输入放大 BYOK 账单
+          max_tokens: args.maxTokens ?? 800, // 批改足够；卡片请求传更大值（推理模型需余量）
         }),
         signal: controller.signal,
       });
       if (!res.ok) {
         const txt = await res.text().catch(() => '');
-        throw new Error(`HTTP ${res.status}: ${txt.slice(0, 200)}`);
+        throw new Error(friendlyHttpError(res.status, txt));
       }
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
@@ -172,7 +191,9 @@ export function streamChat(args: {
       args.onEnd?.(full);
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
-      throw e;
+      args.onError?.(e as Error);
+      if (!args.onEnd) throw e; // 无 onError 的旧调用方：仍走 onEnd 空串 + rethrow（保持兼容）
+      // 有 onError 的调用方已接住错误，这里静默结束（不调 onEnd，避免当成空回复）
     }
   })();
 
