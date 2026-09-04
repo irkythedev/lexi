@@ -2,8 +2,11 @@
 // Ported/adapted from stem_digt_labs' ai-config.ts (compliance + CORS lessons).
 //
 // COMPLIANCE: zero backend. Browser -> provider API directly. Key + config in
-// localStorage only; conversations are not persisted. Three-party responsibility
-// split (site / user / provider). Student-safe system prompt; input length cap.
+// localStorage only. Generated study cards are persisted locally (IndexedDB
+// `aiNotes` table, on-device only, clearable in the AI notes section) so the
+// student can review them offline; nothing is ever uploaded. Three-party
+// responsibility split (site / user / provider). Student-safe system prompt;
+// input length cap.
 import type { AiConfig, AiProviderId, CorrectionResult } from '../types/index.ts';
 
 interface Provider { id: AiProviderId; name: string; baseUrl: string; models: string[]; note?: string; }

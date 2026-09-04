@@ -11,6 +11,7 @@ import {
   parseStudyCard, type StudyCard, type StudySegment,
 } from '../lib/ai.ts';
 import { addTokenUsage, estimateTokens } from '../lib/token-usage.ts';
+import { upsertAiNote, appendAiNoteChain } from '../db/db.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { t } from '../lib/i18n.ts';
 import WordHighlight from './WordHighlight.tsx';
@@ -53,8 +54,8 @@ function SpeakInline({ text, accent, rate, size = 12, fontSize = 'inherit', bold
   );
 }
 
-/** 学习卡片展示。onProbe：点击段上的追问 chip（probe 非空时才渲染）。 */
-function StudyCardView({ card, accent, rate, highlight, onProbe }: { card: StudyCard; accent: 'us' | 'uk'; rate: number; highlight?: string; onProbe?: (segText: string, probe: string) => void }) {
+/** 学习卡片展示（AI 面板与讲义本回放共用）。onProbe：点击段上的追问 chip（probe 非空时才渲染）。 */
+export function StudyCardView({ card, accent, rate, highlight, onProbe }: { card: StudyCard; accent: 'us' | 'uk'; rate: number; highlight?: string; onProbe?: (segText: string, probe: string) => void }) {
   const locale = useAppStore((s) => s.locale);
   const { speak, stop, state: ttsState } = useSpeak();
   const active = ttsState === 'playing' || ttsState === 'synthesizing';
@@ -134,7 +135,7 @@ export default function AiAssistPanel({
   onClose: () => void;
   context: AssistContext | null;
 }) {
-  const { locale, unit } = useAppStore();
+  const { locale, unit, selection } = useAppStore();
   const cfg = loadConfig();
   const [card, setCard] = useState<StudyCard | null>(null);
   const [busy, setBusy] = useState(false);
@@ -153,6 +154,11 @@ export default function AiAssistPanel({
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [card, busy]);
   useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); setTokens(0); setViews([]); setIdx(0); } }, [open]);
+
+  // 讲义本去重键：edition:unit:kind:label（个人导入无教材上下文时 editionId 置 'personal'）
+  const noteKey = context && unit && selection
+    ? `${selection.editionId}:u${selection.unit}:${context.kind ?? 'vocab'}:${context.label}`
+    : null;
 
   // 统一请求入口：mode='study' 主卡 / mode='follow' 追问（prompt-v3）
   const requestCard = useCallback(async (mode: 'study' | 'follow', parent?: { segment: string; probe: string; depth: number }) => {
@@ -198,9 +204,25 @@ export default function AiAssistPanel({
             const next = { card: parsed, segment: parent.segment, probe: parent.probe };
             setViews((vs) => [...vs.slice(0, parent.depth), next]);
             setIdx(parent.depth);
+            if (noteKey) void appendAiNoteChain(noteKey, { segment: parent.segment, probe: parent.probe, card: parsed });
           } else {
             setViews([{ card: parsed, segment: '', probe: '' }]);
             setIdx(0);
+            // 主卡入讲义本（默认开，仅存本机；追问链随主卡清零）
+            if (noteKey) {
+              void upsertAiNote({
+                key: noteKey,
+                editionId: selection!.editionId,
+                unit: selection!.unit,
+                unitTitle: unit?.title ?? context.unitTitle ?? '',
+                label: context.label,
+                kind: context.kind ?? 'vocab',
+                meaning: context.meaning ?? '',
+                card: parsed,
+                chain: [],
+                model: cfg.model,
+              });
+            }
           }
         } else setErr(!full.trim() ? t('aiEmptyReply', locale) : t('aiCardParseError', locale));
       }
@@ -209,7 +231,7 @@ export default function AiAssistPanel({
     } finally {
       setBusy(false);
     }
-  }, [cfg, busy, context, unit, locale]);
+  }, [cfg, busy, context, unit, selection, noteKey, locale]);
 
   const study = useCallback(() => requestCard('study'), [requestCard]);
 
