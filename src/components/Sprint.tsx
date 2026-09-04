@@ -203,7 +203,7 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
           <button onClick={onNext} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-accent)]">{t('sprintEnterQuiz', locale)} <ArrowRight size={16} /></button>
         </div>
       </div>
-      {error && <p className="mt-3 text-[calc(13px*var(--type-scale))] text-[var(--color-trap)]">{error}</p>}
+      {error && <p className="mt-3 min-w-0 break-all text-[calc(13px*var(--type-scale))] leading-relaxed text-[var(--color-trap)]" style={{ overflowWrap: 'anywhere' }}>{error}</p>}
       {result && (
         <div className="mt-4 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] p-4">
           <div className="flex items-center justify-between"><span className="text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('sprintAiResult', locale)}</span>

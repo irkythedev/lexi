@@ -303,8 +303,8 @@ export default function AiAssistPanel({
             )}
             {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={depth >= 2 ? undefined : onProbe} />}
             {err && (
-              <div className="rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3">
-                <p className="text-[calc(12.5px*var(--type-scale))] text-[var(--color-trap)]">{err}</p>
+              <div className="min-w-0 rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3">
+                <p className="max-h-40 overflow-y-auto break-all text-[calc(12.5px*var(--type-scale))] leading-relaxed text-[var(--color-trap)]" style={{ overflowWrap: 'anywhere' }}>{err}</p>
                 <button onClick={() => void study()} className="press mt-2 inline-flex items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-3.5 py-1.5 text-[calc(12.5px*var(--type-scale))] font-semibold text-[var(--color-text)]">
                   <Sparkles size={13} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /> {t('aiRetry', locale)}
                 </button>
