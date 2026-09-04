@@ -280,6 +280,12 @@ const zh: Record<string, string> = {
   installWebviewHint: '当前为内置浏览器，请在系统浏览器中打开本站后，再通过浏览器菜单安装。',
   installMenuHint: '点击浏览器右上角菜单「⋮」→ 选择「添加到主屏幕 / 安装应用」即可从桌面打开。',
 
+  // 课文原声
+  ttsMode: '合成朗读',
+  origMode: '教材原声',
+  origAudio: '教材原声',
+  origProgress: '原声播放进度',
+
   // 导入
   importLabelMissing: '缺少 label 字段',
   importJsonError: 'JSON 解析失败',
@@ -745,6 +751,12 @@ Object.assign(en, {
   installWechatHint: 'Installation is blocked inside WeChat — tap "···" at the top right, choose "Open in Browser", then follow the install steps there.',
   installWebviewHint: 'Open this site in your system browser, then install via the browser menu.',
   installMenuHint: 'Tap the browser menu (⋮) and select "Add to Home Screen" or "Install App".',
+
+  // Original textbook audio
+  ttsMode: 'Synth Reading',
+  origMode: 'Textbook Audio',
+  origAudio: 'Textbook Audio',
+  origProgress: 'Audio progress',
   importLabelMissing: 'Missing label field',
   importJsonError: 'JSON parse error',
   importWordMissing: 'Missing word/phrase',

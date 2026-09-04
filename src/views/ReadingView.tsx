@@ -2,11 +2,12 @@
 // 入口：LearnView 中「课文朗读」卡片 → mode='reading' 触发
 // 数据：UNIT_READINGS（阅读数据，按单元索引）
 // 播放：useSpeak 单句 TTS；onEnd 自动播下一句
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, Play, Pause, Loader2, Sparkles } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ArrowLeft, Play, Pause, Loader2, Sparkles, Radio } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
+import { readingAudioUrl } from '../lib/audio-config.ts';
 import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
 import { t } from '../lib/i18n.ts';
 
@@ -21,6 +22,13 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
   const { speak, stop, state: ttsState } = useSpeak();
   const [playing, setPlaying] = useState(false);
   const [sentenceIdx, setSentenceIdx] = useState(0);
+  // 教材原声模式：'tts' = 合成逐句朗读（默认） | 'orig' = 官方录音整篇串流
+  const [audioMode, setAudioMode] = useState<'tts' | 'orig'>('tts');
+  const audioUrl = useMemo(() => readingAudioUrl(unit), [unit]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [origPlaying, setOrigPlaying] = useState(false);
+  const [origLoading, setOrigLoading] = useState(false);
+  const [origProgress, setOrigProgress] = useState(0); // 0-1
 
   const reading = useMemo(() => UNIT_READINGS.find((r) => r.unit === unit), [unit]);
 
@@ -86,6 +94,38 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
   // 清理
   useEffect(() => () => { stop(); }, [stop]);
 
+  // 原声播放控制（与 TTS 互斥：切换/播放任一方时停掉另一方）
+  const stopOrig = useCallback(() => {
+    const a = audioRef.current;
+    if (a) { a.pause(); }
+    setOrigPlaying(false);
+  }, []);
+
+  const toggleOrig = useCallback(() => {
+    const a = audioRef.current;
+    if (!a) return;
+    if (origPlaying) {
+      a.pause();
+      setOrigPlaying(false);
+    } else {
+      stop(); // 停 TTS
+      setPlaying(false);
+      void a.play().then(() => setOrigPlaying(true)).catch(() => setOrigPlaying(false));
+    }
+  }, [origPlaying, stop]);
+
+  // 切换音源：停掉当前正在播的一方
+  const switchMode = useCallback((mode: 'tts' | 'orig') => {
+    if (mode === audioMode) return;
+    stop();
+    setPlaying(false);
+    stopOrig();
+    setAudioMode(mode);
+  }, [audioMode, stop, stopOrig]);
+
+  // 卸载时停原声
+  useEffect(() => () => { audioRef.current?.pause(); }, []);
+
   if (!reading) {
     return (
       <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-16 text-center">
@@ -105,14 +145,57 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
 
       {/* 播放控制栏：主播放钮去圆形包裹（纯 icon 可点区），标题放右侧 */}
       <div className="mt-4 flex items-center gap-1 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] py-1 pl-1 pr-3 shadow-[var(--shadow-card)]">
-        <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60" aria-label={playing ? t('playPause', locale) : t('play', locale)}>
-          {ttsState === 'synthesizing' ? <Loader2 size={20} strokeWidth={2.25} className="animate-spin" /> : playing ? <Pause size={20} strokeWidth={2.25} /> : <Play size={20} strokeWidth={2.25} />}
-        </button>
+        {audioMode === 'tts' ? (
+          <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60" aria-label={playing ? t('playPause', locale) : t('play', locale)}>
+            {ttsState === 'synthesizing' ? <Loader2 size={20} strokeWidth={2.25} className="animate-spin" /> : playing ? <Pause size={20} strokeWidth={2.25} /> : <Play size={20} strokeWidth={2.25} />}
+          </button>
+        ) : (
+          <button onClick={toggleOrig} disabled={!audioUrl || origLoading} className="press flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60" aria-label={t('origAudio', locale)}>
+            {origLoading ? <Loader2 size={20} strokeWidth={2.25} className="animate-spin" /> : origPlaying ? <Pause size={20} strokeWidth={2.25} /> : <Play size={20} strokeWidth={2.25} />}
+          </button>
+        )}
         <div className="flex flex-1 items-center justify-between">
           <span className="truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
-          <span className="ml-2 shrink-0 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{sentenceIdx + 1} / {total} 句{playing && ' · 朗读中'}</span>
+          {audioMode === 'tts' ? (
+            <span className="ml-2 shrink-0 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{sentenceIdx + 1} / {total} 句{playing && ' · 朗读中'}</span>
+          ) : (
+            <span className="ml-2 shrink-0 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{t('origAudio', locale)}{origPlaying && ' · 播放中'}</span>
+          )}
         </div>
       </div>
+
+      {/* 音源切换：合成逐句 ↔ 教材原声（原声需服务可用） */}
+      {audioUrl && (
+        <div className="mt-2 flex items-center gap-1 text-[calc(12px*var(--type-scale))]">
+          <button onClick={() => switchMode('tts')} className={`press rounded-[var(--radius-sm)] px-2 py-0.5 transition-colors ${audioMode === 'tts' ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]'}`}>{t('ttsMode', locale)}</button>
+          <button onClick={() => switchMode('orig')} className={`press inline-flex items-center gap-1 rounded-[var(--radius-sm)] px-2 py-0.5 transition-colors ${audioMode === 'orig' ? 'bg-[var(--color-accent)] text-white' : 'text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]'}`}><Radio size={11} strokeWidth={2.25} /> {t('origMode', locale)}</button>
+          {/* 原声进度条（仅原声模式显示） */}
+          {audioMode === 'orig' && (
+            <input
+              type="range" min={0} max={1000} value={Math.round(origProgress * 1000)}
+              onChange={(e) => { const a = audioRef.current; if (a && a.duration) { a.currentTime = (Number(e.target.value) / 1000) * a.duration; setOrigProgress(Number(e.target.value) / 1000); } }}
+              className="ml-2 h-1 flex-1 accent-[var(--color-accent)]"
+              aria-label={t('origProgress', locale)}
+            />
+          )}
+        </div>
+      )}
+
+      {/* 教材原声 audio 元素（隐藏，串流 + Range） */}
+      {audioUrl && (
+        <audio
+          ref={audioRef}
+          src={audioUrl}
+          preload="none"
+          onPlay={() => { setOrigLoading(false); setOrigPlaying(true); }}
+          onPause={() => setOrigPlaying(false)}
+          onWaiting={() => setOrigLoading(true)}
+          onPlaying={() => setOrigLoading(false)}
+          onTimeUpdate={(e) => { const a = e.currentTarget; if (a.duration) setOrigProgress(a.currentTime / a.duration); }}
+          onEnded={() => { setOrigPlaying(false); setOrigProgress(0); }}
+          onError={() => { setOrigLoading(false); setOrigPlaying(false); }}
+        />
+      )}
 
       {/* 课文正文 */}
       <div className="mt-4 space-y-4">
