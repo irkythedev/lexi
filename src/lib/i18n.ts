@@ -113,7 +113,6 @@ const zh: Record<string, string> = {
   sessionStats: '共 {total} 步 · 答对 {correct} · 待巩固 {wrong}',
   backToHome: '回到首页',
   anotherRound: '再来一轮',
-  exitSession: '退出',
   skipThis: '跳过此题',
   stepDone: '听完了',
 
@@ -601,7 +600,6 @@ Object.assign(en, {
   sessionStats: '{total} steps · {correct} correct · {wrong} to review',
   backToHome: 'Back to Home',
   anotherRound: 'Another round',
-  exitSession: 'Exit',
   skipThis: 'Skip this',
   stepDone: 'Done listening',
   practiceTitle: 'Practice',

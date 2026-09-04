@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Check, Trophy, RefreshCw } from 'lucide-react';
+import { Check, Trophy, RefreshCw, ArrowLeft } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { Unit } from '../types/index.ts';
 import { shuffle } from '../lib/utils.ts';
@@ -55,7 +55,7 @@ export default function CollocationConnector({ onExit }: { onExit: () => void })
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
       <div className="mb-3 flex items-center justify-between">
-        <button onClick={onExit} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]"><span>←</span> {t('back', locale)}</button>
+        <button onClick={onExit} className="press flex min-h-11 items-center gap-1.5 rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]"><ArrowLeft size={18} strokeWidth={2.25} /> {t('back', locale)}</button>
         <button onClick={reset} className="press flex items-center gap-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><RefreshCw size={15} strokeWidth={2.25} /> {t('connectorReset', locale)}</button>
       </div>
       <h2 className="text-[calc(20px*var(--type-scale))] font-bold tracking-[-0.01em]">{t('connector', locale)}</h2>

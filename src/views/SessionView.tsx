@@ -159,7 +159,7 @@ export default function SessionView() {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-[var(--max-read)] flex-col px-[var(--pad-x)] py-4">
       <div className="flex items-center justify-between">
-        <button onClick={() => { stop(); navigate('/learn'); }} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]"><ArrowLeft size={18} /> {t('exitSession', locale)}</button>
+        <button onClick={() => { stop(); navigate('/learn'); }} className="press flex min-h-11 items-center gap-1.5 rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]"><ArrowLeft size={18} strokeWidth={2.25} /> {t('back', locale)}</button>
         <span className="flex items-center gap-2">
           <Tag kind={task.item.kind}>{meta.label[locale]}</Tag>
           <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{pos + 1} / {total}</span>

@@ -146,7 +146,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
       {/* 顶部工具栏：返回样式与 SessionView 一致（左箭头+文本），右侧标题 */}
       <div className="flex items-center justify-between">
-        <button onClick={onExit} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]"><ArrowLeft size={18} /> {t('exitSession', locale)}</button>
+        <button onClick={onExit} className="press flex min-h-11 items-center gap-1.5 rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]"><ArrowLeft size={18} strokeWidth={2.25} /> {t('back', locale)}</button>
         <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-3)]">Unit {unit} · Reading</span>
       </div>
 
