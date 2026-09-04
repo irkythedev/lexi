@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, LayoutGrid } from 'lucide-react';
+import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, LayoutGrid, Library } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -10,6 +10,7 @@ import CollocationConnector from '../components/CollocationConnector.tsx';
 import Sprint from '../components/Sprint.tsx';
 import ReadingView from './ReadingView.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
+import UnitPickerSheet from '../components/UnitPickerSheet.tsx';
 import SpeakButton from '../components/SpeakButton.tsx';
 import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
 import PaginationBar from '../components/PaginationBar.tsx';
@@ -29,6 +30,7 @@ export default function LearnView() {
   const [aiOpen, setAiOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [quoteFull, setQuoteFull] = useState<Set<string>>(new Set());
+  const [unitSheetOpen, setUnitSheetOpen] = useState(false);
 
   const groups = [
     { kind: 'vocab', items: studyItems.filter((i) => i.kind === 'vocab') },
@@ -57,7 +59,12 @@ export default function LearnView() {
       <div className="relative overflow-hidden rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-panel)]">
         <div className="relative">
           <div className="text-[calc(12px*var(--type-scale))] font-semibold tracking-[0.12em] text-[var(--color-accent)]">{unit.editionName} · Unit {unit.unit}</div>
-          <h2 className="mt-1.5 text-[calc(clamp(24px,5vw,34px)*var(--type-scale))] font-bold leading-tight tracking-[-0.03em] text-[var(--color-text)]">{unit.title}</h2>
+          <div className="mt-1.5 flex items-end justify-between gap-2">
+            <h2 className="text-[calc(clamp(24px,5vw,34px)*var(--type-scale))] font-bold leading-tight tracking-[-0.03em] text-[var(--color-text)]">{unit.title}</h2>
+            <button onClick={() => setUnitSheetOpen(true)} className="press inline-flex h-8 shrink-0 items-center gap-1 rounded-[var(--radius-pill)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-2.5 text-[calc(12px*var(--type-scale))] font-medium text-[var(--color-text-2)] shadow-[var(--shadow-card)] hover:bg-[var(--color-surface-2)]" aria-label={t('unitSwitch', locale)}>
+              <Library size={13} strokeWidth={2.25} className="text-[var(--color-accent)]" /> {t('unitSwitch', locale)}
+            </button>
+          </div>
           {/* 3 张 KPI 小卡：大数字 + 脚下小胶囊 */}
           <div className="mt-4 grid grid-cols-3 gap-3">
             {(
@@ -198,6 +205,7 @@ export default function LearnView() {
       </Panel>
       <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />
       <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiTarget} />
+      <UnitPickerSheet open={unitSheetOpen} onClose={() => setUnitSheetOpen(false)} />
     </div>
   );
 }
