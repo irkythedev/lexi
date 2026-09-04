@@ -52,7 +52,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   unit: null,
   studyItems: [],
   aiReady: !!loadConfig(),
-  tts: { accent: 'us', rate: 1.0, gender: 'female' },
+  tts: { accent: 'uk', rate: 1.0, gender: 'male' },
   fontScale: 1,
 
   setTab: (t) => set({ tab: t }),
@@ -104,7 +104,7 @@ export async function hydrateSettings() {
     getSetting<'light' | 'dark'>('theme', 'light'),
     getSetting<Accent>('accent', 'emerald'),
     getSetting<Locale>('locale', 'zh'),
-    getSetting<{ accent: 'us' | 'uk'; rate: number; gender: 'female' | 'male' }>('tts', { accent: 'us', rate: 1.0, gender: 'female' }),
+    getSetting<{ accent: 'us' | 'uk'; rate: number; gender: 'female' | 'male' }>('tts', { accent: 'uk', rate: 1.0, gender: 'male' }),
     getSetting<AppState['selection']>('selection', null),
     getSetting<number>('fontScale', 1),
   ]);
