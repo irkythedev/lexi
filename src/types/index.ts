@@ -14,6 +14,12 @@ export interface Vocabulary {
   examTips: string;
   exampleEn?: string;
   exampleCn?: string;
+  /** wordlist 混排序号（单词+短语按教材词表首次出现顺序统一编号） */
+  seq?: number;
+  /** 仅要求会读、听得懂（词表 * 号） */
+  receptive?: boolean;
+  /** 词表首次出现页码 */
+  page?: number;
 }
 
 export interface Phrase {
@@ -23,6 +29,12 @@ export interface Phrase {
   fixedPatterns: string;
   exampleEn: string;
   exampleCn: string;
+  /** wordlist 混排序号 */
+  seq?: number;
+  /** 仅要求会读、听得懂（词表 * 号） */
+  receptive?: boolean;
+  /** 词表首次出现页码 */
+  page?: number;
 }
 
 export interface SentencePattern {
@@ -74,6 +86,12 @@ export interface StudyItem {
   examTips?: string;
   grammarPoint?: string;
   drillTemplate?: string;
+  /** wordlist 混排序号（句式无） */
+  seq?: number;
+  /** 仅要求会读（词表 * 号） */
+  receptive?: boolean;
+  /** 词表首次出现页码 */
+  page?: number;
 }
 
 // ── SRS ──

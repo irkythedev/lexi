@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, LayoutGrid, Library } from 'lucide-react';
+import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -23,7 +23,7 @@ export default function LearnView() {
   const { unit, studyItems, tts, locale } = useAppStore();
   const navigate = useNavigate();
   const [mode, setMode] = useState<null | 'flash' | 'connector' | 'sprint' | 'reading'>(null);
-  const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'pattern'>('all');
+  const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase'>('all');
   const [hideCn, setHideCn] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
   const [aiTarget, setAiTarget] = useState<AssistContext | null>(null);
@@ -32,12 +32,13 @@ export default function LearnView() {
   const [quoteFull, setQuoteFull] = useState<Set<string>>(new Set());
   const [unitSheetOpen, setUnitSheetOpen] = useState(false);
 
+  // wordlist 视图: studyItems 本身已按教材词表混排序（flattenUnit seq 排序，句式追加末尾）
+  // 单词/短语视图: 各自 kind 的 seq 序（保持 wordlist 相对顺序）
   const groups = [
-    { kind: 'vocab', items: studyItems.filter((i) => i.kind === 'vocab') },
-    { kind: 'phrase', items: studyItems.filter((i) => i.kind === 'phrase') },
-    { kind: 'pattern', items: studyItems.filter((i) => i.kind === 'pattern') },
+    { kind: 'vocab' as const, items: studyItems.filter((i) => i.kind === 'vocab') },
+    { kind: 'phrase' as const, items: studyItems.filter((i) => i.kind === 'phrase' || i.kind === 'pattern') },
   ];
-  const visible = filter === 'all' ? studyItems : studyItems.filter((i) => i.kind === filter);
+  const visible = filter === 'all' ? studyItems : studyItems.filter((i) => i.kind === filter || (filter === 'phrase' && i.kind === 'pattern'));
   const pager = usePagination(visible, 20);
   const pagedItems = pager.slice;
 
@@ -65,13 +66,12 @@ export default function LearnView() {
               <Library size={13} strokeWidth={2.25} className="text-[var(--color-accent)]" /> {t('unitSwitch', locale)}
             </button>
           </div>
-          {/* 3 张 KPI 小卡：大数字 + 脚下小胶囊 */}
-          <div className="mt-4 grid grid-cols-3 gap-3">
+          {/* 2 张 KPI 小卡：大数字 + 脚下小胶囊（短语含句式） */}
+          <div className="mt-4 grid grid-cols-2 gap-3">
             {(
               [
                 { kind: 'vocab' as const, n: groups[0].items.length, label: t('words', locale), tint: 'var(--color-vocab)', deep: 'var(--color-vocab-deep)' },
-                { kind: 'phrase' as const, n: groups[1].items.length, label: t('phrases', locale), tint: 'var(--color-phrase)', deep: 'var(--color-phrase-deep)' },
-                { kind: 'pattern' as const, n: groups[2].items.length, label: t('patterns', locale), tint: 'var(--color-pattern)', deep: 'var(--color-pattern-deep)' },
+                { kind: 'phrase' as const, n: groups[1].items.length, label: t('phrasesWithPatterns', locale), tint: 'var(--color-phrase)', deep: 'var(--color-phrase-deep)' },
               ]
             ).map((k) => (
               <div key={k.kind} className="rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-3 text-center shadow-[var(--shadow-card)]">
@@ -129,11 +129,15 @@ export default function LearnView() {
 
       <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="seg seg--bare">
-          {(['all', 'vocab', 'phrase', 'pattern'] as const).map((f) => (
+          {(['all', 'vocab', 'phrase'] as const).map((f) => (
             <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>
               <span className="inline-flex items-center gap-1.5">
-                {(() => { const Icon = f === 'all' ? LayoutGrid : KIND_META[f].icon; return <Icon size={14} strokeWidth={2.25} color={f === 'all' ? 'var(--color-text-3)' : KIND_META[f].tint} aria-hidden="true" />; })()}
-                <span>{f === 'all' ? t('all', locale) : KIND_META[f].short[locale]}</span>
+                {(() => {
+                  const Icon = f === 'all' ? ListOrdered : f === 'vocab' ? CaseSensitive : Link2;
+                  const label = f === 'all' ? t('wordlistOrder', locale) : KIND_META[f].short[locale];
+                  const tint = f === 'all' ? 'var(--color-text-3)' : KIND_META[f].tint;
+                  return <><Icon size={14} strokeWidth={2.25} color={tint} aria-hidden="true" /><span>{label}</span></>;
+                })()}
               </span>
             </button>
           ))}
