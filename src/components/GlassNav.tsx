@@ -52,7 +52,8 @@ export default function GlassNav() {
 
   return (
     <>
-      <header className={`glass-nav fixed inset-x-0 top-0 z-50 ${scrolled ? 'scrolled' : ''}`}>
+      {/* PWA 全屏（viewport-fit=cover + black-translucent）下内容伸入状态栏：顶栏用 padding-top 吃掉安全区，米纸底色自然铺进刘海带（stem Header 同款做法） */}
+      <header className={`glass-nav fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)] ${scrolled ? 'scrolled' : ''}`}>
         <div className="mx-auto flex h-14 max-w-[var(--max-grid)] items-center justify-between px-[var(--pad-x)]">
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
             <img src="/brand.png" alt="Lexi" className="h-12 w-12 shrink-0" />

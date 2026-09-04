@@ -48,7 +48,7 @@ function Shell() {
   }, [tab, theme, accent, fontScale]);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[var(--color-ground)] text-[var(--color-text)] pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0" style={{ paddingTop: '3.5rem' }}>
+    <div className="flex min-h-dvh flex-col bg-[var(--color-ground)] text-[var(--color-text)] pb-[calc(4.5rem+env(safe-area-inset-bottom,0px))] md:pb-0" style={{ paddingTop: 'calc(3.5rem + env(safe-area-inset-top, 0px))' }}>
       <GlassNav />
       <main className="flex-1">
         <ErrorBoundary>
