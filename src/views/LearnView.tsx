@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library, Asterisk, NotebookText } from 'lucide-react';
+import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library, Asterisk, NotebookText, BookMarked } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -18,12 +18,15 @@ import { usePagination } from '../lib/pagination.ts';
 import { findQuote, truncateQuote } from '../data/textbooks/unit_texts.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 import WordHighlight from '../components/WordHighlight.tsx';
+import { StudyCardView } from '../components/AiAssistPanel.tsx';
+import { listAiNotes, type AiNoteRecord } from '../db/db.ts';
 
 export default function LearnView() {
   const { unit, studyItems, tts, locale } = useAppStore();
   const navigate = useNavigate();
   const [mode, setMode] = useState<null | 'flash' | 'connector' | 'sprint' | 'reading'>(null);
-  const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'notes'>('all');
+  const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'notes' | 'ai'>('all');
+  const [aiNotesList, setAiNotesList] = useState<AiNoteRecord[]>([]);
   const [hideCn, setHideCn] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
   const [aiTarget, setAiTarget] = useState<AssistContext | null>(null);
@@ -31,6 +34,10 @@ export default function LearnView() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [quoteFull, setQuoteFull] = useState<Set<string>>(new Set());
   const [unitSheetOpen, setUnitSheetOpen] = useState(false);
+
+  // AI 讲义本卡片：进入页面与打开 AI 面板后刷新（生成/追问后回来即见最新）
+  useEffect(() => { void listAiNotes().then(setAiNotesList); }, []);
+  useEffect(() => { if (!aiOpen) void listAiNotes().then(setAiNotesList); }, [aiOpen]);
 
   // wordlist 视图: studyItems 本身已按教材词表混排序（flattenUnit seq 排序，句式追加末尾）
   // 单词/短语视图: 各自 kind 的 seq 序（保持 wordlist 相对顺序）
@@ -130,15 +137,15 @@ export default function LearnView() {
 
       <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="seg seg--bare">
-          {(['all', 'vocab', 'phrase', 'notes'] as const).map((f) => {
-            const n = f === 'all' ? studyItems.length : f === 'vocab' ? groups[0].items.length : f === 'phrase' ? groups[1].items.length : notesList.length;
+          {(['all', 'vocab', 'phrase', 'notes', 'ai'] as const).map((f) => {
+            const n = f === 'all' ? studyItems.length : f === 'vocab' ? groups[0].items.length : f === 'phrase' ? groups[1].items.length : f === 'notes' ? notesList.length : aiNotesList.length;
             return (
             <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>
               <span className="inline-flex items-center gap-1.5">
                 {(() => {
-                  const Icon = f === 'all' ? ListOrdered : f === 'vocab' ? CaseSensitive : f === 'phrase' ? Link2 : NotebookText;
-                  const label = f === 'all' ? t('wordlistOrder', locale) : f === 'notes' ? t('notesTab', locale) : KIND_META[f].short[locale];
-                  const tint = f === 'all' ? 'var(--color-text-3)' : f === 'notes' ? 'var(--color-ai)' : KIND_META[f].tint;
+                  const Icon = f === 'all' ? ListOrdered : f === 'vocab' ? CaseSensitive : f === 'phrase' ? Link2 : f === 'notes' ? NotebookText : BookMarked;
+                  const label = f === 'all' ? t('wordlistOrder', locale) : f === 'notes' ? t('notesTab', locale) : f === 'ai' ? t('aiChipLabel', locale) : KIND_META[f].short[locale];
+                  const tint = f === 'all' ? 'var(--color-text-3)' : f === 'notes' || f === 'ai' ? 'var(--color-ai)' : KIND_META[f].tint;
                   return <><Icon size={14} strokeWidth={2.25} color={tint} aria-hidden="true" /><span>{label}</span><span className="text-[calc(11px*var(--type-scale))] tabular-nums text-[var(--color-text-3)]">{n}</span></>;
                 })()}
               </span>
@@ -150,7 +157,38 @@ export default function LearnView() {
       </div>
 
       <Panel className="mt-3">
-        {filter === 'notes' ? (
+        {filter === 'ai' ? (
+          /* AI 讲义本视图: 学习卡列表, 行展开只读回放主卡（复用 StudyCardView, 零请求） */
+          aiNotesList.length === 0 ? (
+            <p className="py-8 text-center text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiChipEmpty', locale)}</p>
+          ) : (
+            aiNotesList.map((n) => {
+              const expanded = expandedId === n.key;
+              return (
+                <Row key={n.key} onClick={() => setExpandedId(expanded ? null : n.key)}>
+                  <div className="w-full">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--radius-md)]" style={{ border: '1.5px solid var(--color-hairline)', background: 'var(--color-surface-2)' }}>
+                        <BookMarked size={16} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[calc(15px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{n.label}</p>
+                        <p className="mt-0.5 truncate text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : n.card.definition}</p>
+                        <p className="mt-0.5 truncate text-[calc(11px*var(--type-scale))] text-[var(--color-text-3)]">{n.unitTitle || `Unit ${n.unit}`}{n.chain.length > 0 && ` · ${t('aiNotesFollowN', locale, { n: n.chain.length })}`}</p>
+                      </div>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center"><ChevronDown size={14} strokeWidth={2.25} className={`text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} /></span>
+                    </div>
+                    {expanded && (
+                      <div className="mt-3 overflow-hidden rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-3">
+                        <StudyCardView card={n.card} accent={tts.accent} rate={tts.rate} highlight={n.label} />
+                      </div>
+                    )}
+                  </div>
+                </Row>
+              );
+            })
+          )
+        ) : filter === 'notes' ? (
           /* Notes 视图: 原书注释条目列表, 行展开显示翻译+讲解 */
           notesList.map((note) => {
             const key = `note-${note.n}`;
@@ -261,7 +299,7 @@ export default function LearnView() {
         })
         )}
       </Panel>
-      {filter !== 'notes' && <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />}
+      {filter !== 'notes' && filter !== 'ai' && <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />}
       <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiTarget} />
       <UnitPickerSheet open={unitSheetOpen} onClose={() => setUnitSheetOpen(false)} />
     </div>
