@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { TTS_BASE, getEdgeVoice, getChineseVoice } from './tts-config.ts';
 import { scfUrlWithToken } from './scf-token.ts';
+import { getOrFetchTts, ttsCacheKey } from './tts-cache.ts';
 import { speak as webSpeak, type Accent, type SpeakHandle } from './tts.ts';
 
 export const edgeTtsEnabled = Boolean(TTS_BASE);
@@ -113,18 +114,44 @@ async function fetchWithRetry(url: string): Promise<Response> {
 
 /**
  * SCF 单段合成 → MP3 Blob（含冷启动重试）。
+ * 缓存优先（tts-cache 两级：内存 LRU + Cache API 持久），未命中才真正请求 SCF；
+ * 预取与立即播放同键并发时由 getOrFetchTts 合并为一次合成。
  */
 async function synthSegment(text: string, voice: string, rate: number): Promise<Blob> {
-  const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
-  const res = await fetchWithRetry(url);
-  const buf = await res.arrayBuffer();
-  return toMp3Blob(buf);
+  return getOrFetchTts(ttsCacheKey(voice, rate, text), async () => {
+    const url = scfUrlWithToken(`${TTS_BASE}/tts?text=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}&rate=${encodeURIComponent(String(rate))}`);
+    const res = await fetchWithRetry(url);
+    const buf = await res.arrayBuffer();
+    return toMp3Blob(buf);
+  });
 }
 
 /**
- * SCF 朗读文本净化（显示层不做处理，仅送合成前调用）：
- * 弯引号/书名号/省略号等合成音会读出 "quote"/异常停顿，统一替换或删除。
+ * 课文朗读预取：按句合成进缓存但不播放（Phase 2，ReadingView 调度）。
+ * 与播放共用 synthSegment（缓存优先 + in-flight 去重）——预取和立即播放同句
+ * 竞态时自动合并为一次 SCF 请求。每次取一个 token，防止外部无限并发。
  */
+export async function warmTtsCache(
+  texts: string[],
+  opts: { accent?: 'us' | 'uk'; rate?: number } = {},
+): Promise<void> {
+  if (!TTS_BASE) return;
+  const { accent = 'us', rate = 1.0 } = opts;
+  const gender = useAppStore.getState().tts.gender;
+  const voice = getEdgeVoice(accent, gender);
+  for (const text of texts) {
+    const t = tokenPool.pop();
+    if (!t) return; // 令牌耗尽：让位给后续交互
+    try {
+      await synthSegment(prepareSpeech(text), voice, rate);
+    } catch {
+      return; // 预取失败静默放弃（播放路径有自己的重试+Web Speech 兜底）
+    } finally {
+      tokenPool.push(t);
+    }
+  }
+}
+
 export function sanitizeForSpeech(text: string): string {
   return text
     .replace(/[\u201c\u201d\u201e\u201f\u00ab\u00bb]/g, '')   // “ ” „ ‟ « » → 删
@@ -213,6 +240,10 @@ export function splitMixedLang(text: string, max = 800): LangSeg[] {
   flush();
   return segs;
 }
+
+// 预取并发闸：全局并发令牌池（2 个）。预取循环每合成一句前取一枚令牌，
+// 用完即还——保证用户交互触发的合成永远有令牌可用，预取最多占 2 路。
+const tokenPool: symbol[] = [Symbol('t1'), Symbol('t2')];
 
 // Resolve a blob's duration (ms). Falls back to 0 on failure so callers can
 // fall through to the per-chunk `audio.duration` estimate.

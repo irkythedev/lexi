@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Play, Pause, Loader2, Sparkles, Radio } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
-import { useSpeak } from '../lib/useSpeak.ts';
+import { useSpeak, warmTtsCache } from '../lib/useSpeak.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 import { readingAudioSrc } from '../lib/audio-config.ts';
 import { useToastStore } from '../stores/toastStore.ts';
@@ -63,6 +63,10 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
     }
     setSentenceIdx(idx);
     setPlaying(true);
+    // 预取后两句进 TTS 缓存（滑动窗口；已缓存则 no-op，in-flight 自动去重），
+    // 句间衔接从「1-2s 合成等待」降到「取缓存 ~50ms」，且只合成真正播到的句子。
+    const ahead = sentences.slice(idx + 1, idx + 3);
+    if (ahead.length) void warmTtsCache(ahead, { accent: tts.accent, rate: tts.rate });
     speak(sentences[idx], {
       accent: tts.accent,
       rate: tts.rate,
