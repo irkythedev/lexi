@@ -1,6 +1,6 @@
 // 教材原声音频源解析（Lexi 音频架构：builtin 内置 → user 用户上传 → url 外链，演进式三档）。
 //
-// builtin：同源 public/audio/<book>/u{n}_reading.mp3。文件不进 git（.gitignore），
+// builtin：同源 public/audio/<book>/u{n}_reading.m4a（mono AAC 64k）。文件不进 git（.gitignore），
 //   由 scripts/sync_audio.py 从本地教材 KB 同步；构建时 vite 插件生成
 //   dist/audio-manifest.json（音频本体不进 SW precache，运行时走 HTTP 缓存）。
 //   dev 下无 manifest，直接探测 public 同名路径（404 由 <audio> onError → toast 兜底）。
@@ -28,7 +28,7 @@ async function loadManifest(): Promise<Record<string, Record<string, string>>> {
 export async function readingAudioSrc(unit: number): Promise<string | null> {
   if (import.meta.env.DEV) {
     // dev：vite 直接伺服 public/，文件存在与否由 <audio> onError 兜底
-    return `/audio/${BOOK}/u${unit}_reading.mp3`;
+    return `/audio/${BOOK}/u${unit}_reading.m4a`;
   }
   const manifest = await loadManifest();
   return manifest[BOOK]?.[`u${unit}`] ?? null;

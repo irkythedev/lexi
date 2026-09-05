@@ -41,7 +41,7 @@ function audioManifest(): Plugin {
           if (!statSync(bookDir).isDirectory()) continue;
           const entries: Record<string, string> = {};
           for (const f of readdirSync(bookDir)) {
-            const m = /^(u\d+)_reading\.mp3$/.exec(f);
+            const m = /^u(\d+)_reading\.(mp3|m4a)$/.exec(f);
             if (m) entries[m[1]] = `/audio/${book}/${f}`;
           }
           if (Object.keys(entries).length) manifest[book] = entries;

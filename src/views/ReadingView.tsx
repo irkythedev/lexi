@@ -25,7 +25,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
   const [sentenceIdx, setSentenceIdx] = useState(0);
   // 教材原声模式：'tts' = 合成逐句朗读（默认） | 'orig' = 官方录音整篇串流
   const [audioMode, setAudioMode] = useState<'tts' | 'orig'>('tts');
-  // 原声地址异步解析（构建期 manifest → /audio/yilin9a/u{n}_reading.mp3）
+  // 原声地址异步解析（构建期 manifest → /audio/yilin9a/u{n}_reading.m4a）
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   useEffect(() => {
     let alive = true;
