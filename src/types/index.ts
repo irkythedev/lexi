@@ -50,6 +50,22 @@ export interface SentencePattern {
   exampleEn?: string;
 }
 
+// 原书 Notes（注释与解析）条目
+export interface Note {
+  /** 原书条目序号（单元内） */
+  n: number;
+  /** 英文原句（标题行） */
+  quote: string;
+  /** 页码引用，如 "p.9, lines 23–24" */
+  ref: string;
+  /** 中文翻译 */
+  zh: string;
+  /** 讲解段落（原文顺序） */
+  expl: string[];
+  /** 首现页码 */
+  page: number;
+}
+
 // A single unit of a textbook.
 export interface Unit {
   editionId: string;
@@ -61,6 +77,8 @@ export interface Unit {
   vocabularies: Vocabulary[];
   phrases: Phrase[];
   sentencePatterns: SentencePattern[];
+  /** 原书 Notes（注释与解析），按条目序号排列 */
+  notes: Note[];
 }
 
 // An edition bundle (groups units + catalog metadata).

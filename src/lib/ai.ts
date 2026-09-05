@@ -241,7 +241,7 @@ export interface StudyCard {
  * 预设追问句（0-2 个/卡，宁缺勿滥）。追问由用户点 chip 触发、app 构造请求，无自由输入。
  */
 export function studyCardPrompt(label: string, meaning?: string, kind?: string, quote?: string, peerWords?: string[]): string {
-  const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : '单词';
+  const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : kind === 'notes' ? '教材注释句子' : '单词';
   const peerRule = !quote && peerWords && peerWords.length
     ? `- 例句除目标词外，用词尽量取自本单元已学词表：${peerWords.slice(0, 30).join('、')}；可用少量基础功能词（冠词/介词/代词等），不引入超纲难词。`
     : '';

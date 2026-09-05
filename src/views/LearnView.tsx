@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library, Asterisk } from 'lucide-react';
+import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library, Asterisk, NotebookText } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
@@ -23,7 +23,7 @@ export default function LearnView() {
   const { unit, studyItems, tts, locale } = useAppStore();
   const navigate = useNavigate();
   const [mode, setMode] = useState<null | 'flash' | 'connector' | 'sprint' | 'reading'>(null);
-  const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase'>('all');
+  const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'notes'>('all');
   const [hideCn, setHideCn] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
   const [aiTarget, setAiTarget] = useState<AssistContext | null>(null);
@@ -38,6 +38,7 @@ export default function LearnView() {
     { kind: 'vocab' as const, items: studyItems.filter((i) => i.kind === 'vocab') },
     { kind: 'phrase' as const, items: studyItems.filter((i) => i.kind === 'phrase' || i.kind === 'pattern') },
   ];
+  const notesList = unit?.notes ?? [];
   const visible = filter === 'all' ? studyItems : studyItems.filter((i) => i.kind === filter || (filter === 'phrase' && i.kind === 'pattern'));
   const pager = usePagination(visible, 20);
   const pagedItems = pager.slice;
@@ -129,15 +130,15 @@ export default function LearnView() {
 
       <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="seg seg--bare">
-          {(['all', 'vocab', 'phrase'] as const).map((f) => {
-            const n = f === 'all' ? studyItems.length : f === 'vocab' ? groups[0].items.length : groups[1].items.length;
+          {(['all', 'vocab', 'phrase', 'notes'] as const).map((f) => {
+            const n = f === 'all' ? studyItems.length : f === 'vocab' ? groups[0].items.length : f === 'phrase' ? groups[1].items.length : notesList.length;
             return (
             <button key={f} className={filter === f ? 'active' : ''} onClick={() => { setFilter(f); pager.reset(); }}>
               <span className="inline-flex items-center gap-1.5">
                 {(() => {
-                  const Icon = f === 'all' ? ListOrdered : f === 'vocab' ? CaseSensitive : Link2;
-                  const label = f === 'all' ? t('wordlistOrder', locale) : KIND_META[f].short[locale];
-                  const tint = f === 'all' ? 'var(--color-text-3)' : KIND_META[f].tint;
+                  const Icon = f === 'all' ? ListOrdered : f === 'vocab' ? CaseSensitive : f === 'phrase' ? Link2 : NotebookText;
+                  const label = f === 'all' ? t('wordlistOrder', locale) : f === 'notes' ? t('notesTab', locale) : KIND_META[f].short[locale];
+                  const tint = f === 'all' ? 'var(--color-text-3)' : f === 'notes' ? 'var(--color-ai)' : KIND_META[f].tint;
                   return <><Icon size={14} strokeWidth={2.25} color={tint} aria-hidden="true" /><span>{label}</span><span className="text-[calc(11px*var(--type-scale))] tabular-nums text-[var(--color-text-3)]">{n}</span></>;
                 })()}
               </span>
@@ -149,7 +150,49 @@ export default function LearnView() {
       </div>
 
       <Panel className="mt-3">
-        {pagedItems.map((item) => {
+        {filter === 'notes' ? (
+          /* Notes 视图: 原书注释条目列表, 行展开显示翻译+讲解 */
+          notesList.map((note) => {
+            const key = `note-${note.n}`;
+            const expanded = expandedId === key;
+            return (
+              <Row key={key} onClick={() => setExpandedId(expanded ? null : key)}>
+                <div className="w-full">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-0.5 inline-flex h-6 min-w-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] px-1.5 text-[calc(11px*var(--type-scale))] font-semibold" style={{ background: 'var(--color-surface-2)', border: '1.5px solid var(--color-hairline)', color: 'var(--color-text-2)' }}>{note.n}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="break-words text-[calc(14.5px*var(--type-scale))] font-semibold leading-snug text-[var(--color-text)]">{note.quote}</p>
+                      <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{hideCn ? '————' : note.zh}</p>
+                      <p className="mt-0.5 text-[calc(11px*var(--type-scale))] text-[var(--color-text-3)]">{note.ref}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-0.5">
+                      <SpeakButton text={note.quote} accent={tts.accent} rate={tts.rate} size={16} color="var(--color-ai)" compact />
+                      <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: note.quote, meaning: note.zh, kind: 'notes', quote: note.quote, extra: note.expl.join('\n'), unitWords: unit ? [...unit.vocabularies.map((v) => v.word), ...unit.phrases.map((p) => p.phrase)] : undefined, grade: unit?.grade, unitTitle: unit?.title }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /></button>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center"><ChevronDown size={14} strokeWidth={2.25} className={`text-[var(--color-text-3)] transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} /></span>
+                    </div>
+                  </div>
+                  {expanded && (
+                    <div className="mt-3 overflow-hidden rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)]">
+                      <div className="border-l-4 py-1 pl-3 pr-2" style={{ borderLeftColor: 'var(--color-ai)' }}>
+                        <span className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('notesTranslation', locale)}</span>
+                        <p className="py-1 text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{note.zh}</p>
+                        {note.expl.length > 0 && (
+                          <>
+                            <span className="mt-1 block text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('notesExpl', locale)}</span>
+                            <div className="space-y-1.5 py-1">
+                              {note.expl.map((p, pi) => <p key={pi} className="text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{p}</p>)}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Row>
+            );
+          })
+        ) : (
+        pagedItems.map((item) => {
           const meta = KIND_META[item.kind];
           const expanded = expandedId === item.id;
           const quote = item.exampleEn ?? (unit ? findQuote(item, unit.unit) : null);
@@ -215,9 +258,10 @@ export default function LearnView() {
               </div>
             </Row>
           );
-        })}
+        })
+        )}
       </Panel>
-      <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />
+      {filter !== 'notes' && <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />}
       <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiTarget} />
       <UnitPickerSheet open={unitSheetOpen} onClose={() => setUnitSheetOpen(false)} />
     </div>
