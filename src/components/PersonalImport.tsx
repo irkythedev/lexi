@@ -1,12 +1,15 @@
-// PersonalImport — import user word/phrase/pattern lists in Settings.
+// PersonalImport — 个人导入弹窗（纯导入流程）：粘贴 → 解析预览 → 命名 → 保存到 IndexedDB。
+// 清单的管理与学习入口在 Learn 页空态（ImportSection）；保存成功后通过 onSaved 通知父组件刷新清单。
 // Step 1: paste text (TSV: word|meaning|phonetic|example, or JSON array)
 // Step 2: review parsed rows with error report
 // Step 3: name + save to IndexedDB
-import { useEffect, useState } from 'react';
-import { X, Upload, FileText, Trash2 } from 'lucide-react';
-import { parseImport, generateImportId, type ImportResult, type ImportEntry } from '../lib/import.ts';
-import { savePersonalBatch, getPersonalBatches, deletePersonalBatch, type PersonalBatch } from '../db/db.ts';
+import { useState } from 'react';
+import { X, Upload, FileText } from 'lucide-react';
+import { parseImport, generateImportId, type ImportResult } from '../lib/import.ts';
+import { savePersonalBatch } from '../db/db.ts';
 import { useToastStore } from '../stores/toastStore.ts';
+import { useAppStore } from '../stores/useAppStore.ts';
+import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
 import { GhostButton, PrimaryButton } from './ui/primitives.tsx';
 
@@ -17,56 +20,41 @@ not only...but also|不仅...而且||She speaks not only English but also French
 # 也支持 JSON： [{"word":"...","meaning":"...","phonetic":"...","example":"..."}]
 `;
 
-export default function PersonalImport({ onClose }: { onClose: () => void }) {
+export default function PersonalImport({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
+  const locale = useAppStore((s) => s.locale);
   const [text, setText] = useState('');
   const [step, setStep] = useState<0 | 1>(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [name, setName] = useState('');
-  const [batches, setBatches] = useState<PersonalBatch[]>([]);
-
-  // Load existing batches once.
-  useEffect(() => { void getPersonalBatches().then(setBatches); }, []);
 
   const parse = () => {
     const r = parseImport(text);
     setResult(r);
-    if (r.ok.length > 0) { setStep(1); setName(`导入 ${new Date().toLocaleDateString()}`); }
+    if (r.ok.length > 0) { setStep(1); setName(t('personalImportDefaultName', locale)); }
   };
 
   const save = async () => {
     if (!result || result.ok.length === 0) return;
-    const batch: PersonalBatch = {
+    const finalName = name.trim() || t('personalImportDefaultName', locale);
+    await savePersonalBatch({
       id: generateImportId(),
-      name: name.trim() || '未命名清单',
+      name: finalName,
       entries: result.ok,
       createdAt: Date.now(),
-    };
-    await savePersonalBatch(batch);
-    setBatches(await getPersonalBatches());
-    useToastStore.getState().show(`已保存 ${result.ok.length} 条到「${batch.name}」`, 'success', 'check');
+    });
+    useToastStore.getState().show(t('personalImportSaved', locale, { count: result.ok.length, name: finalName }), 'success', 'check');
+    onSaved?.();
     // Reset to step 0 for another import.
-    setStep(0); setText(''); setResult(null);
-  };
-
-  const remove = async (id: string) => {
-    await deletePersonalBatch(id);
-    useToastStore.getState().show('已删除该清单', 'info', 'alert');
-    setBatches(await getPersonalBatches());
-  };
-
-  const countByKind = (entries: ImportEntry[]) => {
-    const c = { vocab: 0, phrase: 0, pattern: 0 };
-    for (const e of entries) c[e.type]++;
-    return c;
+    setStep(0); setText(''); setResult(null); setName('');
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4" onClick={onClose}>
-      <div className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-t-[var(--radius-panel)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)] sm:rounded-[var(--radius-panel)]"
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+      <div className="flex max-h-[88vh] w-full max-w-lg flex-col overflow-hidden rounded-[var(--radius-panel)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)]"
         onClick={(e) => e.stopPropagation()}>
 
         <div className="flex items-center justify-between border-b-2 border-[var(--color-hairline)] px-5 py-3.5">
-          <div className="flex items-center gap-2 text-[calc(15px*var(--type-scale))] font-semibold"><Upload size={17} style={{ color: 'var(--color-accent)' }} /> 个人导入</div>
+          <div className="flex items-center gap-2 text-[calc(15px*var(--type-scale))] font-semibold"><Upload size={17} style={{ color: 'var(--color-accent)' }} /> {t('personalImportTitle', locale)}</div>
           <button onClick={onClose} className="press flex h-9 w-9 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]" aria-label="关闭"><X size={17} /></button>
         </div>
 
@@ -80,33 +68,10 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
               rows={10}
               className="w-full resize-y rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-3 text-[calc(13px*var(--type-scale))] leading-relaxed outline-none focus:border-[var(--color-accent)]"
             />
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">支持 TSV（word|meaning|phonetic|example）与 JSON</span>
               <PrimaryButton onClick={parse} disabled={!text.trim()}>解析预览</PrimaryButton>
             </div>
-            {batches.length > 0 && (
-              <div className="mt-1">
-                <div className="mb-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">已导入清单</div>
-                <div className="max-h-40 space-y-1.5 overflow-y-auto">
-                  {batches.map((b) => {
-                    const c = countByKind(b.entries);
-                    return (
-                      <div key={b.id} className="flex items-center justify-between rounded-xl border-2 border-[var(--color-hairline)] px-3 py-2">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-medium">
-                            <span className="truncate">{b.name}</span>
-                            <span className="flex shrink-0 items-center gap-1 text-[calc(11px*var(--type-scale))] text-[var(--color-text-3)]">
-                              {c.vocab}词 {c.phrase}短 {c.pattern}句
-                            </span>
-                          </div>
-                        </div>
-                        <button onClick={() => void remove(b.id)} className="press flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[var(--color-trap)] hover:bg-[var(--color-trap-soft)]" aria-label="删除"><Trash2 size={14} /></button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -120,7 +85,7 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
             <div className="max-h-48 overflow-y-auto rounded-2xl border-2 border-[var(--color-hairline)]">
               {result.ok.map((e, i) => (
                 <div key={i} className="flex items-center gap-2 border-b border-[var(--color-hairline)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] last:border-b-0">
-                  <span className="inline-flex h-5 w-5 items-center justify-center rounded-full text-[calc(10px*var(--type-scale))] font-bold" style={{ background: KIND_META[e.type].soft, color: KIND_META[e.type].text }}>{KIND_META[e.type].label.zh.slice(0, 1)}</span>
+                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[calc(10px*var(--type-scale))] font-bold" style={{ background: KIND_META[e.type].soft, color: KIND_META[e.type].text }}>{KIND_META[e.type].label.zh.slice(0, 1)}</span>
                   <span className="min-w-0 flex-1 truncate font-medium">{e.label}</span>
                   <span className="max-w-[40%] truncate text-[var(--color-text-3)]">{e.meaning}</span>
                 </div>
@@ -136,7 +101,7 @@ export default function PersonalImport({ onClose }: { onClose: () => void }) {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="清单名称（可选）"
+              placeholder={t('personalImportName', locale)}
               maxLength={40}
               className="flex-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(14px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]"
             />

@@ -8,7 +8,7 @@ import { requestSpeak } from './FloatingTTS.tsx';
 import { recordReview } from '../db/db.ts';
 import { Tag } from './ui/primitives.tsx';
 
-export default function Flashcard({ items, onExit }: { items: StudyItem[]; onExit: () => void }) {
+export default function Flashcard({ items, onExit, editionId }: { items: StudyItem[]; onExit: () => void; editionId?: string }) {
   const { tts, selection } = useAppStore();
   const locale = useAppStore(s => s.locale);
   const [idx, setIdx] = useState(0);
@@ -22,7 +22,9 @@ export default function Flashcard({ items, onExit }: { items: StudyItem[]; onExi
   const prev = () => { setFlipped(false); setIdx((i) => Math.max(i - 1, 0)); };
 
   const gradeCard = async (knows: boolean) => {
-    if (selection) await recordReview({ key: `${selection.editionId}:${item.id}`, editionId: selection.editionId, itemId: item.id, kind: item.kind, q: knows ? 5 : 2 });
+    // 个人导入清单用独立的 editionId 命名空间（'personal'），避免与教材 SRS/复习进度串数据
+    const ns = editionId ?? selection?.editionId;
+    if (ns) await recordReview({ key: `${ns}:${item.id}`, editionId: ns, itemId: item.id, kind: item.kind, q: knows ? 5 : 2 });
     setTimeout(next, 420);
   };
 

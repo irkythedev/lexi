@@ -37,9 +37,9 @@ export default function FeedbackPanel({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 backdrop-blur-[1px] sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/30 backdrop-blur-[1px] p-4" onClick={onClose}>
       <div
-        className="relative w-full max-w-sm rounded-t-xl border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-overlay)] sm:rounded-xl pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-4"
+        className="relative w-full max-w-sm rounded-xl border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-overlay)]"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label={t('feedbackTitle', locale)}

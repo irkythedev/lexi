@@ -26,7 +26,7 @@ function GithubIcon({ size = 13 }: { size?: number }) {
   );
 }
 
-export default function Footer() {
+export default function Footer({ onOpenFeedback }: { onOpenFeedback?: () => void } = {}) {
   const locale = useAppStore((s) => s.locale);
   const [showWorks, setShowWorks] = useState(false);
   const [showDisclaimer, setShowDisclaimer] = useState(false);
@@ -59,7 +59,7 @@ export default function Footer() {
           <span className="hidden sm:inline">{t('footerRole', locale)}</span>
           <a href={`mailto:${FOOTER.email}`} aria-label={t('footerContact', locale)} className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-text)] transition-colors"><Mail size={14} /></a>
           {/* 反馈：邮件与作品集之间，点击弹出反馈面板 */}
-          <button type="button" onClick={() => setShowFeedback(true)} aria-label={t('feedbackTitle', locale)} title={t('feedbackTitle', locale)} className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors"><MessageSquareText size={14} /></button>
+          <button type="button" onClick={() => (onOpenFeedback ? onOpenFeedback() : setShowFeedback(true))} aria-label={t('feedbackTitle', locale)} title={t('feedbackTitle', locale)} className="inline-flex items-center text-[var(--color-text-3)] hover:text-[var(--color-accent)] transition-colors"><MessageSquareText size={14} /></button>
           {/* 其他作品：icon + 数字角标，点击展开；点击外部收起 */}
           <span ref={worksRef} className="relative inline-flex items-center">
             <button type="button" onClick={() => setShowWorks((v) => !v)} aria-expanded={showWorks} aria-label={t('footerMoreWorks', locale)}

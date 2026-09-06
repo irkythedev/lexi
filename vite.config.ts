@@ -56,7 +56,13 @@ function audioManifest(): Plugin {
 }
 
 // Vite + React 18 + Tailwind v4 + PWA.
+const pkg = JSON.parse(readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'));
+
 export default defineConfig({
+  define: {
+    // 单一版本源 = package.json；运行时代码经 APP_VERSION 读取，不再手工同步。
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   plugins: [
     react(),
     tailwindcss(),

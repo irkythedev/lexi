@@ -58,8 +58,8 @@ export default function ShareDialog({ url, onClose, title, text }: ShareDialogPr
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/30 backdrop-blur-[1px]" onClick={onClose}>
-      <div className="relative w-full max-w-xs rounded-t-xl border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-overlay)] sm:rounded-xl pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-4" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={t('share', locale)}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-[1px] p-4" onClick={onClose}>
+      <div className="relative w-full max-w-xs rounded-xl border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-overlay)]" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={t('share', locale)}>
         <div className="flex items-center justify-between mb-3">
           <h2 className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-bold text-[var(--color-text)]"><Share2 size={16} style={{ color: 'var(--color-accent)' }} /> {t('share', locale)}</h2>
           <button type="button" onClick={onClose} aria-label={t('close', locale)} className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]"><X size={16} /></button>

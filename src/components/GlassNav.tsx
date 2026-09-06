@@ -65,7 +65,7 @@ export default function GlassNav() {
                   <Share2 size={14} strokeWidth={ICON_STROKE} />
                 </button>
               </span>
-              <button type="button" onClick={() => { if (hasUpdate) handleRefresh(); else setShowChangelog(true); }} title={hasUpdate ? t('updateAvailable', locale) : t('changelogTitle', locale)} className={`group relative tnum text-[calc(11px*var(--type-scale))] font-medium leading-none text-[var(--color-text-3)] transition-colors hover:text-[var(--color-accent)] ${hasUpdate ? 'pr-2.5' : ''}`}>
+              <button type="button" onClick={() => { if (hasUpdate) handleRefresh(); else setShowChangelog(true); }} title={hasUpdate ? t('updateAvailable', locale) : t('changelogTitle', locale)} className={`group relative inline-flex items-center gap-1.5 tnum text-[calc(10.5px*var(--type-scale))] font-semibold leading-none text-[var(--color-text-3)] transition-colors hover:text-[var(--color-accent)] ${hasUpdate ? 'pr-2.5' : ''}`}>
                 <span className="inline-flex items-center gap-1.5">
                   v{FOOTER.version}
                   {hasUpdate && (

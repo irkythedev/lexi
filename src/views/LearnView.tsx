@@ -1,16 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RectangleHorizontal, Puzzle, Timer, ChevronDown, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library, Asterisk, NotebookText } from 'lucide-react';
+import { ChevronDown, ChevronRight, Eye, EyeOff, BookText, ArrowRight, TextQuote, Sparkles, ListOrdered, CaseSensitive, Link2, Library, Asterisk, NotebookText, ArrowLeftRight, PenLine, Upload, Trash2, Play, ClipboardList, Info, X } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { KIND_META } from '../lib/utils.ts';
 import { Panel, Row, Tag } from '../components/ui/primitives.tsx';
-import Flashcard from '../components/Flashcard.tsx';
-import CollocationConnector from '../components/CollocationConnector.tsx';
-import Sprint from '../components/Sprint.tsx';
+import { getPersonalBatches, deletePersonalBatch, type PersonalBatch } from '../db/db.ts';
+import { useToastStore } from '../stores/toastStore.ts';
 import ReadingView from './ReadingView.tsx';
+import InflectionDrillView from '../components/InflectionDrillView.tsx';
+import MiniWriteView from '../components/MiniWriteView.tsx';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 import UnitPickerSheet from '../components/UnitPickerSheet.tsx';
+import PersonalImport from '../components/PersonalImport.tsx';
 import SpeakButton from '../components/SpeakButton.tsx';
 import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
 import PaginationBar from '../components/PaginationBar.tsx';
@@ -22,15 +24,28 @@ import WordHighlight from '../components/WordHighlight.tsx';
 export default function LearnView() {
   const { unit, studyItems, tts, locale } = useAppStore();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<null | 'flash' | 'connector' | 'sprint' | 'reading'>(null);
+  const [mode, setMode] = useState<null | 'reading' | 'inflect' | 'miniwrite'>(null);
   const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'notes'>('all');
   const [hideCn, setHideCn] = useState(false);
-  const [modesOpen, setModesOpen] = useState(false);
   const [aiTarget, setAiTarget] = useState<AssistContext | null>(null);
   const [aiOpen, setAiOpen] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [quoteFull, setQuoteFull] = useState<Set<string>>(new Set());
   const [unitSheetOpen, setUnitSheetOpen] = useState(false);
+  const [showImport, setShowImport] = useState(false);
+  const [showGuideInfo, setShowGuideInfo] = useState(false);
+  const [showGuideList, setShowGuideList] = useState(false);
+  const [myLists, setMyLists] = useState<PersonalBatch[]>([]);
+  const toast = useToastStore((s) => s.show);
+
+  const loadMyLists = () => { void getPersonalBatches().then(setMyLists); };
+  useEffect(() => { loadMyLists(); }, []);
+
+  const removeMyList = async (id: string) => {
+    await deletePersonalBatch(id);
+    toast(t('personalImportDeleted', locale), 'info', 'alert');
+    loadMyLists();
+  };
 
   // wordlist 视图: studyItems 本身已按教材词表混排序（flattenUnit seq 排序，句式追加末尾）
   // 单词/短语视图: 各自 kind 的 seq 序（保持 wordlist 相对顺序）
@@ -43,17 +58,63 @@ export default function LearnView() {
   const pager = usePagination(visible, 20);
   const pagedItems = pager.slice;
 
-  const MODES = [
-    { id: 'flash', title: t('flashcard', locale), desc: t('flashcardDesc', locale), icon: RectangleHorizontal },
-    { id: 'connector', title: t('connector', locale), desc: t('connectorDesc', locale), icon: Puzzle },
-    { id: 'sprint', title: t('sprint', locale), desc: t('sprintDesc', locale), icon: Timer },
-  ];
+  // 导读单卡（常驻功能：导入词表 → 生成口语练习导读单；无教材空态与已选教材都显示）
+  const guideCard = (
+    <div className="mt-4 rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-panel)]">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5 text-[calc(14px*var(--type-scale))] font-bold text-[var(--color-text)]"><ClipboardList size={16} strokeWidth={2.25} style={{ color: 'var(--color-accent)' }} /> {t('learnImportCard', locale)}</div>
+          <p className="mt-0.5 text-[calc(13px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{t('learnImportCardDesc', locale)}</p>
+        </div>
+        <button onClick={() => setShowImport(true)} className="press inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-4 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white"><Upload size={16} strokeWidth={2.25} /> {t('personalImportOpen', locale)}</button>
+      </div>
 
-  if (!unit) return <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-6"><BookText size={42} strokeWidth={2} className="mx-auto text-[var(--color-text-3)]" /><p className="mt-3 mb-4 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('learnEmpty', locale)}</p><TextbookSwitcher onSelected={() => {}} /></div>;
-  if (mode === 'flash') return <Flashcard items={studyItems} onExit={() => setMode(null)} />;
-  if (mode === 'connector') return <CollocationConnector onExit={() => setMode(null)} />;
-  if (mode === 'sprint') return <Sprint onExit={() => setMode(null)} />;
+      {myLists.length > 0 && (
+        <div className="mt-4">
+          <div className="mb-2 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('personalImportSavedLists', locale)}</div>
+          <div className="space-y-2">
+            {myLists.map((b) => {
+              const c = { vocab: 0, phrase: 0, pattern: 0 };
+              for (const e of b.entries) c[e.type]++;
+              return (
+                <div key={b.id} className="flex items-center gap-2 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-3 py-2.5">
+                  <button onClick={() => navigate(`/mylists/${b.id}`)} className="press flex min-w-0 flex-1 items-center gap-3 text-left">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-white" style={{ background: 'var(--grad-cta)' }}><Play size={16} strokeWidth={2.5} /></span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-text)]">{b.name}</span>
+                      <span className="mt-0.5 block text-[calc(11.5px*var(--type-scale))] text-[var(--color-text-3)]">{c.vocab} {t('words', locale)} · {c.phrase} {KIND_META.phrase.short[locale]} · {c.pattern} {KIND_META.pattern.short[locale]}</span>
+                    </span>
+                  </button>
+                  <button onClick={() => void removeMyList(b.id)} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-trap)] hover:bg-[var(--color-trap-soft)]" aria-label={t('personalImportDeleted', locale)}><Trash2 size={15} strokeWidth={2.25} /></button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {showImport && <PersonalImport onClose={() => setShowImport(false)} onSaved={loadMyLists} />}
+    </div>
+  );
+
+  if (!unit) return (
+    <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-6">
+      <BookText size={42} strokeWidth={2} className="mx-auto text-[var(--color-text-3)]" />
+      <p className="mt-3 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('learnEmpty', locale)}</p>
+
+      {/* 选教材卡 */}
+      <div className="mt-4 rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-panel)]">
+        <div className="mb-3 text-[calc(14px*var(--type-scale))] font-bold text-[var(--color-text)]">{t('textbook', locale)}</div>
+        <TextbookSwitcher onSelected={() => {}} />
+      </div>
+
+      {/* 导读单卡（常驻） */}
+      {guideCard}
+    </div>
+  );
   if (mode === 'reading' && unit) return <ReadingView unit={unit.unit} onExit={() => setMode(null)} />;
+  if (mode === 'inflect' && unit.inflectionDrills?.length) return <InflectionDrillView drills={unit.inflectionDrills} onExit={() => setMode(null)} />;
+  if (mode === 'miniwrite' && unit.miniPrompt) return <MiniWriteView miniPrompt={unit.miniPrompt} onExit={() => setMode(null)} />;
 
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] pb-28 pt-4">
@@ -82,9 +143,20 @@ export default function LearnView() {
               </button>
             ))}
           </div>
-          <button onClick={() => navigate(`/session/${unit.unit}`)} className="press mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">
-            {t('startLearning', locale)} <ArrowRight size={16} />
-          </button>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <button onClick={() => navigate(`/session/${unit.unit}`)} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]">
+              {t('startLearning', locale)} <ArrowRight size={16} />
+            </button>
+            <button onClick={() => setShowImport(true)} className="press inline-flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-text)] shadow-[var(--shadow-card)] transition hover:bg-[var(--color-surface-2)] hover:translate-x-[1px] hover:translate-y-[1px]">
+              <Upload size={15} strokeWidth={2.25} style={{ color: 'var(--color-accent)' }} /> {t('personalImportOpen', locale)}
+            </button>
+            <button onClick={() => setShowGuideInfo(true)} aria-label={t('guideInfoTitle', locale)} title={t('guideInfoTitle', locale)} className="press self-center shrink-0 text-[var(--color-text-3)] transition hover:text-[var(--color-accent)]"><Info size={18} strokeWidth={2.25} /></button>
+          </div>
+          {myLists.length > 0 && (
+            <button onClick={() => setShowGuideList(true)} className="press mt-3 inline-flex items-center gap-1 text-[calc(12.5px*var(--type-scale))] font-medium text-[var(--color-accent)]">
+              <ClipboardList size={13} strokeWidth={2.25} /> {t('personalImportSavedLists', locale)} · {myLists.length} <ChevronRight size={13} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -100,34 +172,18 @@ export default function LearnView() {
                 <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('reading', locale)}</span>
                 <span className="mt-0.5 block truncate text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{reading.title}</span>
               </div>
-              <button onClick={() => setMode('reading')} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('enter', locale)} <ArrowRight size={14} strokeWidth={2.25} /></button>
+              <div className="flex shrink-0 items-center gap-2">
+                {unit.miniPrompt && (
+                  <button onClick={() => setMode('miniwrite')} className="press flex items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text)]"><PenLine size={14} strokeWidth={2.25} className="text-[var(--color-accent)]" /> {t('modeMiniWrite', locale)}</button>
+                )}
+                <button onClick={() => setMode('reading')} className="press flex items-center gap-1 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-3.5 py-2 text-[calc(13px*var(--type-scale))] font-semibold text-white">{t('enter', locale)} <ArrowRight size={14} strokeWidth={2.25} /></button>
+              </div>
             </div>
           </div>
         );
       })()}
 
-      {/* 练习入口：合并为一个可展开卡片 */}
-      <div className="mt-4 overflow-hidden rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-card)]">
-        <button onClick={() => setModesOpen((v) => !v)} className="press flex w-full items-center gap-3 p-4 text-left">
-          <span className="text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('practiceModes', locale)}</span>
-          <span className="ml-auto text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{t('tapToExpand', locale)}</span>
-          <ChevronDown size={18} strokeWidth={2.25} className="text-[var(--color-text-3)] transition-transform duration-200" style={{ transform: modesOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} />
-        </button>
-        <div className="overflow-hidden transition-all duration-200" style={{ maxHeight: modesOpen ? '400px' : '0px' }}>
-          <div className="border-t border-[var(--color-hairline)] p-3 space-y-2">
-            {MODES.map((m) => { const Icon = m.icon; return (
-              <div key={m.id} className="flex items-center gap-3 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] p-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] shadow-[var(--shadow-card)]" style={{ background: 'var(--color-surface)', border: '2px solid var(--color-hairline)' }}><Icon size={20} strokeWidth={2.5} /></span>
-                <span className="min-w-0 flex-1">
-                  <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{m.title}</span>
-                  <span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{m.desc}</span>
-                </span>
-                <button onClick={() => setMode(m.id as 'flash')} className="press inline-flex min-h-9 items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-3.5 py-1.5 text-[calc(13px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)]"><span>{t('enter', locale)}</span><ArrowRight size={14} strokeWidth={2.25} /></button>
-              </div>
-            ); })}
-          </div>
-        </div>
-      </div>
+      {/* 练习入口已收口至 /practice（v0.6.0）：Learn 只保留学习内容 */}
 
       <div className="mt-5 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div className="seg seg--bare">
@@ -152,8 +208,20 @@ export default function LearnView() {
 
       <Panel className="mt-3">
         {filter === 'notes' ? (
-          /* Notes 视图: 原书注释条目列表, 行展开显示翻译+讲解 */
-          notesList.map((note) => {
+          <>
+          {unit.inflectionDrills && unit.inflectionDrills.length > 0 && (
+            <div className="border-b-2 border-[var(--color-hairline)] p-3">
+              <button onClick={() => setMode('inflect')} className="press flex w-full items-center gap-3 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-3 text-left">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[12px] text-white" style={{ background: 'var(--grad-cta)' }}><ArrowLeftRight size={18} strokeWidth={2.5} /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{t('modeInflect', locale)}</span>
+                  <span className="mt-0.5 block text-[calc(12.5px*var(--type-scale))] text-[var(--color-text-2)]">{t('modeInflectDesc', locale)}</span>
+                </span>
+                <ArrowRight size={15} strokeWidth={2.25} className="text-[var(--color-text-3)]" />
+              </button>
+            </div>
+          )}
+          {notesList.map((note) => {
             const key = `note-${note.n}`;
             const expanded = expandedId === key;
             return (
@@ -191,7 +259,8 @@ export default function LearnView() {
                 </div>
               </Row>
             );
-          })
+          })}
+          </>
         ) : (
         pagedItems.map((item) => {
           const meta = KIND_META[item.kind];
@@ -265,6 +334,51 @@ export default function LearnView() {
       {filter !== 'notes' && <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />}
       <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiTarget} />
       <UnitPickerSheet open={unitSheetOpen} onClose={() => setUnitSheetOpen(false)} />
+      {showImport && <PersonalImport onClose={() => setShowImport(false)} onSaved={loadMyLists} />}
+      {showGuideInfo && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={t('guideInfoTitle', locale)}>
+          <button aria-label="close" className="absolute inset-0 bg-black/40" onClick={() => setShowGuideInfo(false)} />
+          <div className="relative w-full max-w-sm rounded-xl border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-4 shadow-[var(--shadow-overlay)]">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-bold text-[var(--color-text)]"><Info size={16} style={{ color: 'var(--color-accent)' }} /> {t('guideInfoTitle', locale)}</h2>
+              <button type="button" onClick={() => setShowGuideInfo(false)} aria-label={t('close', locale)} className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]"><X size={16} /></button>
+            </div>
+            <p className="text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">{t('guideInfoBody', locale)}</p>
+          </div>
+        </div>
+      )}
+      {showGuideList && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={t('personalImportSavedLists', locale)}>
+          <button aria-label="close" className="absolute inset-0 bg-black/40" onClick={() => setShowGuideList(false)} />
+          <div className="relative flex max-h-[78dvh] w-full max-w-sm flex-col overflow-hidden rounded-xl border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-overlay)]">
+            <div className="flex items-center justify-between border-b-2 border-[var(--color-hairline)] px-4 py-3">
+              <h2 className="flex items-center gap-2 text-[calc(14px*var(--type-scale))] font-bold text-[var(--color-text)]"><ClipboardList size={16} style={{ color: 'var(--color-accent)' }} /> {t('personalImportSavedLists', locale)}</h2>
+              <button type="button" onClick={() => setShowGuideList(false)} aria-label={t('close', locale)} className="press -m-1 flex h-8 w-8 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)]"><X size={16} /></button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-3">
+              {myLists.map((b) => {
+                const c = { vocab: 0, phrase: 0, pattern: 0 };
+                for (const e of b.entries) c[e.type]++;
+                return (
+                  <div key={b.id} className="flex items-center gap-2 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-3 py-2.5">
+                    <button onClick={() => navigate(`/mylists/${b.id}`)} className="press flex min-w-0 flex-1 items-center gap-3 text-left">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-white" style={{ background: 'var(--grad-cta)' }}><Play size={16} strokeWidth={2.5} /></span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[calc(14px*var(--type-scale))] font-semibold text-[var(--color-text)]">{b.name}</span>
+                        <span className="mt-0.5 block text-[calc(11.5px*var(--type-scale))] text-[var(--color-text-3)]">{c.vocab} {t('words', locale)} · {c.phrase} {KIND_META.phrase.short[locale]} · {c.pattern} {KIND_META.pattern.short[locale]}</span>
+                      </span>
+                    </button>
+                    <button onClick={() => void removeMyList(b.id)} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-trap)] hover:bg-[var(--color-trap-soft)]" aria-label={t('personalImportDeleted', locale)}><Trash2 size={15} strokeWidth={2.25} /></button>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="shrink-0 border-t-2 border-[var(--color-hairline)] p-3">
+              <button onClick={() => { setShowGuideList(false); setShowImport(true); }} className="press flex w-full items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-4 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white"><Upload size={15} strokeWidth={2.25} /> {t('personalImportOpen', locale)}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

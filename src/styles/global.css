@@ -37,6 +37,14 @@
   --color-trap-soft: #F8E4DC;
   --color-trap-border: #E7B6A6;
   --color-trap-deep: #8A2E1C;
+  --color-inflection: #2E7D8C;
+  --color-inflection-soft: #E0EEF1;
+  --color-inflection-border: #A9C8D0;
+  --color-inflection-deep: #1E5560;
+  --color-miniwrite: #A05A2C;
+  --color-miniwrite-soft: #F5E8DB;
+  --color-miniwrite-border: #DDB997;
+  --color-miniwrite-deep: #6E3A1A;
 
   /* Brand accent — theme-driven, default emerald. No AI gradient. */
   --color-accent: #2F6F5E;
@@ -68,8 +76,8 @@
   --shadow-cta: 2px 2px 0 color-mix(in srgb, var(--color-accent) 70%, #161513);
 
   /* Type */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
-    'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
+  --font-sans: 'Sora Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+    'SF Pro Display', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* Layout */
@@ -112,6 +120,12 @@
   --color-pattern-border: rgba(168, 154, 214, 0.5);
   --color-trap-soft: rgba(212, 90, 60, 0.16);
   --color-trap-border: rgba(224, 131, 104, 0.5);
+  --color-inflection-soft: rgba(46, 125, 140, 0.18);
+  --color-inflection-border: rgba(122, 178, 192, 0.5);
+  --color-inflection-deep: #7FC0CD;
+  --color-miniwrite-soft: rgba(160, 90, 44, 0.18);
+  --color-miniwrite-border: rgba(203, 148, 104, 0.5);
+  --color-miniwrite-deep: #D8A077;
   --color-live: #7FA896;
   --color-ai: #7FB6DF;
   /* accent is theme-driven; dark uses same theme accent (set below) */
@@ -190,7 +204,6 @@ button:focus-visible {
 .brand-stamp { filter: drop-shadow(2px 2px 0 var(--color-hairline)); }
 .dark .brand-stamp { filter: drop-shadow(2px 2px 0 rgba(228, 217, 204, 0.85)); }
 
-
 .glass-control {
   background: var(--color-surface);
   border: 2px solid var(--color-hairline);
@@ -225,8 +238,9 @@ button:focus-visible {
 .flip-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
 .flip-back { transform: rotateY(180deg); }
 
-.seg { display: inline-flex; background: var(--color-track); border: 2px solid var(--color-hairline); border-radius: var(--radius-md); padding: 3px; gap: 2px; }
-.seg button { border: 2px solid transparent; cursor: pointer; font-size: 13px; font-weight: 500; padding: 7px 15px; min-height: 36px; border-radius: var(--radius-md); background: transparent; color: var(--color-text-2); transition: all 0.25s var(--ease-out-quart); }
+.seg { display: inline-flex; max-width: 100%; background: var(--color-track); border: 2px solid var(--color-hairline); border-radius: var(--radius-md); padding: 3px; gap: 2px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.seg::-webkit-scrollbar { display: none; }
+.seg button { border: 2px solid transparent; cursor: pointer; font-size: 13px; font-weight: 500; padding: 7px 15px; min-height: 36px; border-radius: var(--radius-md); background: transparent; color: var(--color-text-2); transition: all 0.25s var(--ease-out-quart); white-space: nowrap; flex-shrink: 0; }
 .seg button.active { background: var(--color-surface); color: var(--color-text); font-weight: 600; border: 2px solid var(--color-hairline); }
 .seg--bare { background: transparent; border-color: transparent; padding: 0; }
 

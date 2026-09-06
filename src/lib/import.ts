@@ -1,5 +1,6 @@
 // Personal import — parse, validate, and store user-imported word/phrase/pattern lists.
 // Supports: TSV (word|meaning|phonetic|example), JSON array, and raw text paste.
+import type { StudyItem } from '../types/index.ts';
 
 // Field length caps (data hygiene: prevent oversized entries from bloating
 // IndexedDB, TTS requests, and AI prompts). Applied on every import path.
@@ -109,4 +110,16 @@ export function generateImportId(): string { return `import_${Date.now()}_${++im
 export function entryToStudyItemId(entry: ImportEntry, batchId: string, idx: number): string {
   const suffix = entry.type === 'phrase' ? 'p' : entry.type === 'pattern' ? 's' : 'v';
   return `${batchId}_${suffix}${idx}`;
+}
+
+/** 把导入批次的 entries 转成 StudyItem[]（打通消费：喂给闪卡/拼写/填空）。 */
+export function batchToStudyItems(batchId: string, entries: ImportEntry[]): StudyItem[] {
+  return entries.map((entry, idx): StudyItem => ({
+    id: entryToStudyItemId(entry, batchId, idx),
+    kind: entry.type,
+    label: entry.label,
+    phonetic: entry.phonetic,
+    meaning: entry.meaning,
+    exampleEn: entry.example,
+  }));
 }

@@ -1,8 +1,8 @@
 // Lexi 版本历史（面向用户的更新记录，非技术性）。
 // 语言贴近使用者而非开发者；技术细节与管理规范不在此展示。
-// APP_VERSION 与 package.json / footer.ts 同步维护。
+// APP_VERSION 单一来源 = package.json（vite.config.ts define 注入），升版本只改 package.json 一处。
 
-export const APP_VERSION = '0.5.0';
+export const APP_VERSION = __APP_VERSION__;
 
 export interface ChangelogEntry {
   version: string;
@@ -14,19 +14,43 @@ export interface ChangelogEntry {
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.6.0',
+    date: '2026-09',
+    zh: [
+      '[新增] 9A 新增词形变换与微写作练习',
+      '[新增] 支持导入自己的词表，生成口语导读单，闪卡 / 拼写 / 填空反复开口练',
+      '[新增] 学习页新增教材 Notes（注释与解析）分类，可直接筛选查看',
+      '[新增] 「AI 问答历史」：生成过的 AI 学习卡随时回看、一键清除',
+      '[新增] 朗读音频整体优化：体积更小、播放更顺、等待更短',
+      '[新增] 品牌图标与全局字体焕新',
+      '[优化] 弹窗在手机端统一居中显示',
+      '[优化] 学习页入口与筛选布局调整，窄屏不再换行错位',
+      '[优化] 更新提示显示当前版本号；英文界面文案补齐',
+    ],
+    en: [
+      '[New] Word-form and mini-writing practice added for 9A',
+      '[New] Import your own word lists into speaking guides and drill with flashcards, spelling and cloze',
+      '[New] Textbook notes (commentary & analysis) added as a category on the learning page',
+      '[New] AI Q&A history: revisit AI study cards you generated anytime, clearable in one tap',
+      '[New] Read-aloud audio upgraded: smaller, smoother, less waiting',
+      '[New] Brand icon and typeface refreshed',
+      '[Improved] Dialogs now centered on mobile',
+      '[Improved] Learning page entry and filter layout tweaks; no wrapping on narrow screens',
+      '[Improved] The update notice shows the current version; English UI copy completed',
+    ],
+  },
+  {
     version: '0.5.0',
     date: '2026-09',
     zh: [
       '[新增] 词表按教材书后词表原序排列：单词与短语按书本顺序混排，与课本对照更方便',
       '[新增] 词表行升级：词性直接标注在释义前，可标记重点词（星标），显示课本页码',
       '[新增] 学习页筛选栏显示各分类数量，一眼看清单元词量构成',
-      '[优化] 安全加固：作者署名规范、AI 学习卡内容长度保护',
     ],
     en: [
       '[New] Word lists now follow the textbook glossary order: words and phrases mixed in book order, easier to cross-check with the book',
       '[New] Upgraded word list rows: part of speech shown before the meaning, star-marking for key words, and textbook page numbers',
       '[New] Learning page filter chips now show per-category counts',
-      '[Improved] Security hardening: author attribution and AI study-card content length guards',
     ],
   },
   {
@@ -35,7 +59,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     zh: [
       '[新增] AI 学习卡讲义本：生成过的学习卡片自动保存，可随时回看、一键清除',
       '[新增] AI 追问链：卡片中的关键词可继续追问，逐层深入，回看任何一层无需重复请求',
-      '[新增] AI 用量统计：按天累计 AI 消耗（估算），明细可见，随时清零',
+      '[新增] AI 用量统计：按天累计 AI 消耗，明细可见，随时清零',
       '[新增] 课文朗读新增教材原声：官方录音逐句串流播放，可与合成朗读一键切换',
       '[新增] 学习页一键切换单元：无需返回教材页，当前教材全部单元直接选',
       '[新增] 顶栏新增分享按钮，应用可分享给同学',
@@ -97,7 +121,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       '[优化] 整体视觉改版为纸面印刷风：米纸底色、墨线描边、统一卡片层级',
       '[优化] 词条卡片操作按钮（朗读/AI/展开）紧凑成组并缩小，图标列上下对齐',
       '[优化] 顶栏图标统一：L 标识放大、右侧圆钮精简',
-      '[优化] 练习模式完善：例句数据补齐（课文回填）、AI 造句后可进入冲刺测、英文界面不再出现中文',
+      '[优化] 练习模式完善：例句数据补齐（课文回填）、AI 造句后可进入冲刺测',
       '[修复] 修复搭配拼图右侧出现中文释义的问题（无结构数据时显示空态而非假配对）',
     ],
     en: [
@@ -105,7 +129,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       '[Improved] Full visual redesign to paper-print style: warm paper background, ink outlines, unified card hierarchy',
       '[Improved] Word row action buttons (speak/AI/expand) grouped and compacted, icon column aligned',
       '[Improved] Top bar icons unified: larger L logo, slimmer round buttons',
-      '[Improved] Practice modes completed: example sentences backfilled from the textbook, AI writing now flows into the quiz, English UI has no Chinese leftovers',
+      '[Improved] Practice modes completed: example sentences backfilled from the textbook, AI writing now flows into the quiz',
       '[Fixed] Fixed collocation puzzle showing Chinese meanings (shows empty state instead of fake pairs)',
     ],
   },

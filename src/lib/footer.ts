@@ -1,8 +1,9 @@
 // Lexi 页脚——作者信息、版本、作品集、仓库链接、许可
 // 参考 stem_digt_labs Footer 架构，适配 Lexi 英语学习定位
+import { APP_VERSION } from './changelog.ts';
 
 export const FOOTER = {
-  version: '0.5.0',
+  version: APP_VERSION,
   authorRole: '英语词汇听说学习 PWA',
   authorLink: 'https://irky.dev/',
   authorIcon: '/icons/pubg-helmet.png',

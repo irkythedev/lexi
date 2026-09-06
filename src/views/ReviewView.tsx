@@ -39,6 +39,11 @@ export default function ReviewView() {
   const pager = usePagination(normalizedList, 20);
   const pagedList = pager.slice;
   const lookupItem = (id: string) => studyItems.find((i) => i.id === id);
+  // 单元角标：itemId 形如 y9au01_w01 / y9au05_p02（词形变换/微写作条目 id 前缀一致），从 id 取单元号
+  const unitBadge = (id: string) => {
+    const m = id.match(/y9au(\d{2})_/);
+    return m ? `U${parseInt(m[1], 10)}` : '';
+  };
 
   if (!unit) return <div className="mx-auto flex min-h-[70vh] max-w-[var(--max-read)] items-center justify-center px-[var(--pad-x)] py-10 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewNoUnit', locale)}</div>;
 
@@ -65,6 +70,7 @@ export default function ReviewView() {
             <Row key={(row.key || i) + '-' + i} onClick={() => setReviewItem(item)}>
               <div className="flex items-center gap-3">
                 <Tag kind={item.kind}>{meta.label[useAppStore.getState().locale]}</Tag>
+                {unitBadge(item.id) && <span className="shrink-0 rounded-[var(--radius-sm)] bg-[var(--color-track)] px-1.5 py-0.5 text-[calc(10.5px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{unitBadge(item.id)}</span>}
                 <div className="min-w-0 flex-1"><div className="truncate text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.label}</div><p className="mt-0.5 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{item.meaning}</p></div>
                 {row.srs && <span className="tnum shrink-0 text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">{intervalLabel(row.srs.interval)}</span>}
                 <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />

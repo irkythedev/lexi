@@ -116,6 +116,9 @@ export async function savePersonalBatch(batch: PersonalBatch): Promise<void> {
 export async function getPersonalBatches(): Promise<PersonalBatch[]> {
   return db.personalImports.orderBy('createdAt').reverse().toArray();
 }
+export async function getPersonalBatch(id: string): Promise<PersonalBatch | undefined> {
+  return db.personalImports.get(id);
+}
 export async function deletePersonalBatch(id: string): Promise<void> {
   await db.personalImports.delete(id);
 }

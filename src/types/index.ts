@@ -1,7 +1,7 @@
 // Central TypeScript types for the app (strict mode).
 
 // ── Knowledge item kinds (education semantics) ──
-export type Kind = 'vocab' | 'phrase' | 'pattern';
+export type Kind = 'vocab' | 'phrase' | 'pattern' | 'inflection' | 'miniwrite';
 
 // ── Core data schema (spec §2, verbatim fields) ──
 export interface Vocabulary {
@@ -79,6 +79,32 @@ export interface Unit {
   sentencePatterns: SentencePattern[];
   /** 原书 Notes（注释与解析），按条目序号排列 */
   notes: Note[];
+  /** 本单元主题微写作（30 词短输出）：依据课文的具体问题 + 单元 useful 表达 */
+  miniPrompt?: MiniPrompt;
+  /** 词形变换挖空题（时态/单复数/形副，单句） */
+  inflectionDrills?: InflectionDrill[];
+}
+
+export interface MiniPrompt {
+  id: string;
+  /** 英文题干（含约 30 词约束由 UI 模板统一呈现） */
+  question: string;
+  /** 中文题意 */
+  cn: string;
+  /** 单元 Useful expressions 中挑出的高级表达 3-5 条 */
+  useful: string[];
+}
+
+export interface InflectionDrill {
+  id: string;
+  /** 完整原句（含目标变形词） */
+  sentence: string;
+  /** 括号提示的原形 */
+  base: string;
+  /** 变形答案（精确匹配，大小写容错） */
+  answer: string;
+  /** 考点标签：tense 动词时态 | plural 名词单复数 | conversion 形副转换 | irregular 不规则变形 */
+  tag: 'tense' | 'plural' | 'conversion' | 'irregular';
 }
 
 // An edition bundle (groups units + catalog metadata).

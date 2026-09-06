@@ -1,5 +1,5 @@
 import type { Kind, Locale } from '../types/index.ts';
-import { CaseSensitive, Link2, AlignLeft, type LucideIcon } from 'lucide-react';
+import { CaseSensitive, Link2, AlignLeft, ArrowLeftRight, PenLine, type LucideIcon } from 'lucide-react';
 
 // Knowledge-type semantic tokens (spec §3). Used as accent only.
 export const KIND_META: Record<Kind, { label: Record<Locale, string>; short: Record<Locale, string>; icon: LucideIcon; tint: string; soft: string; border: string; text: string; classes: string }> = {
@@ -17,6 +17,16 @@ export const KIND_META: Record<Kind, { label: Record<Locale, string>; short: Rec
     label: { zh: '句式/语法', en: 'Pattern' }, short: { zh: '句式', en: 'Pattern' }, icon: AlignLeft,
     tint: 'var(--color-pattern)', soft: 'var(--color-pattern-soft)', border: 'var(--color-pattern-border)', text: 'var(--color-pattern-deep)',
     classes: 'bg-[var(--color-pattern-soft)] border-[var(--color-pattern-border)] text-[var(--color-pattern-deep)]',
+  },
+  inflection: {
+    label: { zh: '词形变换', en: 'Word Form' }, short: { zh: '词形', en: 'Form' }, icon: ArrowLeftRight,
+    tint: 'var(--color-inflection)', soft: 'var(--color-inflection-soft)', border: 'var(--color-inflection-border)', text: 'var(--color-inflection-deep)',
+    classes: 'bg-[var(--color-inflection-soft)] border-[var(--color-inflection-border)] text-[var(--color-inflection-deep)]',
+  },
+  miniwrite: {
+    label: { zh: '微写作', en: 'Mini Writing' }, short: { zh: '微写作', en: 'Writing' }, icon: PenLine,
+    tint: 'var(--color-miniwrite)', soft: 'var(--color-miniwrite-soft)', border: 'var(--color-miniwrite-border)', text: 'var(--color-miniwrite-deep)',
+    classes: 'bg-[var(--color-miniwrite-soft)] border-[var(--color-miniwrite-border)] text-[var(--color-miniwrite-deep)]',
   },
   // 'trap' is a display-only kind (exam traps), not a study item kind
 };

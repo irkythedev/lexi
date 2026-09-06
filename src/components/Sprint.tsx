@@ -54,6 +54,8 @@ export default function Sprint({ onExit }: { onExit: () => void }) {
   );
 }
 
+/** 微写作入口已收口移除（v0.6.0）：微写作/词形变换均为练习页平级工具卡。 */
+
 type TtsPrefs = { accent: 'us' | 'uk'; rate: number };
 
 function StepInput({ items, tts, onNext }: { items: StudyItem[]; tts: TtsPrefs; onNext: () => void }) {
@@ -248,7 +250,7 @@ function StepQuiz({ items, selection, onPrev, onExit }: { items: StudyItem[]; se
       <p className="mt-3 text-[calc(20px*var(--type-scale))] font-bold text-[var(--color-text)]">{t('sprintQuizComplete', locale)}</p>
       <p className="mt-1 tnum text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sprintQuizScore', locale, { score, total: quiz.length })}</p>
       <p className="mt-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('sprintQuizErrorsSaved', locale)}</p>
-      <div className="mt-5 flex gap-3">
+      <div className="mt-4 flex gap-3">
         <button onClick={onPrev} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))]">{t('sprintReviewPractice', locale)}</button>
         <button onClick={onExit} className="press rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('done', locale)}</button>
       </div>

@@ -51,9 +51,9 @@ export default function TokenUsageDialog({ usage, onClose, locale }: { usage: To
   }, [usage]);
 
   return createPortal(
-    <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center sm:p-4" role="dialog" aria-modal="true" aria-label={t('usageDialogTitle', locale)}>
-      <div className="absolute inset-0 bg-black/30" onClick={onClose} aria-hidden="true" />
-      <div className="safe-b relative z-10 flex max-h-[80vh] w-full flex-col overflow-hidden rounded-t-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-panel)] sm:max-w-md sm:rounded-[var(--radius-hero)]">
+    <div className="fixed inset-0 z-[80] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={t('usageDialogTitle', locale)}>
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px]" onClick={onClose} aria-hidden="true" />
+      <div className="relative z-10 flex max-h-[80vh] w-full flex-col overflow-hidden rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] shadow-[var(--shadow-panel)] sm:max-w-md">
         {/* 头部 */}
         <div className="flex shrink-0 items-center justify-between border-b border-[var(--color-hairline)] px-4 py-3">
           <div>

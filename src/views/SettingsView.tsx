@@ -1,13 +1,12 @@
 // SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + 性别(女/男声) + 试听 + i18n
 import { useEffect, useState } from 'react';
-import { Palette, Volume2, BookOpen, Upload, Check, Play, Loader2 } from 'lucide-react';
+import { Palette, Volume2, BookOpen, Check, Play, Loader2 } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented } from '../components/ui/primitives.tsx';
 import { requestSpeak, subscribeTtsState } from '../components/FloatingTTS.tsx';
 import { t } from '../lib/i18n.ts';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
-import PersonalImport from '../components/PersonalImport.tsx';
 
 const ACCENT_COLORS: Record<Accent, string> = {
   emerald: '#2F6F5E', berry: '#C45B7A', indigo: '#4F5FBF', coral: '#D45A3C',
@@ -19,7 +18,6 @@ export default function SettingsView() {
   const toast = useToastStore((s) => s.show);
   const { theme, toggleTheme, accent, setAccent, tts, setTts, unit, locale, fontScale, setFontScale } = useAppStore();
   const [editingBook, setEditingBook] = useState(false);
-  const [showImport, setShowImport] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
   const [previewState, setPreviewState] = useState<'idle' | 'synthesizing' | 'playing'>('idle');
 
@@ -165,14 +163,6 @@ export default function SettingsView() {
         {editingBook && <div className="mt-2 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] p-3"><TextbookSwitcher onSelected={() => { setEditingBook(false); }} /></div>}
       </Section>
 
-      <Section icon={Upload} title={t('personalImport', locale)}>
-        <div className="flex items-center justify-between py-1">
-          <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('personalImportDesc', locale)}</span>
-          <button onClick={() => setShowImport(true)} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-1.5 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)]">{t('personalImportOpen', locale)}</button>
-        </div>
-      </Section>
-
-      {showImport && <PersonalImport onClose={() => setShowImport(false)} />}
     </div>
   );
 }
