@@ -56,7 +56,7 @@ export default function GlassNav() {
       <header className={`glass-nav fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)] ${scrolled ? 'scrolled' : ''}`}>
         <div className="mx-auto flex h-14 max-w-[var(--max-grid)] items-center justify-between px-[var(--pad-x)]">
           <div role="button" tabIndex={0} onClick={() => navigate('/')} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate('/'); } }} className="flex items-center gap-2" style={{ cursor: 'pointer' }}>
-            <img src="/brand.png" alt="Lexi" className="h-12 w-12 shrink-0" />
+            <img src="/brand.png" alt="Lexi" className="brand-stamp h-12 w-12 shrink-0" />
             <span className="flex flex-col items-start gap-[2px]">
               <span className="flex items-center gap-1">
                 <span className="text-[calc(20px*var(--type-scale))] font-bold leading-none tracking-[-0.02em] text-[var(--color-text)]">Lexi</span>

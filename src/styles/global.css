@@ -185,6 +185,12 @@ button:focus-visible {
   background: var(--color-ground);
 }
 
+/* 顶栏品牌 icon:贴纸/印章浮雕——drop-shadow 沿透明轮廓零模糊偏移,与 --shadow-card 同源。
+   深色下墨影不可见,改浅墨色描影(受光缘/刻痕),镜像 .dark shadow 换色的既有处理。 */
+.brand-stamp { filter: drop-shadow(2px 2px 0 var(--color-hairline)); }
+.dark .brand-stamp { filter: drop-shadow(2px 2px 0 rgba(228, 217, 204, 0.85)); }
+
+
 .glass-control {
   background: var(--color-surface);
   border: 2px solid var(--color-hairline);
