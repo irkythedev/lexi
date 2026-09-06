@@ -79,6 +79,8 @@
   --font-sans: 'Sora Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Text',
     'SF Pro Display', 'Helvetica Neue', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', system-ui, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  /* 音标专用：DejaVu Sans Mono 子集（ASCII + IPA，~11KB woff2），Android 无 IPA 系统等宽字体的兜底 */
+  --font-ipa: 'IPA Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
   /* Layout */
   --max-grid: 1080px;
@@ -145,6 +147,15 @@
 
 * { -webkit-tap-highlight-color: transparent; }
 html { font-optical-sizing: auto; }
+
+/* 音标字体：子集化 DejaVu Sans Mono（含 IPA 扩展），Android 系统等宽缺 IPA 字形会出方块 */
+@font-face {
+  font-family: 'IPA Mono';
+  src: url('/fonts/ipa-mono.woff2') format('woff2');
+  font-display: swap;
+  unicode-range: U+0020-007E, U+0250-02AF, U+02C8-02CC, U+0300-036F;
+}
+.font-ipa { font-family: var(--font-ipa); }
 
 body {
   margin: 0;

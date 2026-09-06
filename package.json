@@ -1,7 +1,7 @@
 {
   "name": "lexi",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.6.1",
   "type": "module",
   "license": "AGPL-3.0",
   "description": "Lexi — 英语词汇听说学习 PWA（江苏译林教材）。纯前端本地优先：React 18 + Vite + TypeScript + Tailwind v4 + Zustand + Dexie。",

@@ -277,7 +277,7 @@ export default function LearnView() {
                         {item.receptive && <Asterisk size={14} strokeWidth={2.75} className="mr-0.5 inline-block align-baseline text-[var(--color-accent)]" aria-label="只读词" />}
                         {item.label}
                       </span>
-                      {item.phonetic && <span className="break-words font-mono text-[calc(12px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{item.phonetic}</span>}
+                      {item.phonetic && <span className="break-words font-ipa text-[calc(12px*var(--type-scale))] leading-snug text-[var(--color-text-2)]">{item.phonetic}</span>}
                     </div>
                     {/* 词表行: 词性绑定词义(sense 串, 如 "n. 手机"); 无 sense 的句式回退 meaning; 有页码时尾注 */}
                     <p className="mt-1 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">

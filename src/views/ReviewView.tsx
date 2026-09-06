@@ -114,7 +114,7 @@ function QuickReview({ item, onClose, onGraded, selection }: { item: StudyItem; 
       <div className="w-full max-w-sm rounded-[var(--radius-hero)] bg-[var(--color-surface)] p-6 shadow-[var(--shadow-overlay)]" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between"><Tag kind={item.kind}>{meta.label[locale]}</Tag><button ref={closeRef} onClick={onClose} aria-label={t('close', locale)} className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]">✕</button></div>
         <h3 className="mt-4 text-center text-[calc(28px*var(--type-scale))] font-bold tracking-[-0.02em]">{item.label}</h3>
-        {item.phonetic && <p className="text-center font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
+        {item.phonetic && <p className="text-center font-ipa text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
         {flip && <p className="mt-3 text-center text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.meaning}</p>}
         <button onClick={() => setFlip((v) => !v)} className="press mt-4 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] py-2.5 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{flip ? t('reviewHideAnswer', locale) : t('reviewShowAnswer', locale)}</button>
         <div className="mt-3 grid grid-cols-2 gap-3">

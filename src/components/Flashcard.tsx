@@ -51,7 +51,7 @@ export default function Flashcard({ items, onExit, editionId }: { items: StudyIt
             </div>
             <div className="flex flex-1 flex-col items-center justify-center text-center">
               <h2 className="text-[calc(clamp(28px,7vw,42px)*var(--type-scale))] font-bold tracking-[-0.02em] text-[var(--color-text)]">{item.label}</h2>
-              {item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
+              {item.phonetic && <p className="mt-2 font-ipa text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
               {item.pos && <p className="mt-1 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{item.pos}</p>}
               {(item.exampleEn || item.exampleCn) && (
                 <div className="mt-5 w-full rounded-[var(--radius-card)] border-2 border-[color-mix(in_srgb,var(--color-hairline)_18%,transparent)] bg-[var(--color-surface-2)] p-4 text-left">

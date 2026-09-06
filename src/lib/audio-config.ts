@@ -12,6 +12,9 @@ export interface AudioSource {
 }
 
 const BOOK = 'yilin9a';
+/** 远端音频源（COS+CDN）：构建时注入 VITE_AUDIO_CDN（如 https://lexi-audio.cos-xxx.cos.ap-xxx.myqcloud.com）；
+ *  内置 public/audio 不进 git，云端构建环境无音频 → manifest 为空时回退远端。 */
+const CDN_AUDIO_BASE = (import.meta.env.VITE_AUDIO_CDN as string | undefined)?.replace(/\/$/, '') ?? '';
 let cachedManifest: Record<string, Record<string, string>> | null = null;
 
 async function loadManifest(): Promise<Record<string, Record<string, string>>> {
@@ -24,14 +27,19 @@ async function loadManifest(): Promise<Record<string, Record<string, string>>> {
   return cachedManifest;
 }
 
-/** 解析某单元课文原声地址；不可用返回 null（原声入口隐藏） */
+/** 解析某单元课文原声地址；不可用返回 null（原声入口隐藏）。
+ *  manifest key 为 "1".."8"（vite 插件以 u(\d+) 捕获组写入），非 "u1"。 */
 export async function readingAudioSrc(unit: number): Promise<string | null> {
   if (import.meta.env.DEV) {
     // dev：vite 直接伺服 public/，文件存在与否由 <audio> onError 兜底
     return `/audio/${BOOK}/u${unit}_reading.m4a`;
   }
   const manifest = await loadManifest();
-  return manifest[BOOK]?.[`u${unit}`] ?? null;
+  const bundled = manifest[BOOK]?.[String(unit)];
+  if (bundled) return bundled;
+  // 内置缺失 → 远端 CDN 回退（CORS 不影响 <audio> 播放；404 由 onError toast 兜底）
+  if (CDN_AUDIO_BASE) return `${CDN_AUDIO_BASE}/${BOOK}/u${unit}_reading.m4a`;
+  return null;
 }
 
 /** 预留：用户上传（IndexedDB Blob → objectURL）与外链（直接 URL）统一走此口 */

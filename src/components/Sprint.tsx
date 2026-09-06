@@ -68,7 +68,7 @@ function StepInput({ items, tts, onNext }: { items: StudyItem[]; tts: TtsPrefs; 
       <div className="flex items-center justify-between"><span className="text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]">{t('sprintQuickView', locale)} {idx + 1}/{items.length}</span>
         <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={18} color={meta?.tint} /></div>
       <h3 className="mt-4 text-[calc(clamp(24px,6vw,36px)*var(--type-scale))] font-bold tracking-[-0.02em]">{item.label}</h3>
-      {item.phonetic && <p className="mt-1 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
+      {item.phonetic && <p className="mt-1 font-ipa text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{item.phonetic}</p>}
       {item.pos && <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{item.pos}</p>}
       <p className="mt-3 text-[calc(16px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.meaning}</p>
       {item.examTips && <p className="mt-2 text-[calc(13.5px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{item.examTips}</p>}

@@ -205,7 +205,7 @@ export default function SessionView() {
                 )}
               </button>
             </div>
-            {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
+            {task.item.phonetic && <p className="mt-2 font-ipa text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
             <div className="mt-3 flex items-center justify-center gap-3">
               <button onClick={() => void grade('correct')} className="press inline-flex min-h-11 items-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-5 py-2.5 text-[calc(14px*var(--type-scale))] font-semibold text-white shadow-[var(--shadow-card)] transition hover:brightness-105 hover:translate-x-[1px] hover:translate-y-[1px]" style={{ background: 'var(--grad-cta)' }}>{t('doneListening', locale)} <ChevronRight size={16} strokeWidth={2.25} /></button>
               <button onClick={() => setAiOpen(true)} className="press flex h-11 w-11 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /></button>
@@ -216,7 +216,7 @@ export default function SessionView() {
         {task.type === 'recognize' && (
           <div className="mt-6 w-full">
             <h2 className="text-[calc(clamp(28px,7vw,40px)*var(--type-scale))] font-bold tracking-[-0.02em]">{task.item.label}</h2>
-            {task.item.phonetic && <p className="mt-2 font-mono text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
+            {task.item.phonetic && <p className="mt-2 font-ipa text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
             <div className="mt-3 flex justify-center">
               <button onClick={() => { if (ttsState === 'playing' || ttsState === 'paused') { stop(); return; } speak(task.item.label, { accent: tts.accent, rate: tts.rate }); }} className="press flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-accent)] hover:bg-[var(--color-surface-2)]" aria-label={t('cardListen', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} strokeWidth={2.25} className="animate-spin" /> : ttsState === 'playing' || ttsState === 'paused' ? <Pause size={16} strokeWidth={2.25} /> : <Volume2 size={16} strokeWidth={2.25} />}</button>
             </div>

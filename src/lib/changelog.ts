@@ -14,6 +14,18 @@ export interface ChangelogEntry {
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.6.1',
+    date: '2026-09',
+    zh: [
+      '[修复] 音标在部分安卓设备上显示为方块的问题',
+      '[修复] 课文原声朗读入口在部分情况下未显示的问题',
+    ],
+    en: [
+      '[Fixed] Phonetic symbols rendering as boxes on some Android devices',
+      '[Fixed] Original textbook audio toggle not showing in some cases',
+    ],
+  },
+  {
     version: '0.6.0',
     date: '2026-09',
     zh: [
