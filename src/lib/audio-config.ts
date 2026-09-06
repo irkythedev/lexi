@@ -1,8 +1,7 @@
 // 教材原声音频源解析（Lexi 音频架构：builtin 内置 → user 用户上传 → url 外链，演进式三档）。
 //
-// builtin：同源 public/audio/<book>/u{n}_reading.m4a（mono AAC 64k）。文件不进 git（.gitignore），
-//   由 scripts/sync_audio.py 从本地教材 KB 同步；构建时 vite 插件生成
-//   dist/audio-manifest.json（音频本体不进 SW precache，运行时走 HTTP 缓存）。
+// builtin：同源 public/audio/<book>/u{n}_reading.m4a（mono AAC 64k）。音频随仓分发（2026-09 拍板），
+//   构建时 vite 插件生成 dist/audio-manifest.json（音频本体不进 SW precache，运行时走 HTTP 缓存）。
 //   dev 下无 manifest，直接探测 public 同名路径（404 由 <audio> onError → toast 兜底）。
 // user/url 两档接口预留：后续支持用户上传本地音频（IndexedDB 存 Blob）或引用外链。
 

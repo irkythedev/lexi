@@ -118,7 +118,7 @@ src/
 
 - 本应用引用的教材内容（课文、词汇、短语、句式等）版权归**教材出版方及相关权利人**所有，仅供个人学习、非商业使用。
 - 仓库内仅包含**学习用途的结构化数据引用**（词汇表、课文文本与注释的整理稿），**不含教材 PDF、扫描件或完整影印内容**。
-- 教材官方录音（如有）不随仓库分发，需自行从正版渠道获取源文件后运行 `python3 scripts/sync_audio.py` 本地生成。
+- 教材官方录音随仓库 `public/audio/` 分发（单声道 AAC，供课文原声朗读）。
 - 应用代码本身采用 AGPL-3.0 许可；教材内容与代码是两套独立的法律关系。
 - 如相关权利人认为本应用的使用构成侵权，请联系作者删除相关内容。
 
@@ -218,6 +218,6 @@ This project is open-sourced under the **GNU Affero General Public License v3 (A
 
 - The textbook content referenced by this app (reading passages, vocabulary, phrases, sentence patterns, etc.) is the property of the **textbook publisher and related rights holders**, provided for personal, non-commercial study only.
 - The repository contains only **structured data references for study purposes** (curated vocabulary lists, reading texts and notes); it does **not** include textbook PDFs, scans, or full facsimile content.
-- Official textbook audio (if any) is not distributed with the repository — obtain the source files through legitimate channels and run `python3 scripts/sync_audio.py` locally.
+- Official textbook audio is bundled under `public/audio/` (mono AAC) for the original-audio reading mode.
 - The application code is licensed under AGPL-3.0; textbook content and code are separate legal relationships.
 - If you believe any content infringes your rights, please contact the author for removal.

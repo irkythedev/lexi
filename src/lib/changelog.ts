@@ -14,6 +14,16 @@ export interface ChangelogEntry {
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.6.2',
+    date: '2026-09',
+    zh: [
+      '[优化] 课文原声朗读恢复可用，音频随应用内置',
+    ],
+    en: [
+      '[Improved] Original textbook audio is now bundled with the app',
+    ],
+  },
+  {
     version: '0.6.1',
     date: '2026-09',
     zh: [
