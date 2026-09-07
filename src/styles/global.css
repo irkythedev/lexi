@@ -215,6 +215,10 @@ button:focus-visible {
 .brand-stamp { filter: drop-shadow(2px 2px 0 var(--color-hairline)); }
 .dark .brand-stamp { filter: drop-shadow(2px 2px 0 rgba(228, 217, 204, 0.85)); }
 
+/* 横向滑动的 tab/filter 行:消化窄屏溢出但隐藏滚动条,保持纸面干净 */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 .glass-control {
   background: var(--color-surface);
   border: 2px solid var(--color-hairline);

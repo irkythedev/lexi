@@ -68,9 +68,10 @@ export default function PersonalImport({ onClose, onSaved }: { onClose: () => vo
               rows={10}
               className="w-full resize-y rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-3 text-[calc(13px*var(--type-scale))] leading-relaxed outline-none focus:border-[var(--color-accent)]"
             />
-            <div className="flex items-center justify-between gap-3">
-              <span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">支持 TSV（word|meaning|phonetic|example）与 JSON</span>
-              <PrimaryButton onClick={parse} disabled={!text.trim()}>解析预览</PrimaryButton>
+            {/* 窄屏 wrap:提示在上、按钮整行落右下;宽屏维持左右结构。按钮 shrink-0+nowrap 保单行 */}
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="mr-auto min-w-0 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{t('personalImportTsHint', locale)}</span>
+              <PrimaryButton onClick={parse} disabled={!text.trim()} className="shrink-0 whitespace-nowrap">{t('personalImportParse', locale)}</PrimaryButton>
             </div>
           </div>
         )}

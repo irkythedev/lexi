@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Clock, History, Shuffle, X } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem, Kind } from '../types/index.ts';
@@ -16,6 +17,7 @@ type Tab = 'due' | 'recent' | 'traps';
 
 export default function ReviewView() {
   const { unit, studyItems, selection, tts } = useAppStore();
+  const navigate = useNavigate();
   const locale = useAppStore(s => s.locale);
   const [progress, setProgress] = useState<Awaited<ReturnType<typeof getAllProgress>>>([]);
   const [errors, setErrors] = useState<Awaited<ReturnType<typeof getErrors>>>([]);
@@ -51,7 +53,8 @@ export default function ReviewView() {
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] pb-28 pt-4">
       <div className="mb-3"><h2 className="text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('reviewTitle', locale)}</h2><p className="mt-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewDesc', locale)}</p></div>
 
-      <div className="mb-4 flex gap-2">
+      {/* FilterTab 行:宽屏三 tab 仍 flex-1 撑满;窄屏 min-w-fit 保内容宽,容器横向滑动,文字不折行 */}
+      <div className="no-scrollbar mb-4 flex gap-2 overflow-x-auto">
         <FilterTab active={tab === 'due'} onClick={() => setTab('due')} icon={Clock} label={t('reviewDue', locale)} count={dueItems.length} />
         <FilterTab active={tab === 'recent'} onClick={() => setTab('recent')} icon={History} label={t('reviewRecent', locale)} count={recentMistakes.length} />
         <FilterTab active={tab === 'traps'} onClick={() => setTab('traps')} icon={Shuffle} label={t('reviewTraps', locale)} count={traps.length} />
@@ -83,7 +86,10 @@ export default function ReviewView() {
       <PaginationBar page={pager.page} totalPages={pager.totalPages} onPrev={pager.prev} onNext={pager.next} />
 
       {tab === 'recent' && recentMistakes.length > 0 && (
-        <div className="mt-3 flex justify-end"><button onClick={async () => { await clearResolvedErrors(); load(); }} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewClear', locale)}</button></div>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <button onClick={() => navigate('/errors')} className="press min-w-fit whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewOpenErrors', locale)}</button>
+          <button onClick={async () => { await clearResolvedErrors(); load(); }} className="press min-w-fit shrink-0 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('reviewClear', locale)}</button>
+        </div>
       )}
 
       {reviewItem && <QuickReview item={reviewItem} onClose={() => setReviewItem(null)} onGraded={load} selection={selection} />}
@@ -92,8 +98,9 @@ export default function ReviewView() {
 }
 
 function FilterTab({ active, onClick, icon: Icon, label, count }: { active: boolean; onClick: () => void; icon: typeof Clock; label: string; count: number }) {
-  return <button onClick={onClick} className="press flex flex-1 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 py-2 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: active ? 'var(--color-accent)' : 'var(--color-hairline)', background: active ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
-      <Icon size={15} strokeWidth={2.25} /> {label}<span className="tnum ml-0.5 rounded-[var(--radius-sm)] bg-[var(--color-track)] px-1.5 text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">{count}</span></button>;
+  // min-w-fit + whitespace-nowrap:文字与计数保持单行,窄屏由容器横向滑动消化溢出
+  return <button onClick={onClick} className="press flex min-w-fit flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 py-2 text-[calc(13px*var(--type-scale))] font-medium" style={{ borderColor: active ? 'var(--color-accent)' : 'var(--color-hairline)', background: active ? 'color-mix(in srgb, var(--color-accent) 10%, transparent)' : 'var(--color-surface)', color: active ? 'var(--color-accent)' : 'var(--color-text-2)' }}>
+      <Icon size={15} strokeWidth={2.25} className="shrink-0" /> {label}<span className="tnum ml-0.5 shrink-0 rounded-[var(--radius-sm)] bg-[var(--color-track)] px-1.5 text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">{count}</span></button>;
 }
 
 function QuickReview({ item, onClose, onGraded, selection }: { item: StudyItem; onClose: () => void; onGraded: () => void; selection: { editionId: string } | null }) {
