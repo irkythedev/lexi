@@ -18,11 +18,13 @@ import WordHighlight from './WordHighlight.tsx';
 import DisclaimerDialog from './DisclaimerDialog.tsx';
 
 export interface AssistContext {
-  label: string;       // 当前词/句
+  label: string;       // 当前词/句/课文标题
   meaning?: string;    // 释义（可选）
-  kind?: string;       // vocab | phrase | pattern | notes
+  kind?: string;       // vocab | phrase | pattern | notes | reading
+  mode?: 'word' | 'reading'; // reading = 整篇课文导读（prompt-v3.3），不复用词卡口径
   quote?: string;      // 教材原文例句（可选，命中课文时 AI 例句优先采用）
   extra?: string;      // 额外上下文（课文/注释原文，经 passage 通道下发，不进词表标签）
+  fullText?: string;   // reading 模式：课文 paragraphs 全文（按字数超限截断在 prompt 内处理）
   unitWords?: string[]; // 本单元词表（词+短语），用于讲解对齐与例句 i+1 约束
   grade?: number;      // 年级（学段锚定：≥10 高中，否则初中）
   unitTitle?: string;  // 单元标题
@@ -45,9 +47,14 @@ function SpeakInline({ text, accent, rate, fontSize = 'inherit', bold = false }:
   );
 }
 
-/** 学习卡片展示（AI 面板与讲义本回放共用）。onProbe：点击段上的追问 chip（probe 非空时才渲染）。 */
-export function StudyCardView({ card, accent, rate, highlight, onProbe }: { card: StudyCard; accent: 'us' | 'uk'; rate: number; highlight?: string; onProbe?: (segText: string, probe: string) => void }) {
+/** 学习卡片展示（AI 面板与讲义本回放共用）。onProbe：点击段上的追问 chip（probe 非空时才渲染）。
+ *  variant='reading'：课文导读四段标签（主旨/脉络/好句/难词难句），不显示词卡的「释义/考点」。 */
+export function StudyCardView({ card, accent, rate, highlight, onProbe, variant }: { card: StudyCard; accent: 'us' | 'uk'; rate: number; highlight?: string; onProbe?: (segText: string, probe: string) => void; variant?: 'word' | 'reading' }) {
   const locale = useAppStore((s) => s.locale);
+  const reading = variant === 'reading';
+  const labels = reading
+    ? { def: t('aiGuideGist', locale), usage: t('aiGuideFlow', locale), example: t('aiGuideQuote', locale), exam: t('aiGuideHard', locale) }
+    : { def: t('aiCardDefinition', locale), usage: t('aiCardUsage', locale), example: t('aiCardExample', locale), exam: t('aiCardExam', locale) };
 
   const renderSeg = (s: StudySegment, i: number) => (
     <li key={i} className="text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">
@@ -68,26 +75,26 @@ export function StudyCardView({ card, accent, rate, highlight, onProbe }: { card
 
   return (
     <div className="space-y-3">
-      {/* 释义 */}
+      {/* 释义 / 导读主旨 */}
       <div>
-        <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardDefinition', locale)}</div>
+        <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{labels.def}</div>
         <p className="mt-0.5 text-[calc(14.5px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{card.definition}</p>
       </div>
 
-      {/* 用法 */}
+      {/* 用法 / 段落脉络 */}
       {card.usage.length > 0 && (
         <div>
-          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardUsage', locale)}</div>
+          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{labels.usage}</div>
           <ul className="mt-1 space-y-1">
             {card.usage.map(renderSeg)}
           </ul>
         </div>
       )}
 
-      {/* 例句（整句一个按钮） */}
+      {/* 例句 / 原文好句（整句一个按钮） */}
       {card.example.en && (
         <div>
-          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardExample', locale)}</div>
+          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{labels.example}</div>
           <div className="mt-1 flex items-start gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">
             <SpeakButton text={card.example.en.trim()} accent={accent} rate={rate} size={13} compact className="mt-0.5 h-6 w-6" color="var(--color-accent)" />
             <div className="min-w-0">
@@ -98,10 +105,10 @@ export function StudyCardView({ card, accent, rate, highlight, onProbe }: { card
         </div>
       )}
 
-      {/* 考点 */}
+      {/* 考点 / 难词难句 */}
       {card.examTips.length > 0 && (
         <div>
-          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardExam', locale)}</div>
+          <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{labels.exam}</div>
           <ul className="mt-1 space-y-1">
             {card.examTips.map(renderSeg)}
           </ul>
@@ -138,8 +145,9 @@ export default function AiAssistPanel({
   useEffect(() => { scrollRef.current?.scrollTo({ top: 9e9 }); }, [card, busy]);
   useEffect(() => { if (!open) { setCard(null); setBusy(false); setErr(''); setTokens(0); setViews([]); setIdx(0); } }, [open]);
 
-  // 讲义本去重键：edition:unit:kind:label（ReadingView 场景 selection 由 Learn 单元入口保证非空）
-  const noteKey = context && unit && selection
+  // 讲义本去重键：edition:unit:kind:label（ReadingView 场景 selection 由 Learn 单元入口保证非空）。
+  // reading 模式（课文导读）不入讲义本：不与词/短语/句式/注释卡混列（prompt-v3.3 拍板）。
+  const noteKey = context && context.mode !== 'reading' && unit && selection
     ? `${selection.editionId}:u${selection.unit}:${context.kind ?? 'vocab'}:${context.label}`
     : null;
 
@@ -150,16 +158,18 @@ export default function AiAssistPanel({
     if (mode === 'study') { setViews([]); setIdx(0); } // 主卡/重试/切词：追问链归零
     const msg = mode === 'follow' && parent
       ? followUpPrompt(parent.segment, parent.probe, context.label, parent.depth)
-      : studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords);
+      : studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords, { mode: context.mode, fullText: context.fullText });
     // prompt-v3.2 knowledge 通道分离：词表进 knowledge（词表标签），课文/注释原文进
     // passage（原句标签）。废除 v1 的 `extra ?? 词表字符串` 混装——曾把整段课文
     // 标注成「当前单元词表」，模型据此错判语料性质。
+    // reading 模式（v3.3）：课文全文走 user prompt（studyCardPrompt fullText），
+    // system 的 passage 通道留空，避免同一篇课文在 system/user 里重复占 token。
     const unitWordsStr = context.unitWords?.length ? `本单元词表：${context.unitWords.slice(0, 40).join('、')}` : undefined;
     const knowledge = unit
       ? [unitWordsStr].filter(Boolean).join('\n') || undefined
       : unitWordsStr;
-    const passage = context.extra ?? context.quote;
-    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, passage, grade: context.grade });
+    const passage = context.mode === 'reading' ? undefined : (context.extra ?? context.quote);
+    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, passage, mode: context.mode, grade: context.grade });
     setTokens((n) => n + estimateTokens(sysPrompt) + estimateTokens(msg));
     addTokenUsage(cfg.model, estimateTokens(sysPrompt) + estimateTokens(msg));
     try {
@@ -233,15 +243,17 @@ export default function AiAssistPanel({
     void requestCard('follow', { segment, probe, depth: idx + 1 });
   }, [busy, views, idx, requestCard]);
 
-  // 打开即自动生成学习卡片（词条切换时自动再来一张）
+  // 打开即自动生成学习卡片（词条切换时自动再来一张）。
+  // reading 例外：关掉再开同一课文（autoKey 相同）面板会空白，此时重新生成。
   const autoKey = open ? context?.label : undefined;
   const lastAutoKey = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (open && autoKey && autoKey !== lastAutoKey.current) {
+    const reading = context?.mode === 'reading';
+    if (open && autoKey && (autoKey !== lastAutoKey.current || (reading && !card && !busy && !err))) {
       lastAutoKey.current = autoKey;
       void study();
     }
-  }, [open, autoKey, study]);
+  }, [open, autoKey, study, context?.mode, card, busy, err]);
 
   // 拖拽 / 缩放（桌面端 pointer 事件）
   const startDrag = (e: React.PointerEvent) => {
@@ -337,7 +349,7 @@ export default function AiAssistPanel({
                 ))}
               </div>
             )}
-            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={idx >= 2 ? undefined : onProbe} />}
+            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={idx >= 2 ? undefined : onProbe} variant={context?.mode === 'reading' ? 'reading' : 'word'} />}
             {err && (
               <div className="min-w-0 rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3">
                 <p className="max-h-40 overflow-y-auto break-all text-[calc(12.5px*var(--type-scale))] leading-relaxed text-[var(--color-trap)]" style={{ overflowWrap: 'anywhere' }}>{err}</p>

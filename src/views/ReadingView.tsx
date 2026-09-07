@@ -87,23 +87,22 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
 
   const reading = useMemo(() => UNIT_READINGS.find((r) => r.unit === unit), [unit]);
 
-  // 句子级 AI（诊断收口）：不再有篇级入口，课文标题禁走词卡管线。
-  // 仅激活句可问：kind=notes（教材注释句子口径），quote=该句（例句强制采用原文），
-  // grade/unitWords 从 store 的 Unit 下发，课文段落不再进 knowledge。
+  // 整篇课文导读（prompt-v3.3）：context=标题+mode=reading+课文 paragraphs 全文。
+  // 禁止 slice(0,3)；超限截断按字数在 studyCardPrompt 内处理；课文不进 knowledge/passage 词表通道。
   const [aiOpen, setAiOpen] = useState(false);
-  const [aiSentence, setAiSentence] = useState<string | null>(null);
   const aiContext: AssistContext | null = useMemo(() => {
-    if (!aiSentence) return null;
+    if (!reading) return null;
     return {
-      label: aiSentence,
-      kind: 'notes',
-      quote: aiSentence,
-      extra: aiSentence,
+      label: reading.title,
+      meaning: `Unit ${unit} 课文：${reading.title}`,
+      kind: 'reading',
+      mode: 'reading',
+      fullText: reading.paragraphs.join('\n\n'),
       unitWords: unitInfo ? [...unitInfo.vocabularies.map((v) => v.word), ...unitInfo.phrases.map((p) => p.phrase)] : undefined,
       grade: unitInfo?.grade,
       unitTitle: unitInfo?.title,
     };
-  }, [aiSentence, unitInfo]);
+  }, [reading, unit, unitInfo]);
 
   // 展平为句子数组
   const sentences = useMemo(() => {
@@ -290,19 +289,6 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
                     style={{ borderRadius: 4, ...(isActive ? { fontSize: 'calc(18px*var(--type-scale))', fontWeight: 700 } : {}) }}
                   >
                     {s}{' '}
-                    {isActive && (
-                      <span
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => { e.stopPropagation(); setAiSentence(s); setAiOpen(true); }}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAiSentence(s); setAiOpen(true); } }}
-                        className="press relative z-10 mx-0.5 inline-flex h-5 w-5 -translate-y-px cursor-pointer items-center justify-center rounded-full align-middle text-[var(--color-ai)] hover:bg-[var(--color-surface-2)]"
-                        aria-label={t('aiReading', locale)}
-                        title={t('aiReading', locale)}
-                      >
-                        <Sparkles size={13} strokeWidth={2.25} />
-                      </span>
-                    )}
                   </button>
                 );
               })}
@@ -311,12 +297,9 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
         })}
       </div>
 
-      {/* 句子级 AI 辅助面板：context 由激活句构造，关面板清句子 */}
-      <AiAssistPanel
-        open={aiOpen}
-        onClose={() => { setAiOpen(false); setAiSentence(null); }}
-        context={aiContext}
-      />
+      {/* 整篇课文导读（prompt-v3.3）：入口在课文页文末，点开生成导读卡，不再有句子级 ✦ */}
+      <button onClick={() => setAiOpen(true)} className="press mt-5 inline-flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-ai)] hover:underline"><Sparkles size={14} strokeWidth={2.25} /> {t('aiReading', locale)}</button>
+      <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiContext} />
     </div>
   );
 }
