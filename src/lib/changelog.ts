@@ -14,6 +14,30 @@ export interface ChangelogEntry {
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.7.0',
+    date: '2026-09',
+    zh: [
+      '[新增] 课文页 AI 整篇导读：围绕本课词表与注释的追问式讲解，支持多轮追问与回看',
+      '[优化] 课文逐句朗读更贴近自然停顿，引号内对话不再被读碎',
+      '[优化] 朗读按钮状态更清晰：播放中再点即停止，合成中有明确等待提示',
+      '[修复] AI 修复场景更稳定：回答为空自动重试、追问等待有提示、历史回看正常',
+      '[修复] AI 讲解更贴合本课内容：词条卡与微写作批改对齐本单元词表与课文',
+      '[修复] 部分手机窄屏下按钮与页签折行、设置页开关显示问题',
+      '[修复] 学习页直达链接偶发空白的问题',
+      '[优化] 练习页入口重排：本课作业类练习前置，缺少素材的模式自动隐藏',
+    ],
+    en: [
+      '[New] Full-passage AI guide on the reading page: follow-up explanations aligned with the unit word list and notes, with multi-turn follow-ups and history',
+      '[Improved] Sentence-by-sentence reading now pauses more naturally; quoted dialogue no longer gets split mid-sentence',
+      '[Improved] Clearer speaker button states: tap again to stop while playing, with explicit wait feedback while synthesizing',
+      '[Fixed] AI flows are more reliable: empty replies retry automatically, waiting states show hints, history revisits correctly',
+      '[Fixed] AI explanations stick closer to the current lesson: word cards and writing feedback align with the unit word list and passage',
+      '[Fixed] Button and tab wrapping on narrow phone screens; settings toggle display issues',
+      '[Fixed] Occasional blank state when opening the learn page via direct link',
+      '[Improved] Practice entries reorganized: lesson-assignment drills come first, modes without source material are hidden',
+    ],
+  },
+  {
     version: '0.6.2',
     date: '2026-09',
     zh: [

@@ -164,7 +164,7 @@ const yilinG9a: Edition = {
       miniPrompt: {
         id: 'y9au02_mp',
         question: 'A friend of yours is stressed about exams. What advice would you give?',
-        cn: '朋友考前压力大，你会给什么建议？（依据本课青少年问题话题，约 30 词）。',
+        cn: '朋友压力比较大，你会给什么建议？（依据本课青少年问题话题，约 30 词）。',
         useful: ['I’m sorry to hear …', 'You are having trouble with …', '… is a serious/common/terrible problem.', 'Remember that …, and that matters.', 'Have you tried …?'],
       },
       inflectionDrills: [
