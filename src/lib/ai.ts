@@ -89,16 +89,20 @@ export async function fetchModels(baseUrl: string, apiKey: string): Promise<stri
 // prompt-v2 (2026-09-04): 拆分卡片/批改两套 system prompt（v1 单套混杂两种职责）。
 // 批改口径：三档评价（好/可/需改）+ 0-100 粗估分，明确"AI 估算"性质，禁止伪精度。
 // 卡片口径：knowledge 支持传单元词表（词+释义），例句词汇受已学词约束（i+1）。
-export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string; grade?: number } = {}): string {
+export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string; passage?: string; grade?: number } = {}): string {
   const stage = args.grade ? (args.grade >= 10 ? '高中' : '初中') : '初中/高中';
+  // knowledge 与 passage 是两种性质的语料，标签必须分开（prompt-v3.2）：
+  // knowledge = 单元词表（约束讲解深度与例句用词 i+1）；
+  // passage = 课文/原句原文（只做语境与例句来源，禁止当成词表）。
   const k = args.knowledge ? `\n当前单元词表（讲解深度、例句用词请对齐这个范围，内容不足时说明并建议查阅教材）：\n${args.knowledge}` : '';
+  const p = args.passage ? `\n课文/原句原文（仅作语境与例句来源，这不是词表，讲解时不要把它当单词罗列）：\n${args.passage}` : '';
   return [
     `你是一名面向中国${stage}学生的英语学霸辅导老师，专注课本词汇、短语、固定搭配与句式语法。`,
     '职责范围：仅做知识讲解、概念辨析、造句批改与考点拓展；',
     '拒绝医疗/法律/金融等非学习建议，拒绝违法违规内容，面向未成年人输出积极健康。',
     '回答用简体中文为主，英语例句附中文释义；条理清晰，便于记忆。',
     '若要求结构化 JSON，请只输出可解析的 JSON，不要额外解释文字。',
-    `当前学习单元：${args.unitTitle || '未指定'}。${k}`,
+    `当前学习单元：${args.unitTitle || '未指定'}。${k}${p}`,
     '免责：AI 生成内容仅供参考，请以学校教材和任课老师讲解为准。',
   ].join('\n');
 }

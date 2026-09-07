@@ -20,9 +20,9 @@ import DisclaimerDialog from './DisclaimerDialog.tsx';
 export interface AssistContext {
   label: string;       // 当前词/句
   meaning?: string;    // 释义（可选）
-  kind?: string;       // vocab | phrase | pattern
+  kind?: string;       // vocab | phrase | pattern | notes
   quote?: string;      // 教材原文例句（可选，命中课文时 AI 例句优先采用）
-  extra?: string;      // 额外上下文（如课文段落）
+  extra?: string;      // 额外上下文（课文/注释原文，经 passage 通道下发，不进词表标签）
   unitWords?: string[]; // 本单元词表（词+短语），用于讲解对齐与例句 i+1 约束
   grade?: number;      // 年级（学段锚定：≥10 高中，否则初中）
   unitTitle?: string;  // 单元标题
@@ -151,10 +151,15 @@ export default function AiAssistPanel({
     const msg = mode === 'follow' && parent
       ? followUpPrompt(parent.segment, parent.probe, context.label, parent.depth)
       : studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords);
-    const knowledge = context.extra
-      ?? (unit ? `${unit.editionName} Unit ${unit.unit}${context.unitWords?.length ? `\n本单元词表：${context.unitWords.slice(0, 40).join('、')}` : ''}` : undefined)
-      ?? (context.unitWords?.length ? `本单元词表：${context.unitWords.slice(0, 40).join('、')}` : undefined);
-    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, grade: context.grade });
+    // prompt-v3.2 knowledge 通道分离：词表进 knowledge（词表标签），课文/注释原文进
+    // passage（原句标签）。废除 v1 的 `extra ?? 词表字符串` 混装——曾把整段课文
+    // 标注成「当前单元词表」，模型据此错判语料性质。
+    const unitWordsStr = context.unitWords?.length ? `本单元词表：${context.unitWords.slice(0, 40).join('、')}` : undefined;
+    const knowledge = unit
+      ? [unitWordsStr].filter(Boolean).join('\n') || undefined
+      : unitWordsStr;
+    const passage = context.extra ?? context.quote;
+    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, passage, grade: context.grade });
     setTokens((n) => n + estimateTokens(sysPrompt) + estimateTokens(msg));
     addTokenUsage(cfg.model, estimateTokens(sysPrompt) + estimateTokens(msg));
     try {

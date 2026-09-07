@@ -67,7 +67,7 @@ function splitSentences(text: string): string[] {
 }
 
 export default function ReadingView({ unit, onExit }: { unit: number; onExit: () => void }) {
-  const { tts, locale } = useAppStore();
+  const { tts, locale, unit: unitInfo } = useAppStore();
   const { speak, stop, state: ttsState } = useSpeak();
   const [playing, setPlaying] = useState(false);
   const [sentenceIdx, setSentenceIdx] = useState(0);
@@ -87,13 +87,23 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
 
   const reading = useMemo(() => UNIT_READINGS.find((r) => r.unit === unit), [unit]);
 
+  // 句子级 AI（诊断收口）：不再有篇级入口，课文标题禁走词卡管线。
+  // 仅激活句可问：kind=notes（教材注释句子口径），quote=该句（例句强制采用原文），
+  // grade/unitWords 从 store 的 Unit 下发，课文段落不再进 knowledge。
   const [aiOpen, setAiOpen] = useState(false);
-  const aiContext: AssistContext | null = reading ? {
-    label: reading.title,
-    meaning: `Unit ${unit} 课文：${reading.title}`,
-    kind: 'pattern',
-    extra: reading.paragraphs.slice(0, 3).join('\n'),
-  } : null;
+  const [aiSentence, setAiSentence] = useState<string | null>(null);
+  const aiContext: AssistContext | null = useMemo(() => {
+    if (!aiSentence) return null;
+    return {
+      label: aiSentence,
+      kind: 'notes',
+      quote: aiSentence,
+      extra: aiSentence,
+      unitWords: unitInfo ? [...unitInfo.vocabularies.map((v) => v.word), ...unitInfo.phrases.map((p) => p.phrase)] : undefined,
+      grade: unitInfo?.grade,
+      unitTitle: unitInfo?.title,
+    };
+  }, [aiSentence, unitInfo]);
 
   // 展平为句子数组
   const sentences = useMemo(() => {
@@ -280,6 +290,19 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
                     style={{ borderRadius: 4, ...(isActive ? { fontSize: 'calc(18px*var(--type-scale))', fontWeight: 700 } : {}) }}
                   >
                     {s}{' '}
+                    {isActive && (
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => { e.stopPropagation(); setAiSentence(s); setAiOpen(true); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setAiSentence(s); setAiOpen(true); } }}
+                        className="press relative z-10 mx-0.5 inline-flex h-5 w-5 -translate-y-px cursor-pointer items-center justify-center rounded-full align-middle text-[var(--color-ai)] hover:bg-[var(--color-surface-2)]"
+                        aria-label={t('aiReading', locale)}
+                        title={t('aiReading', locale)}
+                      >
+                        <Sparkles size={13} strokeWidth={2.25} />
+                      </span>
+                    )}
                   </button>
                 );
               })}
@@ -288,9 +311,12 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
         })}
       </div>
 
-      {/* AI 辅助 */}
-      <button onClick={() => setAiOpen(true)} className="press mt-5 inline-flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-ai)] hover:underline"><Sparkles size={14} strokeWidth={2.25} /> {t('aiReading', locale)}</button>
-      <AiAssistPanel open={aiOpen} onClose={() => setAiOpen(false)} context={aiContext} />
+      {/* 句子级 AI 辅助面板：context 由激活句构造，关面板清句子 */}
+      <AiAssistPanel
+        open={aiOpen}
+        onClose={() => { setAiOpen(false); setAiSentence(null); }}
+        context={aiContext}
+      />
     </div>
   );
 }
