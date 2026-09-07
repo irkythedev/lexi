@@ -12,10 +12,58 @@ import { useToastStore } from '../stores/toastStore.ts';
 import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
 import { t } from '../lib/i18n.ts';
 
-// 按句分割（保留分隔符让句子朗读时带标点停顿）
+// 按句分割（引号感知）：引号必须跟它所包的话在一起——
+//  1. 句末标点若在未闭引号内且下一个字符不是 ” → 不切（引号内多句保持一体）；
+//  2. ” 紧跟句末标点 → 闭引号并入本句后切；
+//  3. ” 后的短归属语（小写开头或 ≤3 词，如 asked Sue, as she…）→ 并入本句再切；
+//  4. “…,” + 归属语, + 重开引号 → 归属语随前句切出（“…,” Father said,）。
 function splitSentences(text: string): string[] {
-  const parts = text.match(/[^.!?]+[.!?]*/g);
-  return parts ? parts.map((s) => s.trim()).filter(Boolean) : [text.trim()].filter(Boolean);
+  const TERM = '.!?”';
+  const OPEN = '“';
+  const CLOSE = '”';
+  const out: string[] = [];
+  let buf = '';
+  let inQuote = false;
+  const push = () => { const s = buf.trim(); if (s) out.push(s); buf = ''; };
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    buf += ch;
+    if (ch === OPEN) { inQuote = true; i++; continue; }
+    if (ch === CLOSE) {
+      inQuote = false;
+      const prev = buf.length >= 2 ? buf[buf.length - 2] : '';
+      if (prev === '.' || prev === '!' || prev === '?') {
+        // 向后看归属语段（到下一句末标点或重开引号为止）
+        let j = i + 1; let seg = '';
+        while (j < text.length && !TERM.includes(text[j]) && text[j] !== OPEN) { seg += text[j]; j++; }
+        const s = seg.trim();
+        const hasQuote = s.includes(OPEN) || s.includes(CLOSE);
+        const lower = s.length > 0 && s[0] >= 'a' && s[0] <= 'z';
+        const words = s.split(/\s+/).filter(Boolean).length;
+        if (s && !hasQuote && (lower || words <= 3)) { i++; continue; } // 归属语并入，到其标点再切
+        push();
+      } else if (prev === ',') {
+        // “…,” + 归属语 + 重开引号：归属语随前句切出，重开引号内容独立成句
+        let j = i + 1; let seg = '';
+        while (j < text.length && text[j] !== OPEN && !TERM.includes(text[j])) { seg += text[j]; j++; }
+        const s = seg.trim();
+        if (s && !s.includes(OPEN) && !s.includes(CLOSE) && s.endsWith(',')) push();
+      }
+      i++; continue;
+    }
+    if (TERM.includes(ch)) {
+      let j = i + 1;
+      while (j < text.length && text[j] === ' ') j++;
+      const nxt = j < text.length ? text[j] : '';
+      if (inQuote && nxt !== CLOSE) { i++; continue; } // 引号内标点：后面不是 ” 就不切
+      if (nxt === CLOSE) { i++; continue; }            // 闭引号紧跟标点：等 ” 到达时一起切
+      push();
+    }
+    i++;
+  }
+  push();
+  return out;
 }
 
 export default function ReadingView({ unit, onExit }: { unit: number; onExit: () => void }) {
