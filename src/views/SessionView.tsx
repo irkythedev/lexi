@@ -68,7 +68,7 @@ export default function SessionView() {
   // Restore reviewDone (completion screen) when a finished session is reopened.
   useEffect(() => {
     const snap = getSessionSnapshot(snapshotKey);
-    if (snap?.reviewDone) setReviewDone(true);
+    if (snap?.reviewDone && snap.queue.length > 0) setReviewDone(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

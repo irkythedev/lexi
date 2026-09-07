@@ -79,7 +79,10 @@ export function useSessionEngine(opts: {
   const { items, editionId, includeSpell = true, onComplete, restoreKey } = opts;
 
   // Restore from module-level cache if present (SPA navigation round-trip).
-  const saved = restoreKey ? getSessionSnapshot(restoreKey) : undefined;
+  // 空 queue 的快照视为无效（React 18 StrictMode dev 双挂载：mount#1 在 hydrate 前卸载，
+  // 把空 queue 写进缓存，mount#2 若照单全收会永久空队列卡死 → 深链直载空态）。
+  const rawSaved = restoreKey ? getSessionSnapshot(restoreKey) : undefined;
+  const saved = rawSaved && rawSaved.queue.length > 0 ? rawSaved : undefined;
 
   const [queue, setQueue] = useState<Task[]>(() => {
     if (saved) return saved.queue;
@@ -139,6 +142,16 @@ export function useSessionEngine(opts: {
   }, [pos, queue.length]);
 
   const skip = useCallback(() => { void mark('skip'); }, [mark]);
+
+  // 启动竞态修补：整页直载深链（如 /session/1）时，首帧 hydrate 未完成、items=[]，
+  // useState 初始化把 queue 建成空数组且永不重建 → task=null 空态卡死（selection 其实已持久化恢复）。
+  // 无快照且队列空、而 items 已就绪时补建一次；有快照（SPA 往返/续学）不干预，四步进度算法不动。
+  useEffect(() => {
+    if (saved || queue.length > 0 || items.length === 0) return;
+    const fresh = buildQueue(items, includeSpell);
+    setQueue(fresh);
+    setStats({ total: fresh.length, done: 0, correct: 0, wrong: 0, skipped: 0 });
+  }, [saved, queue.length, items, includeSpell]);
 
   const reset = useCallback(() => {
     failedRef.current.clear();
