@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PenLine, Send, Sparkles, ArrowLeft, ChevronDown } from 'lucide-react';
+import { PenLine, Sparkles, ArrowLeft, ChevronDown } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { Panel } from './ui/primitives.tsx';
@@ -194,7 +194,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniProm
         <div className="mt-3 flex items-center justify-end gap-2">
           <button onClick={onExit} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(14px*var(--type-scale))] text-[var(--color-text-2)]">{t('miniWriteSkip', locale)}</button>
           <button onClick={run} disabled={loading || !text.trim()} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(14px*var(--type-scale))] font-semibold text-white disabled:opacity-50">
-            {loading ? t('miniWriteLoading', locale) : <>{t('miniWriteSubmit', locale)} <Send size={14} strokeWidth={2.25} /></>}
+            {loading ? t('miniWriteLoading', locale) : <>{t('miniWriteSubmit', locale)} <PenLine size={14} strokeWidth={2.25} /></>}
           </button>
         </div>
       ) : (
