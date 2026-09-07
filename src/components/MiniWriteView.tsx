@@ -5,13 +5,14 @@ import { t } from '../lib/i18n.ts';
 import { Panel } from './ui/primitives.tsx';
 import { streamChat, buildCorrectionSystemPrompt, extractJson, sanitizeCorrection, isValidCorrection, loadConfig } from '../lib/ai.ts';
 import { addError } from '../db/db.ts';
+import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 import type { MiniPrompt } from '../types/index.ts';
 import type { CorrectionResult } from '../types/index.ts';
 
 const WORD_LIMIT = 300; // 约 30 词上限冗余（含空格标点的字符保护）
 
-/** 微写作批改 prompt（v3 收口）：评分锚点已收编到 buildCorrectionSystemPrompt(mode='miniwrite')，此处只传题面/参照/作答三要素 */
-function miniPromptCorrectionPrompt(text: string, question: string, useful: string[]): string {
+/** 微写作批改 prompt（v3 收口）：评分锚点已收编到 buildCorrectionSystemPrompt(mode='miniwrite')，此处只传题面/参照/作答/课文四要素（v3.5：补课文原文，「依据本课课文」评分才有据；不传词表） */
+function miniPromptCorrectionPrompt(text: string, question: string, useful: string[], passage?: string): string {
   return `学生根据本课课文回答了下面的微写作问题，请按系统评分标准批改并只返回 JSON：
 {
   "isCorrect": boolean,
@@ -23,13 +24,18 @@ function miniPromptCorrectionPrompt(text: string, question: string, useful: stri
 grammarBreakdown 用中文从三方面点评：①是否切题 ②语言准确性 ③是否用上了本课表达或课文依据，并给 1 条升级建议。
 本课问题：${question}
 本课 useful 表达（供参照，学生不必全用）：${useful.slice(0, 5).join(' / ') || '（不限）'}
-学生作答：${text}`;
+${passage ? `课文原文（评分「课文依据」以此为准）：\n${passage}\n` : ''}学生作答：${text}`;
 }
 
 /** 微写作卡（审核决策 1：独立模式卡，不塞进 Sprint；Sprint 完成后露出入口） */
 export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniPrompt: MiniPrompt; onExit: () => void; onBack?: () => void }) {
   const locale = useAppStore((s) => s.locale);
   const { unit, selection } = useAppStore();
+  // 本课课文 paragraphs 全文（v3.5）：批改「依据本课课文」的评分依据；单元无 Reading 时缺省不传
+  const passage = useMemo(() => {
+    const r = unit ? UNIT_READINGS.find((x) => x.unit === unit.unit) : undefined;
+    return r?.paragraphs.join('\n\n');
+  }, [unit]);
   const [text, setText] = useState('');
   const [result, setResult] = useState<CorrectionResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +60,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniProm
       await streamChat({
         cfg,
         systemPrompt: buildCorrectionSystemPrompt({ mode: 'miniwrite', unitTitle: unit?.title, grade: unit?.grade }),
-        userMessage: miniPromptCorrectionPrompt(text, miniPrompt.question, miniPrompt.useful),
+        userMessage: miniPromptCorrectionPrompt(text, miniPrompt.question, miniPrompt.useful, passage),
         onChunk: (_d, full) => {
           const j = extractJson(full);
           if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
