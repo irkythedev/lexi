@@ -362,7 +362,11 @@ export default function AiAssistPanel({
                 ))}
               </div>
             )}
-            {card && <StudyCardView card={card} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={idx >= 2 ? undefined : onProbe} variant={context?.mode === 'reading' ? 'reading' : 'word'} />}
+            {/* 渲染视图 = 链缓存当前层（点面包屑即真正回看）；请求进行中/新卡未入链前回退 card state */}
+            {(() => {
+              const shown = views[idx]?.card ?? card;
+              return shown && <StudyCardView card={shown} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={idx >= 2 ? undefined : onProbe} variant={context?.mode === 'reading' ? 'reading' : 'word'} />;
+            })()}
             {err && (
               <div className="min-w-0 rounded-[var(--radius-md)] bg-[var(--color-trap-soft)] p-3">
                 <p className="max-h-40 overflow-y-auto break-all text-[calc(12.5px*var(--type-scale))] leading-relaxed text-[var(--color-trap)]" style={{ overflowWrap: 'anywhere' }}>{err}</p>
