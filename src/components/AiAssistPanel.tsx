@@ -26,6 +26,7 @@ export interface AssistContext {
   extra?: string;      // 额外上下文（课文/注释原文，经 passage 通道下发，不进词表标签）
   fullText?: string;   // reading 模式：课文 paragraphs 全文（按字数超限截断在 prompt 内处理）
   unitWords?: string[]; // 本单元词表（词+短语），用于讲解对齐与例句 i+1 约束
+  notesBrief?: string[]; // reading 模式（prompt-v3.5）：本单元 Notes 短列表（序号+quote/中文要点，不含 expl 全文）
   grade?: number;      // 年级（学段锚定：≥10 高中，否则初中）
   unitTitle?: string;  // 单元标题
 }
@@ -164,12 +165,17 @@ export default function AiAssistPanel({
     // 标注成「当前单元词表」，模型据此错判语料性质。
     // reading 模式（v3.3）：课文全文走 user prompt（studyCardPrompt fullText），
     // system 的 passage 通道留空，避免同一篇课文在 system/user 里重复占 token。
+    // prompt-v3.5 三语料三标签：词表→knowledge（「本单元词表」）、Notes 短列表→notes
+    // （「本单元注释要点」）、课文全文→user prompt（「课文原文」），禁止混用同一字段。
     const unitWordsStr = context.unitWords?.length ? `本单元词表：${context.unitWords.slice(0, 40).join('、')}` : undefined;
+    const notesStr = context.mode === 'reading' && context.notesBrief?.length
+      ? context.notesBrief.join('\n')
+      : undefined;
     const knowledge = unit
       ? [unitWordsStr].filter(Boolean).join('\n') || undefined
       : unitWordsStr;
     const passage = context.mode === 'reading' ? undefined : (context.extra ?? context.quote);
-    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, passage, mode: context.mode, grade: context.grade });
+    const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, notes: notesStr, passage, mode: context.mode, grade: context.grade });
     setTokens((n) => n + estimateTokens(sysPrompt) + estimateTokens(msg));
     addTokenUsage(cfg.model, estimateTokens(sysPrompt) + estimateTokens(msg));
     try {

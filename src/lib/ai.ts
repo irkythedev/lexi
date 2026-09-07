@@ -89,7 +89,7 @@ export async function fetchModels(baseUrl: string, apiKey: string): Promise<stri
 // prompt-v2 (2026-09-04): 拆分卡片/批改两套 system prompt（v1 单套混杂两种职责）。
 // 批改口径：三档评价（好/可/需改）+ 0-100 粗估分，明确"AI 估算"性质，禁止伪精度。
 // 卡片口径：knowledge 支持传单元词表（词+释义），例句词汇受已学词约束（i+1）。
-export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string; passage?: string; mode?: 'word' | 'reading'; grade?: number } = {}): string {
+export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string; passage?: string; notes?: string; mode?: 'word' | 'reading'; grade?: number } = {}): string {
   const stage = args.grade ? (args.grade >= 10 ? '高中' : '初中') : '初中/高中';
   // knowledge 与 passage 是两种性质的语料，标签必须分开（prompt-v3.2）：
   // knowledge = 单元词表（约束讲解深度与例句用词 i+1）；
@@ -97,12 +97,14 @@ export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string
   // mode='reading'（prompt-v3.3）：整篇课文导读人设，不复用词卡句式人设。
   const reading = args.mode === 'reading';
   const persona = reading
-    ? `你是一名面向中国${stage}学生的英语老师，正在带学生精读一篇课文。`
+    ? `你是一名面向中国${stage}学生的英语老师，正在带学生精读本教材的一篇课文。`
     : `你是一名面向中国${stage}学生的英语学霸辅导老师，专注课本词汇、短语、固定搭配与句式语法。`;
   const duty = reading
-    ? '职责范围：仅做课文导读——概括主旨、梳理段落脉络、赏析原文好句、按教材注释口径提示难词难句；不要考场答题口径；'
+    ? '职责范围：仅做课文导读——概括主旨、梳理段落脉络、点评原文好句、按教材注释口径提示难词难句。导读纪律：好句与难词难句优先选自本单元词表或注释要点在课文中出现的项；可以点明「本课在练哪些表达」；不要逐段翻译，不要文学鉴赏；词表没有但影响理解的生词可少量补充，不要展开成课外词汇课。'
     : '职责范围：仅做知识讲解、概念辨析、造句批改与考点拓展；';
   const k = args.knowledge ? `\n当前单元词表（讲解深度、例句用词请对齐这个范围，内容不足时说明并建议查阅教材）：\n${args.knowledge}` : '';
+  // notesCtx（prompt-v3.5）：注释要点是第三种语料（教材注释口径），不与词表混一个字段
+  const n = args.notes ? `\n本单元注释要点（教材 Notes 口径，讲解难词难句时对齐这些条目）：\n${args.notes}` : '';
   const p = args.passage ? `\n课文/原句原文（仅作语境与例句来源，这不是词表，讲解时不要把它当单词罗列）：\n${args.passage}` : '';
   return [
     persona,
@@ -110,7 +112,7 @@ export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string
     '拒绝医疗/法律/金融等非学习建议，拒绝违法违规内容，面向未成年人输出积极健康。',
     '回答用简体中文为主，英语例句附中文释义；条理清晰，便于记忆。',
     '若要求结构化 JSON，请只输出可解析的 JSON，不要额外解释文字。',
-    `当前学习单元：${args.unitTitle || '未指定'}。${k}${p}`,
+    `当前学习单元：${args.unitTitle || '未指定'}。${k}${n}${p}`,
     '免责：AI 生成内容仅供参考，请以学校教材和任课老师讲解为准。',
   ].join('\n');
 }
@@ -292,20 +294,21 @@ ${text}
 
 {
   "word": "${label}",
-  "definition": "这篇在讲什么：1-2 句中文概括主旨",
+  "definition": "这篇在讲什么：1-2 句中文概括主旨（点明本课人物/主题）",
   "usage": [
     { "type": "text", "text": "段落怎么串：按段落顺序用中文梳理人物/要点脉络，一段一条" }
   ],
-  "example": { "en": "原文好句：从课文里挑 1 句最值得品读的英文原句", "zh": "对应中文翻译" },
+  "example": { "en": "原文好句：从课文里挑 2-3 句值得品读的英文原句，优先含本单元词表或注释要点中的词", "zh": "对应中文翻译" },
   "examTips": [
-    { "type": "text", "text": "难词难句提示：按教材注释口径（词义/用法/语法点），不要考场答题口径", "probe": "（可选）针对该难点的中文追问句" },
+    { "type": "text", "text": "难词难句提示：按教材注释口径（词义/用法/语法点）对齐本单元注释要点，不要考场答题口径", "probe": "（可选）针对该难点的中文追问句" },
     { "type": "speak", "text": "需要朗读的英文难词/短语（可选，单独列，不要嵌在中文句子里）" }
   ]
 }
 
 要求：
-- usage 2-4 条，每条对应课文一个段落要点；example 从课文原文中选，不要自拟。
-- examTips 2-4 条，聚焦本课真正的难词难句；probe 最多 2 个，宁缺勿滥。
+- usage 2-4 条，每条对应课文一个段落要点；example 用课文原句，不要自拟，可给 2-3 句。
+- 好句和难词难句优先选自「本单元词表」「本单元注释要点」在课文中出现的项；可点明本课在练哪些表达。
+- 不要逐段翻译，不要文学鉴赏；词表没有但影响理解的生词可少量补充，不要展开成课外词汇课。
 - 讲解对齐本单元词表范围，浅显易记。`;
   }
   const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : kind === 'notes' ? '教材注释句子' : '单词';

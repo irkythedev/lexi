@@ -7,6 +7,7 @@ import { ArrowLeft, Play, Pause, Loader2, Sparkles, Radio } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { useSpeak, warmTtsCache } from '../lib/useSpeak.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
+import { flattenUnit } from '../data/textbooks/index.ts';
 import { readingAudioSrc } from '../lib/audio-config.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import AiAssistPanel, { type AssistContext } from '../components/AiAssistPanel.tsx';
@@ -88,17 +89,27 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
   const reading = useMemo(() => UNIT_READINGS.find((r) => r.unit === unit), [unit]);
 
   // 整篇课文导读（prompt-v3.3）：context=标题+mode=reading+课文 paragraphs 全文。
+  // prompt-v3.5：词表带 meaning（label+释义）；Notes 只传短列表（序号+quote/中文要点，不带 expl 全文）。
   // 禁止 slice(0,3)；超限截断按字数在 studyCardPrompt 内处理；课文不进 knowledge/passage 词表通道。
   const [aiOpen, setAiOpen] = useState(false);
   const aiContext: AssistContext | null = useMemo(() => {
-    if (!reading) return null;
+    if (!reading || !unitInfo) return null;
+    // 词表（词/短语/句式混排，label+meaning）——三通道里「本单元词表」的正文
+    const wordlist = flattenUnit(unitInfo)
+      .slice(0, 40)
+      .map((i) => `${i.label}（${i.meaning}）`);
+    // Notes 短列表：条目序号 + 原句 quote 或中文要点（zh），截首段，不传 expl 全文
+    const notesBrief = unitInfo.notes
+      .slice(0, 20)
+      .map((nt) => `${nt.n}. ${nt.quote || nt.zh}`.slice(0, 120));
     return {
       label: reading.title,
       meaning: `Unit ${unit} 课文：${reading.title}`,
       kind: 'reading',
       mode: 'reading',
       fullText: reading.paragraphs.join('\n\n'),
-      unitWords: unitInfo ? [...unitInfo.vocabularies.map((v) => v.word), ...unitInfo.phrases.map((p) => p.phrase)] : undefined,
+      unitWords: wordlist,
+      notesBrief,
       grade: unitInfo?.grade,
       unitTitle: unitInfo?.title,
     };
