@@ -3,16 +3,16 @@ import { PenLine, Send, Sparkles, ArrowLeft } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { Panel } from './ui/primitives.tsx';
-import { streamChat, buildCorrectionSystemPrompt, extractJson, sanitizeCorrection, loadConfig } from '../lib/ai.ts';
+import { streamChat, buildCorrectionSystemPrompt, extractJson, sanitizeCorrection, isValidCorrection, loadConfig } from '../lib/ai.ts';
 import { addError } from '../db/db.ts';
 import type { MiniPrompt } from '../types/index.ts';
 import type { CorrectionResult } from '../types/index.ts';
 
 const WORD_LIMIT = 300; // 约 30 词上限冗余（含空格标点的字符保护）
 
-/** 微写作批改 prompt：评分锚点改为切题 / 语言准确 / 是否用上 hint·useful（审核拍板四项落地） */
+/** 微写作批改 prompt（v3 收口）：评分锚点已收编到 buildCorrectionSystemPrompt(mode='miniwrite')，此处只传题面/参照/作答三要素 */
 function miniPromptCorrectionPrompt(text: string, question: string, useful: string[]): string {
-  return `学生根据本课课文回答了一个约 30 词的微写作问题，请批改并只返回 JSON：
+  return `学生根据本课课文回答了下面的微写作问题，请按系统评分标准批改并只返回 JSON：
 {
   "isCorrect": boolean,
   "originalSentence": string,
@@ -20,10 +20,6 @@ function miniPromptCorrectionPrompt(text: string, question: string, useful: stri
   "grammarBreakdown": string,
   "examCollocationScore": number
 }
-评分锚定（examCollocationScore 为 0-100 的 AI 粗估，非精确评分）：
-- 90-100 = 优秀：切题且约 30 词，语言基本无误，用上了课文依据或本课表达；
-- 60-89 = 合格：切题但有过半数以上拼写/冠词/单复数/时态小错，或表达平淡；
-- 0-59 = 需改进：偏题、明显过短（少于 15 词）或语言错误影响理解。
 grammarBreakdown 用中文从三方面点评：①是否切题 ②语言准确性 ③是否用上了本课表达或课文依据，并给 1 条升级建议。
 本课问题：${question}
 本课 useful 表达（供参照，学生不必全用）：${useful.slice(0, 5).join(' / ') || '（不限）'}
@@ -54,19 +50,21 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniProm
     if (!text.trim()) { setError(locale === 'zh' ? '请先写几句再提交批改。' : 'Write a few sentences first.'); return; }
     setLoading(true); setError(''); setResult(null); setSaved(false);
     try {
+      const got = { latest: null as CorrectionResult | null }; // holder 承接流式结果：闭包写入安全，TS 控制流不误收窄
       await streamChat({
         cfg,
-        systemPrompt: buildCorrectionSystemPrompt({ unitTitle: unit?.title, grade: unit?.grade }),
+        systemPrompt: buildCorrectionSystemPrompt({ mode: 'miniwrite', unitTitle: unit?.title, grade: unit?.grade }),
         userMessage: miniPromptCorrectionPrompt(text, miniPrompt.question, miniPrompt.useful),
         onChunk: (_d, full) => {
           const j = extractJson(full);
-          if (j && 'isCorrect' in j) setResult(sanitizeCorrection(j as CorrectionResult));
+          if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
         },
         onError: (e) => { setError(e.message || String(e)); },
       });
+      const final = got.latest;
+      if (!final) { setError(t('aiCorrectionParseError', locale)); return; } // 流正常结束但非 JSON/缺 isCorrect/缺 score：可见报错，不展示 0 分
       // 批改完成后按未达优秀档存入错题本（kind=miniwrite，ErrorsView 显示「微写作」标签）
-      const final = result;
-      if (final && final.examCollocationScore < 90 && selection) {
+      if (final.examCollocationScore < 90 && selection) {
         await addError({
           key: `${selection.editionId}:${miniPrompt.id}`,
           editionId: selection.editionId,

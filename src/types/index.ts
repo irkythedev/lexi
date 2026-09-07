@@ -194,6 +194,7 @@ export interface CorrectionResult {
   originalSentence: string;
   correctedSentence: string;
   grammarBreakdown: string;
+  /** 造句批改（mode=sentence）= 目标短语使用分；微写作（mode=miniwrite）= 切题/语言/表达三维综合分。同一字段两种语义，均 0-100 粗估。 */
   examCollocationScore: number;
 }
 

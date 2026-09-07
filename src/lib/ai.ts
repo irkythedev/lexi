@@ -94,7 +94,7 @@ export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string
   const k = args.knowledge ? `\n当前单元词表（讲解深度、例句用词请对齐这个范围，内容不足时说明并建议查阅教材）：\n${args.knowledge}` : '';
   return [
     `你是一名面向中国${stage}学生的英语学霸辅导老师，专注课本词汇、短语、固定搭配与句式语法。`,
-    '职责范围：仅做知识讲解、概念辨析、造句批改、考点拓展与情境对话；',
+    '职责范围：仅做知识讲解、概念辨析、造句批改与考点拓展；',
     '拒绝医疗/法律/金融等非学习建议，拒绝违法违规内容，面向未成年人输出积极健康。',
     '回答用简体中文为主，英语例句附中文释义；条理清晰，便于记忆。',
     '若要求结构化 JSON，请只输出可解析的 JSON，不要额外解释文字。',
@@ -103,16 +103,21 @@ export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string
   ].join('\n');
 }
 
-/** 批改专用 system prompt（v2）：与卡片职责分离，评分锚定三档语义。 */
-export function buildCorrectionSystemPrompt(args: { unitTitle?: string; grade?: number } = {}): string {
+/** 批改专用 system prompt（v2→v3）：与卡片职责分离；mode 区分造句批改（sentence）与微写作（miniwrite）两种评分口径。 */
+export function buildCorrectionSystemPrompt(args: { mode: 'sentence' | 'miniwrite'; unitTitle?: string; grade?: number }): string {
   const stage = args.grade ? (args.grade >= 10 ? '高中' : '初中') : '初中/高中';
+  const miniwrite = args.mode === 'miniwrite';
   return [
-    `你是一名中国${stage}英语老师，正在批改学生用本单元目标短语造的句子。`,
-    '职责范围：仅做句子批改——判断正误、给出修正句、用简体中文简要说明错误理由；拒绝其他话题。',
+    miniwrite
+      ? `你是一名中国${stage}英语老师，正在批改学生根据本课课文问题写的约 30 词英语短文（微写作）。`
+      : `你是一名中国${stage}英语老师，正在批改学生用本单元目标短语造的句子。`,
+    miniwrite
+      ? '职责范围：仅做微写作批改——判断是否切题、给出修改参考、用简体中文从切题/语言准确性/是否用上本课表达三方面点评；拒绝其他话题。'
+      : '职责范围：仅做句子批改——判断正误、给出修正句、用简体中文简要说明错误理由；拒绝其他话题。',
     '评分锚定（examCollocationScore 为 0-100 的粗估分，非精确评分）：',
-    '- 90-100 = 优秀：句子正确自然，目标短语使用准确；',
-    '- 60-89 = 合格：意思可达，有小错误（拼写/冠词/单复数等）；',
-    '- 0-59 = 需改进：短语误用或句子结构错误。',
+    miniwrite ? '- 90-100 = 优秀：切题且约 30 词，语言基本无误，用上了课文依据或本课表达；' : '- 90-100 = 优秀：句子正确自然，目标短语使用准确；',
+    miniwrite ? '- 60-89 = 合格：切题但有过半数以上拼写/冠词/单复数/时态小错，或表达平淡；' : '- 60-89 = 合格：意思可达，有小错误（拼写/冠词/单复数等）；',
+    miniwrite ? '- 0-59 = 需改进：偏题、明显过短（少于 15 词）或语言错误影响理解。' : '- 0-59 = 需改进：短语误用或句子结构错误。',
     'examCollocationScore 必须是 0-100 的整数，与上述三档语义一致。',
     '若要求结构化 JSON，请只输出可解析的 JSON，不要额外解释文字。',
     `当前学习单元：${args.unitTitle || '未指定'}。`,
@@ -285,7 +290,7 @@ export function followUpPrompt(parentSegment: string, probe: string, label: stri
 请针对这个追问展开讲解（${depth === 1 ? '第一层：把该点讲清楚' : '第二层：在上一层基础上给应用层面的深化，此后不再设新问题'}），只输出 JSON，格式与学习卡片相同（word 填「${label}」，definition 一句话直接回答追问，usage 是 2-3 条展开说明，examTips 可为空数组）。只输出 JSON，不要任何多余文字。`;
 }
 
-/** 批改结果净化：score clamp 0-100 + 非数字容错、字符串字段强转。（prompt-v2 加固） */
+/** 批改结果净化：score clamp 0-100 + 非数字容错、字符串字段强转。（prompt-v2 加固；score 缺失的判定在 isValidCorrection，不在此兜底为 0） */
 export function sanitizeCorrection(r: CorrectionResult): CorrectionResult {
   const raw = (r as { examCollocationScore?: unknown }).examCollocationScore;
   let score = 0;
@@ -299,6 +304,14 @@ export function sanitizeCorrection(r: CorrectionResult): CorrectionResult {
     grammarBreakdown: String(r.grammarBreakdown ?? ''),
     examCollocationScore: score,
   };
+}
+
+/** 批改解析门槛（v3 收口）：isCorrect 与 score（可转数字）缺一即视为解析失败，走可见报错，不展示 0 分。 */
+export function isValidCorrection(j: unknown): j is CorrectionResult {
+  if (!j || typeof j !== 'object' || !('isCorrect' in j)) return false;
+  const raw = (j as { examCollocationScore?: unknown }).examCollocationScore;
+  const score = typeof raw === 'number' ? raw : typeof raw === 'string' ? parseInt(raw, 10) : NaN;
+  return Number.isFinite(score);
 }
 
 export function extractJson(text: string): CorrectionResult | null {

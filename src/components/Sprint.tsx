@@ -6,8 +6,7 @@ import SpeakButton from './SpeakButton.tsx';
 import { useSpeechRecognition, compareWords } from '../lib/speechRecognition.ts';
 import { KIND_META, maskSentence, shuffle } from '../lib/utils.ts';
 import { addError, recordReview } from '../db/db.ts';
-import { loadConfig, buildCorrectionSystemPrompt, correctionPrompt, extractJson, streamChat } from '../lib/ai.ts';
-import { sanitizeCorrection } from '../lib/ai.ts';
+import { loadConfig, buildCorrectionSystemPrompt, correctionPrompt, extractJson, isValidCorrection, sanitizeCorrection, streamChat } from '../lib/ai.ts';
 import { t } from '../lib/i18n.ts';
 import { Panel } from './ui/primitives.tsx';
 
@@ -177,12 +176,17 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
     if (!sentence.trim()) { setError(t('sprintAiNoSentence', locale)); return; }
     setLoading(true); setError(''); setResult(null);
     try {
+      const got = { latest: null as import('../types/index.ts').CorrectionResult | null }; // holder 承接流式结果（同 MiniWriteView）
       await streamChat({
-        cfg, systemPrompt: buildCorrectionSystemPrompt({ unitTitle: unit.title, grade: unit.grade }),
+        cfg, systemPrompt: buildCorrectionSystemPrompt({ mode: 'sentence', unitTitle: unit.title, grade: unit.grade }),
         userMessage: correctionPrompt(sentence, [target?.label ?? '']),
-        onChunk: (_d, full) => { const j = extractJson(full); if (j && 'isCorrect' in j) setResult(sanitizeCorrection(j as import('../types/index.ts').CorrectionResult)); },
+        onChunk: (_d, full) => {
+          const j = extractJson(full);
+          if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
+        },
         onError: (e) => { setError(e.message || String(e)); },
       });
+      if (!got.latest) { setError(t('aiCorrectionParseError', locale)); return; } // 非 JSON/缺 isCorrect/缺 score：可见报错，不展示 0 分
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   };
