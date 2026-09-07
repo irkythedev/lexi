@@ -130,6 +130,7 @@ export default function AiAssistPanel({
   const cfg = loadConfig();
   const [card, setCard] = useState<StudyCard | null>(null);
   const [busy, setBusy] = useState(false);
+  const [busyFollow, setBusyFollow] = useState(false); // 本次 busy 是否为追问请求（提示条文案分流）
   const [err, setErr] = useState('');
   const [tokens, setTokens] = useState(0); // 本次打开面板的会话累计（估算）
   const [showDisclaimer, setShowDisclaimer] = useState(false);
@@ -155,7 +156,7 @@ export default function AiAssistPanel({
   // 统一请求入口：mode='study' 主卡 / mode='follow' 追问（prompt-v3）
   const requestCard = useCallback(async (mode: 'study' | 'follow', parent?: { segment: string; probe: string; depth: number }) => {
     if (!cfg || busy || !context) return;
-    setBusy(true); setErr(''); setCard(null);
+    setBusy(true); setBusyFollow(mode === 'follow'); setErr(''); setCard(null);
     if (mode === 'study') { setViews([]); setIdx(0); } // 主卡/重试/切词：追问链归零
     const msg = mode === 'follow' && parent
       ? followUpPrompt(parent.segment, parent.probe, context.label, parent.depth)
@@ -334,8 +335,9 @@ export default function AiAssistPanel({
           </div>
         ) : (
           <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-2">
+            {/* busy 提示条：sticky 置顶（滚动到哪都可见，手机上 probe 点击位置可能远离顶部）；文案按主卡/追问分流 */}
             {busy && !card && (
-              <div className="flex items-center gap-2 p-2"><Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-accent)' }} /><span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiStudyBusy', locale)}</span></div>
+              <div className="sticky top-0 z-10 flex items-center gap-2 bg-[var(--color-surface)] p-2"><Loader2 size={16} className="animate-spin" style={{ color: 'var(--color-accent)' }} /><span className="text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{busyFollow ? t('aiFollowBusy', locale) : t('aiStudyBusy', locale)}</span></div>
             )}
             {/* 追问链面包屑：主卡 + 各层追问，点任意一级直接回看缓存（不发请求） */}
             {views.length > 1 && (

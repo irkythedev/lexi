@@ -352,7 +352,7 @@ export function followUpPrompt(parentSegment: string, probe: string, label: stri
   return `学生针对「${label}」讲解卡里的这条内容提了一个追问：
 原内容：${parentSegment}
 追问：${probe}
-请针对这个追问展开讲解（${depth === 1 ? '第一层：把该点讲清楚' : '第二层：在上一层基础上给应用层面的深化，此后不再设新问题'}），只输出 JSON，格式与学习卡片相同（word 填「${label}」，definition 一句话直接回答追问，usage 是 2-3 条展开说明，examTips 可为空数组）。只输出 JSON，不要任何多余文字。`;
+请针对这个追问展开讲解（${depth === 1 ? '第一层：把该点讲清楚' : '第二层：在上一层基础上给应用层面的深化，此后不再设新问题'}），只输出 JSON，格式与学习卡片相同（word 填「${label}」，definition 一句话直接回答追问，usage 2-3 条是展开：具体例子、常见搭配或易混对比，每条内容各不相同，禁止复述 definition 的原句，examTips 可为空数组）。只输出 JSON，不要任何多余文字。`;
 }
 
 /** 批改结果净化：score clamp 0-100 + 非数字容错、字符串字段强转。（prompt-v2 加固；score 缺失的判定在 isValidCorrection，不在此兜底为 0） */
