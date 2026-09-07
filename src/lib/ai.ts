@@ -155,18 +155,27 @@ export function friendlyHttpError(status: number, body: string): string {
   return `HTTP ${status}：${hint}${body ? `｜服务商返回：${body.slice(0, 200)}` : ''}`;
 }
 
+// 推理类模型名探测（reasoner/o1/o3/qwq/r1/thinking）：空回复文案分流与 max_tokens 提档共用
+export function isReasoningModel(model: string): boolean {
+  return /reasoner|deepseek-r1|\bo1\b|\bo3\b|qwq|thinking/i.test(model);
+}
+
 // Streaming chat. onChunk receives (delta, full). Abortable.
 // onError（prompt-v3 加固）：fetch/HTTP/流中断错误通过此回调抵达调用方。
 // 此前错误在 detached async 内 rethrow，永远无人接收 → 调用方误报"解析失败"。
 export function streamChat(args: {
   cfg: AiConfig; systemPrompt: string; userMessage: string;
-  onChunk?: (delta: string, full: string) => void; onEnd?: (full: string) => void;
+  onChunk?: (delta: string, full: string) => void; onEnd?: (full: string, meta: { reasoningChars: number }) => void;
   onError?: (e: Error) => void; signal?: AbortSignal; maxTokens?: number;
 }): StreamHandle {
   const base = normalizeBaseUrl(args.cfg.baseUrl);
   const controller = new AbortController();
   const abort = () => controller.abort();
   if (args.signal) args.signal.addEventListener('abort', abort);
+  // 推理类模型（reasoner/o1/qwq/r1/thinking）思考会消耗输出额度：本次请求提高一档，
+  // 只对命中模型名的请求生效，不对所有模型一刀切加大。
+  const reasoningModel = isReasoningModel(args.cfg.model);
+  const maxTokens = reasoningModel ? (args.maxTokens ?? 800) * 2 : (args.maxTokens ?? 800);
 
   (async () => {
     try {
@@ -177,7 +186,7 @@ export function streamChat(args: {
           model: args.cfg.model,
           messages: [{ role: 'system', content: args.systemPrompt }, { role: 'user', content: args.userMessage }],
           stream: true, temperature: 0.5,
-          max_tokens: args.maxTokens ?? 800, // 批改足够；卡片请求传更大值（推理模型需余量）
+          max_tokens: maxTokens, // 批改足够；卡片请求传更大值（推理模型在上方自动翻倍）
         }),
         signal: controller.signal,
       });
@@ -189,6 +198,9 @@ export function streamChat(args: {
       const decoder = new TextDecoder();
       let buffer = '';
       let full = '';
+      // 推理模型兼容：同收 delta.reasoning_content / message.reasoning_content，
+      // 只计数不进学习卡、不进 UI（解析与展示只用 content）。
+      let reasoningChars = 0;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -201,14 +213,16 @@ export function streamChat(args: {
           const payload = t.slice(5).trim();
           if (payload === '[DONE]') continue;
           try {
-            const json = JSON.parse(payload) as { choices?: { delta?: { content?: string } }[] };
-            const delta = json.choices?.[0]?.delta?.content ?? '';
-            if (delta) { full += delta; args.onChunk?.(delta, full); }
+            const json = JSON.parse(payload) as { choices?: { delta?: { content?: string; reasoning_content?: string; reasoning?: string } }[] };
+            const delta = json.choices?.[0]?.delta;
+            const think = delta?.reasoning_content ?? delta?.reasoning; // deepseek/qwen 与 openrouter 两种字段名
+            if (think) reasoningChars += think.length;
+            if (delta?.content) { full += delta.content; args.onChunk?.(delta.content, full); }
           } catch { /* ignore malformed chunk */ }
         }
       }
       args.onChunk?.('', full);
-      args.onEnd?.(full);
+      args.onEnd?.(full, { reasoningChars });
     } catch (e) {
       if ((e as Error).name === 'AbortError') return;
       args.onError?.(e as Error);

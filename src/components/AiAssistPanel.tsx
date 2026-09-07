@@ -7,7 +7,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { X, Sparkles, Loader2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
-  loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, followUpPrompt, isNetworkError,
+  loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, followUpPrompt, isNetworkError, isReasoningModel,
   parseStudyCard, type StudyCard, type StudySegment,
 } from '../lib/ai.ts';
 import { addTokenUsage, estimateTokens } from '../lib/token-usage.ts';
@@ -176,6 +176,7 @@ export default function AiAssistPanel({
       let full = '';
       let failure: string | null = null;
       let timedOut = false;
+      let reasoningChars = 0;
       await new Promise<void>((resolve) => {
         let settled = false;
         const done = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
@@ -183,9 +184,9 @@ export default function AiAssistPanel({
         streamChat({
           cfg, systemPrompt: sysPrompt,
           userMessage: msg,
-          maxTokens: 1800, // 卡片 JSON + probe；给推理类模型的思考留余量
+          maxTokens: 1800, // 卡片 JSON + probe；推理类模型 streamChat 内部自动翻倍
           onChunk: (_d, f) => { full = f; },
-          onEnd: (f) => { full = f; done(); },
+          onEnd: (f, meta) => { full = f; reasoningChars = meta.reasoningChars; done(); },
           onError: (e) => { failure = e.message || String(e); done(); }, // HTTP/网络错误直达用户（prompt-v3）
         });
       });
@@ -222,7 +223,13 @@ export default function AiAssistPanel({
               });
             }
           }
-        } else setErr(!full.trim() ? t('aiEmptyReply', locale) : t('aiCardParseError', locale));
+        } else if (!full.trim()) {
+          // 空回复分流（prompt-v3.4）：有思考痕迹或模型名像推理类 → 现有推理耗尽文案；
+          // 普通模型 → 短句不点名 deepseek-reasoner。AbortError 已在 streamChat 内静默。
+          setErr(reasoningChars > 0 || isReasoningModel(cfg.model)
+            ? t('aiEmptyReply', locale)
+            : t('aiEmptyReplyGeneric', locale));
+        } else setErr(t('aiCardParseError', locale));
       }
     } catch (e) {
       setErr(isNetworkError((e as Error).message) ? t('aiNetUnreachable', locale) : (e as Error).message);
