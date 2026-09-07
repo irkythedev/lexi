@@ -357,7 +357,7 @@ const zh: Record<string, string> = {
   origMode: '教材原声',
   origAudio: '教材原声',
   origProgress: '原声播放进度',
-  origAudioError: '原声加载失败，请确认音频文件已同步（scripts/sync_audio.py）',
+  origAudioError: '原声加载失败，请确认音频文件已放置于 public/audio/',
   readingNow: '朗读中',
 
   // 导入
@@ -932,7 +932,7 @@ Object.assign(en, {
   origMode: 'Textbook Audio',
   origAudio: 'Textbook Audio',
   origProgress: 'Audio progress',
-  origAudioError: 'Audio failed to load — run scripts/sync_audio.py to sync textbook audio',
+  origAudioError: 'Audio failed to load — place the audio files under public/audio/',
   readingNow: 'Playing',
   importLabelMissing: 'Missing label field',
   importJsonError: 'JSON parse error',
