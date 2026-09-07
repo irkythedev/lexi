@@ -1,12 +1,25 @@
 import { useState } from 'react';
 import { RectangleHorizontal, Puzzle, Timer, PenLine, ArrowLeftRight } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
+import type { Unit } from '../types/index.ts';
 import { t } from '../lib/i18n.ts';
 import Flashcard from '../components/Flashcard.tsx';
 import CollocationConnector from '../components/CollocationConnector.tsx';
 import Sprint from '../components/Sprint.tsx';
 import MiniWriteView from '../components/MiniWriteView.tsx';
 import InflectionDrillView from '../components/InflectionDrillView.tsx';
+
+/** 与 CollocationConnector.buildPairs 同规则：有效英文结构配对 <2 时入口不渲染（空/半残单元藏卡）。 */
+const IS_CHINESE = /[\u4e00-\u9fff]/;
+function connectorPairCount(u: Unit | null): number {
+  let n = 0;
+  (u?.phrases ?? []).forEach((p) => {
+    if (!p.fixedPatterns || IS_CHINESE.test(p.fixedPatterns)) return;
+    const parts = p.fixedPatterns.split(/\s*\+\s*/).map((s) => s.trim()).filter(Boolean);
+    if (parts.length >= 2 && !parts.some((part) => IS_CHINESE.test(part))) n += 1;
+  });
+  return n;
+}
 
 type PracticeMode = 'flash' | 'connector' | 'sprint' | 'inflect' | 'miniwrite';
 
@@ -41,8 +54,9 @@ export default function PracticeView() {
 
   // 词形/微写作仅在有数据的单元渲染（8A 无此数据 → 两卡不出现）
   const drills = unit.inflectionDrills ?? [];
-  const memorizeModes = MODES.filter((m) => m.id === 'flash' || m.id === 'connector' || m.id === 'sprint');
+  // 搭配拼图：有效英文结构配对 <2 的单元不渲染入口（U4 全空、U5-U8 仅 1 对，点了只有空态/无难度）
   const lessonModes = MODES.filter((m) => (m.id === 'inflect' && drills.length > 0) || (m.id === 'miniwrite' && !!unit.miniPrompt));
+  const reinforceModes = MODES.filter((m) => (m.id === 'flash' || m.id === 'sprint') || (m.id === 'connector' && connectorPairCount(unit) >= 2));
 
   const renderCard = (m: (typeof MODES)[number]) => {
     const Icon = m.icon;
@@ -57,15 +71,19 @@ export default function PracticeView() {
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] py-4">
       <div className="mb-3"><h2 className="text-[calc(clamp(22px,5vw,30px)*var(--type-scale))] font-bold tracking-[-0.02em]">{t('practiceTitle', locale)}</h2><p className="mt-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{unit.editionName} · {unit.title}</p></div>
-      <div className="mb-2 text-[calc(13px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]">{t('practiceGroupMemorize', locale)}</div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        {memorizeModes.map(renderCard)}
-      </div>
       {lessonModes.length > 0 && (
         <>
-          <div className="mb-2 mt-5 text-[calc(13px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]">{t('practiceGroupLesson', locale)}</div>
+          <div className="mb-2 text-[calc(13px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]">{t('practiceGroupLesson', locale)}</div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {lessonModes.map(renderCard)}
+          </div>
+        </>
+      )}
+      {reinforceModes.length > 0 && (
+        <>
+          <div className={`text-[calc(13px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)] ${lessonModes.length > 0 ? 'mb-2 mt-5' : 'mb-2'}`}>{t('practiceGroupMemorize', locale)}</div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {reinforceModes.map(renderCard)}
           </div>
         </>
       )}

@@ -37,6 +37,8 @@ export default function ReviewView() {
     itemId: row.itemId,
     kind: row.kind as Kind,
     srs: row.srs,
+    prompt: row.prompt as string | undefined,
+    answer: row.answer as string | undefined,
   }));
   const pager = usePagination(normalizedList, 20);
   const pagedList = pager.slice;
@@ -67,16 +69,20 @@ export default function ReviewView() {
       : <Panel>
         {pagedList.map((row, i) => {
           const item = lookupItem(row.itemId);
-          if (!item) return null;
-          const meta = KIND_META[item.kind];
+          // 词形/微写作错题无 studyItem：按错题自身 kind 渲染（对齐 ErrorsView），不丢行
+          const kind = (item?.kind ?? row.kind) as Kind;
+          if (!item && kind !== 'inflection' && kind !== 'miniwrite') return null;
+          const meta = KIND_META[kind] ?? KIND_META.vocab;
+          const label = item?.label ?? row.answer ?? '';
+          const meaning = item?.meaning ?? row.prompt ?? '';
           return (
-            <Row key={(row.key || i) + '-' + i} onClick={() => setReviewItem(item)}>
+            <Row key={(row.key || i) + '-' + i} onClick={item ? () => setReviewItem(item) : undefined}>
               <div className="flex items-center gap-3">
-                <Tag kind={item.kind}>{meta.label[useAppStore.getState().locale]}</Tag>
-                {unitBadge(item.id) && <span className="shrink-0 rounded-[var(--radius-sm)] bg-[var(--color-track)] px-1.5 py-0.5 text-[calc(10.5px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{unitBadge(item.id)}</span>}
-                <div className="min-w-0 flex-1"><div className="truncate text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{item.label}</div><p className="mt-0.5 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{item.meaning}</p></div>
+                <Tag kind={kind}>{meta.label[useAppStore.getState().locale]}</Tag>
+                {unitBadge(row.itemId) && <span className="shrink-0 rounded-[var(--radius-sm)] bg-[var(--color-track)] px-1.5 py-0.5 text-[calc(10.5px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{unitBadge(row.itemId)}</span>}
+                <div className="min-w-0 flex-1"><div className="truncate text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-text)]">{label}</div><p className="mt-0.5 truncate text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{meaning}</p></div>
                 {row.srs && <span className="tnum shrink-0 text-[calc(11px*var(--type-scale))] text-[var(--color-text-2)]">{intervalLabel(row.srs.interval)}</span>}
-                <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />
+                {item && <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} />}
               </div>
             </Row>
           );
