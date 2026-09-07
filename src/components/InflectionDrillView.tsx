@@ -95,7 +95,7 @@ export default function InflectionDrillView({ drills, onExit }: { drills: Inflec
             placeholder={t('inflectPlaceholder', locale)} autoFocus
             className="w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-inflection)]" />
           <div className="mt-3 flex items-center justify-between">
-            <button onClick={onExit} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(14px*var(--type-scale))] text-[var(--color-text-2)]">{t('miniWriteSkip', locale)}</button>
+            <button onClick={onExit} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(14px*var(--type-scale))] text-[var(--color-text-2)]">{t('inflectSkip', locale)}</button>
             <button onClick={judge} disabled={!input.trim()} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-5 py-2 text-[calc(14px*var(--type-scale))] font-semibold text-white disabled:opacity-50">{t('inflectCheck', locale)}</button>
           </div>
         </div>
