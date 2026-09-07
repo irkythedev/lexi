@@ -4,7 +4,7 @@
 //   type:"speak" 段 = 整段一个朗读按钮（完整词/短语/句子），文本不可再拆。
 // 桌面端为可拖拽/缩放的浮窗，移动端为底部 sheet。
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Sparkles, Loader2, Volume2, Pause, ShieldCheck, HelpCircle } from 'lucide-react';
+import { X, Sparkles, Loader2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, followUpPrompt, isNetworkError,
@@ -12,7 +12,7 @@ import {
 } from '../lib/ai.ts';
 import { addTokenUsage, estimateTokens } from '../lib/token-usage.ts';
 import { upsertAiNote, appendAiNoteChain } from '../db/db.ts';
-import { useSpeak } from '../lib/useSpeak.ts';
+import SpeakButton from './SpeakButton.tsx';
 import { t } from '../lib/i18n.ts';
 import WordHighlight from './WordHighlight.tsx';
 import DisclaimerDialog from './DisclaimerDialog.tsx';
@@ -32,23 +32,14 @@ export interface AssistContext {
  *  （主卡为空串），用于"点同一 chip 直接回看缓存"的命中判断与面包屑展示。 */
 interface ChainView { card: StudyCard; segment: string; probe: string; }
 
-/** 朗读按钮：整段一个喇叭 + 文本同行，中间不拆。 */
-function SpeakInline({ text, accent, rate, size = 12, fontSize = 'inherit', bold = false }: {
-  text: string; accent: 'us' | 'uk'; rate: number; size?: number; fontSize?: string; bold?: boolean;
+/** 朗读按钮：整段一个喇叭 + 文本同行，中间不拆。
+ *  统一走 SpeakButton（全局状态机）：合成中 Loader 不可点、播放中 Pause=停止。 */
+function SpeakInline({ text, accent, rate, fontSize = 'inherit', bold = false }: {
+  text: string; accent: 'us' | 'uk'; rate: number; fontSize?: string; bold?: boolean;
 }) {
-  const locale = useAppStore((s) => s.locale);
-  const { speak, stop, state: ttsState } = useSpeak();
-  const active = ttsState === 'playing' || ttsState === 'synthesizing';
   return (
     <span className="inline-flex items-center gap-1 whitespace-nowrap">
-      <button
-        onClick={() => { if (active) stop(); else speak(text.trim(), { accent, rate, lang: 'en' }); }}
-        className="press inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] opacity-80 hover:opacity-100"
-        aria-label={t('listenAgain', locale)}
-        title={text.trim().slice(0, 60)}
-      >
-        {ttsState === 'synthesizing' ? <Loader2 size={size} className="animate-spin" /> : (active ? <Pause size={size} className="animate-pulse" /> : <Volume2 size={size} />)}
-      </button>
+      <SpeakButton text={text.trim()} accent={accent} rate={rate} size={12} compact className="h-5 w-5" />
       <span className={bold ? 'font-semibold text-[var(--color-text)]' : ''} style={{ fontSize }}>{text}</span>
     </span>
   );
@@ -57,8 +48,6 @@ function SpeakInline({ text, accent, rate, size = 12, fontSize = 'inherit', bold
 /** 学习卡片展示（AI 面板与讲义本回放共用）。onProbe：点击段上的追问 chip（probe 非空时才渲染）。 */
 export function StudyCardView({ card, accent, rate, highlight, onProbe }: { card: StudyCard; accent: 'us' | 'uk'; rate: number; highlight?: string; onProbe?: (segText: string, probe: string) => void }) {
   const locale = useAppStore((s) => s.locale);
-  const { speak, stop, state: ttsState } = useSpeak();
-  const active = ttsState === 'playing' || ttsState === 'synthesizing';
 
   const renderSeg = (s: StudySegment, i: number) => (
     <li key={i} className="text-[calc(14px*var(--type-scale))] leading-relaxed text-[var(--color-text-body)]">
@@ -100,13 +89,7 @@ export function StudyCardView({ card, accent, rate, highlight, onProbe }: { card
         <div>
           <div className="text-[calc(11px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-3)]">{t('aiCardExample', locale)}</div>
           <div className="mt-1 flex items-start gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface-2)] p-2.5">
-            <button
-              onClick={() => { if (active) stop(); else speak(card.example.en.trim(), { accent, rate, lang: 'en' }); }}
-              className={`press mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[var(--color-accent)] ${active ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}
-              aria-label={t('listenAgain', locale)}
-            >
-              {ttsState === 'synthesizing' ? <Loader2 size={13} className="animate-spin" /> : (active ? <Pause size={13} className="animate-pulse" /> : <Volume2 size={13} />)}
-            </button>
+            <SpeakButton text={card.example.en.trim()} accent={accent} rate={rate} size={13} compact className="mt-0.5 h-6 w-6" color="var(--color-accent)" />
             <div className="min-w-0">
               <p className="text-[calc(14.5px*var(--type-scale))] font-medium leading-relaxed text-[var(--color-text)]"><WordHighlight text={card.example.en} word={highlight ?? card.word} /></p>
               {card.example.zh && <p className="mt-0.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{card.example.zh}</p>}

@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { Volume2, Check, X, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Check, X, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem } from '../types/index.ts';
 import { KIND_META, splitCollocation } from '../lib/utils.ts';
 import { t } from '../lib/i18n.ts';
-import { requestSpeak } from './FloatingTTS.tsx';
+import SpeakButton from './SpeakButton.tsx';
 import { recordReview } from '../db/db.ts';
 import { Tag } from './ui/primitives.tsx';
 
@@ -17,7 +17,6 @@ export default function Flashcard({ items, onExit, editionId }: { items: StudyIt
   if (!item) return null;
   const meta = KIND_META[item.kind];
 
-  const speakTarget = () => requestSpeak(item.label, tts.accent, tts.rate);
   const next = () => { setFlipped(false); setIdx((i) => Math.min(i + 1, items.length - 1)); };
   const prev = () => { setFlipped(false); setIdx((i) => Math.max(i - 1, 0)); };
 
@@ -47,7 +46,7 @@ export default function Flashcard({ items, onExit, editionId }: { items: StudyIt
           <div className="flip-face absolute inset-0 flex flex-col rounded-[var(--radius-hero)] border-2 p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: meta.border }}>
             <div className="flex items-center justify-between">
               <Tag kind={item.kind}>{meta.label[locale]}</Tag>
-              <button onClick={speakTarget} className="press flex h-11 w-11 items-center justify-center rounded-full hover:bg-[var(--color-surface-2)]" aria-label={t('cardListen', locale)}><Volume2 size={18} strokeWidth={2.25} style={{ color: meta.tint }} /></button>
+              <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={18} color={meta.tint} />
             </div>
             <div className="flex flex-1 flex-col items-center justify-center text-center">
               <h2 className="text-[calc(clamp(28px,7vw,42px)*var(--type-scale))] font-bold tracking-[-0.02em] text-[var(--color-text)]">{item.label}</h2>
@@ -66,7 +65,7 @@ export default function Flashcard({ items, onExit, editionId }: { items: StudyIt
           <div className="flip-face flip-back absolute inset-0 flex flex-col rounded-[var(--radius-hero)] border p-6 shadow-[var(--shadow-panel)]" style={{ background: 'var(--color-surface)', borderColor: 'var(--color-hairline)' }}>
             <div className="flex items-center justify-between">
               <Tag kind={item.kind}>{meta.label[locale]}</Tag>
-              <button onClick={speakTarget} className="press flex h-11 w-11 items-center justify-center rounded-full" aria-label={t('cardListen', locale)}><Volume2 size={18} strokeWidth={2.25} style={{ color: meta.tint }} /></button>
+              <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={18} color={meta.tint} />
             </div>
             <div className="flex-1 overflow-y-auto pr-1">
               <div className="text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('cardMeaning', locale)}</div>

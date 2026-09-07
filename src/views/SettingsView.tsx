@@ -1,10 +1,10 @@
 // SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + 性别(女/男声) + 试听 + i18n
 import { useEffect, useState } from 'react';
-import { Palette, Volume2, BookOpen, Check, Play, Loader2, Sun, Moon } from 'lucide-react';
+import { Palette, Volume2, BookOpen, Check, Play, Loader2, Pause, Sun, Moon } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented } from '../components/ui/primitives.tsx';
-import { requestSpeak, subscribeTtsState } from '../components/FloatingTTS.tsx';
+import { requestSpeak, requestStopTts, subscribeTtsState } from '../components/FloatingTTS.tsx';
 import { t } from '../lib/i18n.ts';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 
@@ -21,20 +21,22 @@ export default function SettingsView() {
   const [dragRate, setDragRate] = useState(tts.rate);
   const [previewState, setPreviewState] = useState<'idle' | 'synthesizing' | 'playing'>('idle');
 
-  // 试听时订阅全局 TTS 状态：合成完成 → 自动切换为播放中显示
+  // 试听全程订阅全局 TTS 状态机：synthesizing→playing→(ended/error→idle)。
+  // 不再用 8s 硬超时兜底 —— ended/error 事件驱动复位，合成慢也不会被误截断。
   useEffect(() => {
     if (previewState === 'idle') return;
     const unsub = subscribeTtsState((s) => {
-      if (s === 'playing' && previewState === 'synthesizing') setPreviewState('playing');
+      if (s === 'playing') setPreviewState('playing');
+      else if (s === 'idle') setPreviewState('idle'); // ended / error / 被抢占 → 复位
     });
-    // 8 秒超时兜底（防止 onEnd 未触发导致按钮卡在合成/播放态）
-    const t = setTimeout(() => setPreviewState('idle'), 8000);
-    return () => { unsub(); clearTimeout(t); };
-  }, [previewState]);
+    return unsub;
+  }, [previewState !== 'idle']); // eslint-disable-line react-hooks/exhaustive-deps
 
   const preview = () => {
+    // 播放中再点 = 停止并回空闲（禁止重新合成第二路请求）
+    if (previewState === 'playing') { requestStopTts(); setPreviewState('idle'); return; }
     setPreviewState('synthesizing');
-    requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate, () => { setPreviewState('idle'); });
+    requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate);
   };
 
   return (
@@ -130,8 +132,8 @@ export default function SettingsView() {
           </div>
           {/* 试听当前口音 + 语速 */}
           <button onClick={preview} disabled={previewState === 'synthesizing'} className="press mb-0.5 flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-3.5 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-accent)] shadow-[var(--shadow-card)] hover:bg-[var(--color-surface-2)] disabled:opacity-60">
-            {previewState === 'synthesizing' ? <Loader2 size={15} strokeWidth={2.25} className="animate-spin" /> : previewState === 'playing' ? <Volume2 size={15} strokeWidth={2.25} /> : <Play size={15} strokeWidth={2.25} />}
-            {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('previewPlaying', locale) : t('previewVoice', locale)}
+            {previewState === 'synthesizing' ? <Loader2 size={15} strokeWidth={2.25} className="animate-spin" /> : previewState === 'playing' ? <Pause size={15} strokeWidth={2.25} /> : <Play size={15} strokeWidth={2.25} />}
+            {previewState === 'synthesizing' ? t('synthesizing', locale) : previewState === 'playing' ? t('ttsStop', locale) : t('previewVoice', locale)}
           </button>
         </div>
         <div className="mt-2 py-1">
