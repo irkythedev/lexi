@@ -392,6 +392,14 @@ export function extractJson(text: string): CorrectionResult | null {
   }
 }
 
+/** 归一化用于复述判重：去空白/标点 + 英文小写，模型换个标点或加个空格也能命中。 */
+function normalizeDup(s: string): string {
+  return s
+    .replace(/[\s\u3000]+/g, '')
+    .replace(/[，。、；：？！「」『』（）《》"'“”‘’…—,.;:?!()<>]/g, '')
+    .toLowerCase();
+}
+
 /** 解析学习卡片 JSON，容错降级（字段缺失时返回 null，由调用方回退纯文本）。 */
 export function parseStudyCard(text: string): StudyCard | null {
   if (!text) return null;
@@ -415,8 +423,17 @@ export function parseStudyCard(text: string): StudyCard | null {
             : {}),
         }));
     };
-    const usageSegs = seg(raw.usage).length ? seg(raw.usage) : [{ type: 'text' as const, text: String(raw.definition) }];
-    const examSegs = seg(raw.examTips);
+    const definitionNorm = normalizeDup(String(raw.definition));
+    // 复述剔除（确定性兜底，不依赖模型自律）：usage/examTips 段与 definition 文本
+    // 归一化后相同或互为包含 → 丢弃（definition 已含该信息，展示层不重复）。
+    // 全部被剔时 usage/examTips 留空数组，UI 相应整节隐藏。
+    const dedupe = (segs: StudySegment[]): StudySegment[] =>
+      segs.filter((x) => {
+        const n = normalizeDup(x.text);
+        return n.length > 0 && n !== definitionNorm && !definitionNorm.includes(n) && !n.includes(definitionNorm);
+      });
+    const usageSegs = dedupe(seg(raw.usage));
+    const examSegs = dedupe(seg(raw.examTips));
     // 整卡 probe 上限 2（prompt-v3 宁缺勿滥的硬兜底，不依赖 AI 自律）：按出现顺序保留前 2 个
     let probeBudget = 2;
     const capProbes = (segs: StudySegment[]): StudySegment[] =>
