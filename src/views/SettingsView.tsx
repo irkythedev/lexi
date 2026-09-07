@@ -1,6 +1,6 @@
 // SettingsView — 设置页：紧凑布局 + 大旗帜口音切换 + 性别(女/男声) + 试听 + i18n
 import { useEffect, useState } from 'react';
-import { Palette, Volume2, BookOpen, Check, Play, Loader2 } from 'lucide-react';
+import { Palette, Volume2, BookOpen, Check, Play, Loader2, Sun, Moon } from 'lucide-react';
 import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts';
 import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented } from '../components/ui/primitives.tsx';
@@ -46,12 +46,14 @@ export default function SettingsView() {
       {/* 外观：深色模式 + 主题色一行 */}
       <Section icon={Palette} title={t('appearance', locale)}>
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('darkMode', locale)}</span>
-            <button onClick={() => { toggleTheme(); toast(theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', theme === 'dark' ? 'sun' : 'moon'); }} className="press relative h-7 w-12 rounded-full border-2 transition" style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)', borderColor: 'var(--color-hairline)' }}>
-              <span className="absolute top-0.5 h-5 w-5 rounded-full border-2 border-[var(--color-hairline)] bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }} />
-            </button>
-          </div>
+          {/* 窄屏防折字:去掉「深色模式」文字,开关内嵌 Sun/Moon 表达当前态(与顶栏同套 lucide 图标) */}
+          <button onClick={() => { toggleTheme(); toast(theme === 'dark' ? t('toastThemeLight', locale) : t('toastThemeDark', locale), 'info', theme === 'dark' ? 'sun' : 'moon'); }}
+            className="press relative h-7 w-12 shrink-0 rounded-full border-2 transition" aria-label={t('darkMode', locale)}
+            style={{ background: theme === 'dark' ? 'var(--color-accent)' : 'var(--color-track)', borderColor: 'var(--color-hairline)' }}>
+            <span className="absolute top-0.5 flex h-5 w-5 items-center justify-center rounded-full border-2 border-[var(--color-hairline)] bg-white transition-all" style={{ left: theme === 'dark' ? '26px' : '4px' }}>
+              {theme === 'dark' ? <Moon size={11} strokeWidth={2.5} style={{ color: 'var(--color-accent)' }} /> : <Sun size={11} strokeWidth={2.5} style={{ color: 'var(--color-phrase-deep)' }} />}
+            </span>
+          </button>
           <div className="flex items-center gap-2">
             {(Object.keys(ACCENT_META) as Accent[]).map((a) => (
               <button key={a} onClick={() => { setAccent(a); toast(t('toastThemeColor', locale, { name: ACCENT_META[a].name }), 'success', 'check'); }} title={ACCENT_META[a].name}
