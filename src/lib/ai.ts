@@ -21,6 +21,36 @@ export const AI_PROVIDERS: Provider[] = [
 ];
 
 export const STORAGE_KEY = 'evp-ai-config';
+// Per-provider API keys: one key slot per provider id, so switching providers
+// never leaks key A into provider B's config. Custom endpoint shares the
+// 'custom' slot (proxy keys are usually provider-agnostic).
+export const KEYS_STORAGE_KEY = 'evp-ai-keys';
+export type AiKeysByProvider = Partial<Record<AiProviderId, string>>;
+
+export function loadKeys(): AiKeysByProvider {
+  try {
+    const raw = localStorage.getItem(KEYS_STORAGE_KEY);
+    if (raw) return JSON.parse(raw) as AiKeysByProvider;
+  } catch { /* fallthrough */ }
+  // Migration: single-key era stored one key in the main config — file it
+  // under its own provider so the switcher doesn't show it everywhere.
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return {};
+    const cfg = JSON.parse(raw) as AiConfig;
+    return cfg?.key ? { [cfg.provider]: cfg.key } : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveKey(provider: AiProviderId, key: string): AiKeysByProvider {
+  const keys = loadKeys();
+  if (key) keys[provider] = key;
+  else delete keys[provider];
+  localStorage.setItem(KEYS_STORAGE_KEY, JSON.stringify(keys));
+  return keys;
+}
 
 export function loadConfig(): AiConfig | null {
   try {
@@ -55,6 +85,7 @@ export function saveModels(models: string[], baseUrl?: string): void {
 
 export function clearConfig(): void {
   localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(KEYS_STORAGE_KEY);
 }
 
 export function normalizeBaseUrl(url: string): string {

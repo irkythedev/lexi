@@ -8,7 +8,7 @@ import { loadTokenUsage, clearTokenUsage, tokenUsageTotal, type TokenUsageData }
 import TokenUsageDialog from '../components/TokenUsageDialog.tsx';
 import {
   AI_PROVIDERS, loadConfig, saveConfig, clearConfig, saveModels, normalizeBaseUrl, isNetworkError,
-  testConnection, fetchModels,
+  testConnection, fetchModels, loadKeys, saveKey,
 } from '../lib/ai.ts';
 
 function ModelSelect({ models, value, onChange }: { models: string[]; value: string; onChange: (v: string) => void }) {
@@ -126,7 +126,10 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   const locale = useAppStore((s) => s.locale);
   const [provider, setProvider] = useState<AiProviderId>(initial?.provider ?? 'deepseek');
   const [baseUrl, setBaseUrl] = useState(initial?.baseUrl ?? AI_PROVIDERS[0].baseUrl);
-  const [apiKey, setApiKey] = useState(initial?.key ?? '');
+  // Key vault is per-provider: switching providers swaps in that provider's own
+  // key (blank if none), so one key never masquerades across providers.
+  const [keys, setKeys] = useState(() => loadKeys());
+  const [apiKey, setApiKey] = useState(initial?.key ?? keys[initial?.provider ?? 'deepseek'] ?? '');
   const [model, setModel] = useState(initial?.model ?? '');
   const [liveModels, setLiveModels] = useState<string[]>(initial?.models ?? []);
   const [showKey, setShowKey] = useState(false);
@@ -137,6 +140,7 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   const onProvider = (pid: AiProviderId) => {
     const p = AI_PROVIDERS.find((x) => x.id === pid)!;
     setProvider(pid); setBaseUrl(p.baseUrl || ''); setModel(''); setLiveModels([]); setError('');
+    setApiKey(keys[pid] ?? '');
   };
   const runFetchModels = async () => {
     if (!baseUrl.trim() || !apiKey.trim()) { useToastStore.getState().show(t('aiFetchNeedAuth', locale), 'info', 'alert'); return; }
@@ -163,11 +167,12 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   };
   const save = () => {
     if (!apiKey.trim() || !baseUrl.trim() || !model.trim()) { setError(t('aiSaveHint', locale)); return; }
+    setKeys(saveKey(provider, apiKey.trim()));
     const c: AiConfig = { provider, baseUrl: normalizeBaseUrl(baseUrl), key: apiKey.trim(), model: model.trim(), agreed: true, models: liveModels };
     saveConfig(c); onSaved(c);
     useToastStore.getState().show(t('aiSavedToast', locale), 'success', 'check');
   };
-  const clearAll = () => { clearConfig(); setApiKey(''); setModel(''); setLiveModels([]); useToastStore.getState().show(t('aiClearedToast', locale), 'info', 'alert'); };
+  const clearAll = () => { clearConfig(); setKeys({}); setApiKey(''); setModel(''); setLiveModels([]); useToastStore.getState().show(t('aiClearedToast', locale), 'info', 'alert'); };
 
   const currentProvider = AI_PROVIDERS.find((p) => p.id === provider);
   const providerName = (pid: AiProviderId): string => {
