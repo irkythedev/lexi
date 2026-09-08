@@ -152,7 +152,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniProm
   const b = result ? band(result) : null;
 
   return (
-    <Panel><div className="flex min-h-[70vh] flex-col p-5">
+    <Panel><div className="flex min-h-[calc(100dvh-13rem)] flex-col p-5">
       {/* 头部：标签 + 返回 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]"><PenLine size={14} strokeWidth={2.25} style={{ color: 'var(--color-accent)' }} /> {t('miniWriteLabel', locale)}</div>
@@ -177,7 +177,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniProm
           placeholder={t('miniWritePlaceholder', locale)}
           className="w-full flex-1 resize-none rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] leading-relaxed outline-none focus:border-[var(--color-accent)]" />
         <div className="mt-1.5 flex justify-end">
-          <span className={`tnum text-[calc(11.5px*var(--type-scale))] ${overLimit ? 'font-semibold text-[var(--color-trap-deep)]' : 'text-[var(--color-text-2)]'}`}>{wordCount}/{WORD_SOFT}{overLimit ? ` · ${locale === 'zh' ? '超过 30 词' : 'over 30 words'}` : ''}</span>
+          <span className={`tnum text-[calc(11.5px*var(--type-scale))] ${overLimit ? 'font-semibold text-[var(--color-trap-deep)]' : 'text-[var(--color-text-2)]'}`}>{wordCount}/{WORD_SOFT}</span>
         </div>
       </div>
 

@@ -17,7 +17,7 @@ export default function ShareDialog({ url, onClose, title, text }: ShareDialogPr
   const [copied, setCopied] = useState(false);
   const [copyFailed, setCopyFailed] = useState(false);
 
-  const shareTitle = title || 'Lexi · 英语听说词汇';
+  const shareTitle = title || 'Lexi · 译林教材同步学习';
   const shareText = text || t('shareText', locale);
 
   const handleNativeShare = async () => {
