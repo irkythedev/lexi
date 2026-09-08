@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { RectangleHorizontal, Puzzle, Timer, PenLine, ArrowLeftRight } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
+import { useNavigate } from 'react-router-dom';
 import type { Unit } from '../types/index.ts';
 import { t } from '../lib/i18n.ts';
 import Flashcard from '../components/Flashcard.tsx';
@@ -35,6 +36,7 @@ const MODES: { id: PracticeMode; titleKey: string; descKey: string; icon: typeof
 
 export default function PracticeView() {
   const { unit, locale } = useAppStore();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<PracticeMode | null>(null);
   if (!unit) return <div className="mx-auto flex min-h-[70vh] max-w-[var(--max-read)] items-center justify-center px-[var(--pad-x)] py-10 text-center text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('practiceEmpty', locale)}</div>;
   if (mode === 'flash') return <Flashcard items={useAppStore.getState().studyItems} onExit={() => setMode(null)} />;
@@ -49,7 +51,8 @@ export default function PracticeView() {
   // 微写作：无数据单元不渲染入口，故此处必有数据；兜底返回列表
   if (mode === 'miniwrite') {
     if (!unit.miniPrompt) return null;
-    return <MiniWriteView miniPrompt={unit.miniPrompt} onExit={() => setMode(null)} />;
+    // 跨 tab「查看本课课文」：切到 learn tab 并请求 LearnView 直接开 reading mode
+    return <MiniWriteView miniPrompt={unit.miniPrompt} onExit={() => setMode(null)} onViewReading={() => { useAppStore.getState().requestOpenReading(); navigate('/learn'); }} />;
   }
 
   // 词形/微写作仅在有数据的单元渲染（8A 无此数据 → 两卡不出现）

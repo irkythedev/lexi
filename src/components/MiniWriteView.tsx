@@ -33,7 +33,7 @@ ${passage ? `课文原文（评分「课文依据」以此为准）：\n${passag
 /** 微写作卡（审核决策 1：独立模式卡，不塞进 Sprint；Sprint 完成后露出入口）
  *  结构收口（ba68ce5 之后）：输入框占主高度、喇叭贴题干、建议默认收起可点插入、
  *  草稿入 settings（换单元清旧草稿）、0 词禁批改。 */
-export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniPrompt: MiniPrompt; onExit: () => void; onBack?: () => void }) {
+export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReading }: { miniPrompt: MiniPrompt; onExit: () => void; onBack?: () => void; onViewReading?: () => void }) {
   const locale = useAppStore((s) => s.locale);
   const { unit, selection, tts } = useAppStore();
   // 本课课文 paragraphs 全文（v3.5）：批改「依据本课课文」的评分依据；单元无 Reading 时缺省不传
@@ -166,7 +166,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniProm
       </h3>
       <p className="mt-1.5 text-[calc(13px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{t('miniWritePromptCn', locale)}：{miniPrompt.cn}</p>
       {hasReading && (
-        <button onClick={onBack ?? onExit} className="press mt-2 inline-flex w-fit items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-3 py-1.5 text-[calc(12.5px*var(--type-scale))] text-[var(--color-accent)]">
+        <button onClick={onViewReading ?? onBack ?? onExit} className="press mt-2 inline-flex w-fit items-center gap-1 rounded-[var(--radius-md)] border border-[var(--color-hairline)] px-3 py-1.5 text-[calc(12.5px*var(--type-scale))] text-[var(--color-accent)]">
           {t('miniWriteViewReading', locale)} <ArrowLeft size={12} strokeWidth={2.25} className="rotate-180" />
         </button>
       )}

@@ -22,7 +22,7 @@ import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 import WordHighlight from '../components/WordHighlight.tsx';
 
 export default function LearnView() {
-  const { unit, studyItems, tts, locale } = useAppStore();
+  const { unit, studyItems, tts, locale, openReadingRequest, consumeOpenReading } = useAppStore();
   const navigate = useNavigate();
   const [mode, setMode] = useState<null | 'reading' | 'inflect' | 'miniwrite'>(null);
   const [filter, setFilter] = useState<'all' | 'vocab' | 'phrase' | 'notes'>('all');
@@ -40,6 +40,15 @@ export default function LearnView() {
 
   const loadMyLists = () => { void getPersonalBatches().then(setMyLists); };
   useEffect(() => { loadMyLists(); }, []);
+
+  // 微写作跨 tab「查看本课课文」：PracticeView 发起 requestOpenReading → 本视图挂载后消费，
+  // 直接进入课文朗读 mode（无 /reading 路由，reading 是本视图内部 mode）
+  useEffect(() => {
+    if (openReadingRequest > 0 && unit) {
+      consumeOpenReading();
+      setMode('reading');
+    }
+  }, [openReadingRequest, unit, consumeOpenReading]);
 
   const removeMyList = async (id: string) => {
     await deletePersonalBatch(id);
@@ -114,7 +123,7 @@ export default function LearnView() {
   );
   if (mode === 'reading' && unit) return <ReadingView unit={unit.unit} onExit={() => setMode(null)} />;
   if (mode === 'inflect' && unit.inflectionDrills?.length) return <InflectionDrillView drills={unit.inflectionDrills} onExit={() => setMode(null)} />;
-  if (mode === 'miniwrite' && unit.miniPrompt) return <MiniWriteView miniPrompt={unit.miniPrompt} onExit={() => setMode(null)} />;
+  if (mode === 'miniwrite' && unit.miniPrompt) return <MiniWriteView miniPrompt={unit.miniPrompt} onExit={() => setMode(null)} onViewReading={() => setMode('reading')} />;
 
   return (
     <div className="mx-auto max-w-[var(--max-grid)] px-[var(--pad-x)] pb-28 pt-4">

@@ -26,8 +26,12 @@ interface AppState {
   aiReady: boolean;
   tts: { accent: 'us' | 'uk'; rate: number; gender: 'female' | 'male' };
   fontScale: number;
+  /** 一次性请求：微写作「查看本课课文」跨 tab 跳转（练习→课本），LearnView 消费后即清 */
+  openReadingRequest: number;
 
   setTab: (t: Tab) => void;
+  requestOpenReading: () => void;
+  consumeOpenReading: () => void;
   selectUnit: (sel: { editionId: string; grade: number; volume: number; unit: number }) => void;
   refreshAiStatus: () => void;
   toggleTheme: () => void;
@@ -54,8 +58,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   aiReady: !!loadConfig(),
   tts: { accent: 'uk', rate: 1.0, gender: 'male' },
   fontScale: 1,
+  openReadingRequest: 0,
 
   setTab: (t) => set({ tab: t }),
+  // 跨 tab 跳课文：切到 learn tab + 递增请求号（LearnView 挂载时消费）
+  requestOpenReading: () => set((s) => ({ tab: 'learn' as Tab, openReadingRequest: s.openReadingRequest + 1 })),
+  consumeOpenReading: () => set({ openReadingRequest: 0 }),
 
   selectUnit: (sel) => {
     const { unit, studyItems } = recompute(sel);
