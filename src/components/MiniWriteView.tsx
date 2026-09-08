@@ -4,7 +4,7 @@ import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import { Panel } from './ui/primitives.tsx';
 import SpeakButton from './SpeakButton.tsx';
-import { streamChat, buildCorrectionSystemPrompt, extractJson, sanitizeCorrection, isValidCorrection, loadConfig } from '../lib/ai.ts';
+import { streamChat, buildCorrectionSystemPrompt, extractJson, sanitizeCorrection, isValidCorrection, loadConfig, parseRetryMessage, TEMP_CORRECTION } from '../lib/ai.ts';
 import { addError, getSetting, setSetting } from '../db/db.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 import type { MiniPrompt } from '../types/index.ts';
@@ -102,21 +102,34 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack }: { miniProm
   const run = async () => {
     if (!cfg) { setError(t('miniWriteNoConfig', locale)); return; }
     if (!text.trim()) { setError(locale === 'zh' ? '请先写几句再提交批改。' : 'Write a few sentences first.'); return; }
+    // 发送前断言（prompt-v4）：微写作批改必填 题面 + 课文依据（本单元有 Reading 必有 passage）
+    if (!miniPrompt.question) { setError(t('aiCtxMissing', locale, { field: locale === 'zh' ? '写作题面' : 'writing prompt' })); return; }
+    if (!passage) { setError(t('aiCtxMissing', locale, { field: locale === 'zh' ? '课文原文' : 'unit text' })); return; }
     setLoading(true); setError(''); setResult(null); setSaved(false);
     try {
-      const got = { latest: null as CorrectionResult | null }; // holder 承接流式结果：闭包写入安全，TS 控制流不误收窄
-      await streamChat({
-        cfg,
-        systemPrompt: buildCorrectionSystemPrompt({ mode: 'miniwrite', unitTitle: unit?.title, grade: unit?.grade }),
-        userMessage: miniPromptCorrectionPrompt(text, miniPrompt.question, miniPrompt.useful, passage),
-        onChunk: (_d, full) => {
-          const j = extractJson(full);
-          if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
-        },
-        onError: (e) => { setError(e.message || String(e)); },
-      });
-      const final = got.latest;
-      if (!final) { setError(t('aiCorrectionParseError', locale)); return; } // 流正常结束但非 JSON/缺 isCorrect/缺 score：可见报错，不展示 0 分
+      const sysPrompt = buildCorrectionSystemPrompt({ mode: 'miniwrite', unitTitle: unit?.title, grade: unit?.grade });
+      const msg = miniPromptCorrectionPrompt(text, miniPrompt.question, miniPrompt.useful, passage);
+      // 请求纪律（prompt-v4）：首请求 + 最多 1 次解析失败补问（retryUsed 上限）
+      const attempt = async (userMessage: string) => {
+        const got = { latest: null as CorrectionResult | null }; // holder 承接流式结果：闭包写入安全，TS 控制流不误收窄
+        await streamChat({
+          cfg, systemPrompt: sysPrompt, userMessage,
+          temperature: TEMP_CORRECTION, // 批改判分低温 0.2
+          onChunk: (_d, full) => {
+            const j = extractJson(full);
+            if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
+          },
+          onError: (e) => { setError(e.message || String(e)); },
+        });
+        return got.latest;
+      };
+      let final = await attempt(msg);
+      if (!final) {
+        // 追加而非替换：补问必须携带原作文/题面上下文，否则真实模型无从重新批改
+        final = await attempt(`${msg}\n\n${parseRetryMessage()}`); // 补问 1 次（一次点击最多 2 次请求）
+        if (final) setResult(final);
+      }
+      if (!final) { setError(t('aiCorrectionParseError', locale)); return; } // 两次均败：可见报错，不展示 0 分
       // 批改完成后按未达优秀档存入错题本（kind=miniwrite，ErrorsView 显示「微写作」标签）
       if (final.examCollocationScore < 90 && selection) {
         await addError({

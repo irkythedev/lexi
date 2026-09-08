@@ -6,7 +6,7 @@ import SpeakButton from './SpeakButton.tsx';
 import { useSpeechRecognition, compareWords } from '../lib/speechRecognition.ts';
 import { KIND_META, maskSentence, shuffle } from '../lib/utils.ts';
 import { addError, recordReview } from '../db/db.ts';
-import { loadConfig, buildCorrectionSystemPrompt, correctionPrompt, extractJson, isValidCorrection, sanitizeCorrection, streamChat } from '../lib/ai.ts';
+import { loadConfig, buildCorrectionSystemPrompt, correctionPrompt, extractJson, isValidCorrection, sanitizeCorrection, streamChat, parseRetryMessage, TEMP_CORRECTION } from '../lib/ai.ts';
 import { t } from '../lib/i18n.ts';
 import { Panel } from './ui/primitives.tsx';
 
@@ -174,19 +174,34 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
   const run = async () => {
     if (!cfg) { setError(t('sprintAiNoConfig', locale)); return; }
     if (!sentence.trim()) { setError(t('sprintAiNoSentence', locale)); return; }
+    // 发送前断言（prompt-v4）：造句批改必填 目标短语 + 单元标题
+    if (!target?.label) { setError(t('aiCtxMissing', locale, { field: locale === 'zh' ? '目标短语' : 'target phrase' })); return; }
+    if (!unit.title) { setError(t('aiCtxMissing', locale, { field: locale === 'zh' ? '单元信息' : 'unit title' })); return; }
     setLoading(true); setError(''); setResult(null);
     try {
-      const got = { latest: null as import('../types/index.ts').CorrectionResult | null }; // holder 承接流式结果（同 MiniWriteView）
-      await streamChat({
-        cfg, systemPrompt: buildCorrectionSystemPrompt({ mode: 'sentence', unitTitle: unit.title, grade: unit.grade }),
-        userMessage: correctionPrompt(sentence, [target?.label ?? '']),
-        onChunk: (_d, full) => {
-          const j = extractJson(full);
-          if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
-        },
-        onError: (e) => { setError(e.message || String(e)); },
-      });
-      if (!got.latest) { setError(t('aiCorrectionParseError', locale)); return; } // 非 JSON/缺 isCorrect/缺 score：可见报错，不展示 0 分
+      const sysPrompt = buildCorrectionSystemPrompt({ mode: 'sentence', unitTitle: unit.title, grade: unit.grade });
+      const msg = correctionPrompt(sentence, [target.label]);
+      // 请求纪律（prompt-v4）：首请求 + 最多 1 次解析失败补问（retryUsed 上限）
+      const attempt = async (userMessage: string) => {
+        const got = { latest: null as import('../types/index.ts').CorrectionResult | null }; // holder 承接流式结果
+        await streamChat({
+          cfg, systemPrompt: sysPrompt, userMessage,
+          temperature: TEMP_CORRECTION, // 批改判分低温 0.2
+          onChunk: (_d, full) => {
+            const j = extractJson(full);
+            if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
+          },
+          onError: (e) => { setError(e.message || String(e)); },
+        });
+        return got.latest;
+      };
+      let latest = await attempt(msg);
+      if (!latest) {
+        // 追加而非替换：补问必须携带原句子/短语上下文，否则真实模型无从重新批改
+        latest = await attempt(`${msg}\n\n${parseRetryMessage()}`); // 补问 1 次（一次点击最多 2 次请求）
+        if (latest) setResult(latest);
+      }
+      if (!latest) { setError(t('aiCorrectionParseError', locale)); return; } // 两次均败：可见报错，不展示 0 分
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   };

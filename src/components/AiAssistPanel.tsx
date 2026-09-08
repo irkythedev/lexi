@@ -8,7 +8,8 @@ import { X, Sparkles, Loader2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, followUpPrompt, isNetworkError, isReasoningModel,
-  parseStudyCard, type StudyCard, type StudySegment,
+  parseStudyCard, quoteHitCheck, splitSentencesEn, parseRetryMessage, TEMP_CARD,
+  type StudyCard, type StudySegment,
 } from '../lib/ai.ts';
 import { addTokenUsage, estimateTokens } from '../lib/token-usage.ts';
 import { upsertAiNote, appendAiNoteChain } from '../db/db.ts';
@@ -153,13 +154,29 @@ export default function AiAssistPanel({
     ? `${selection.editionId}:u${selection.unit}:${context.kind ?? 'vocab'}:${context.label}`
     : null;
 
+  // 发送前断言（prompt-v4）：必填 context 缺了不发请求，UI 可见原因。
+  // reading 额外规则：有 fullText + 词表才发；notesBrief 仅在有 Notes 的单元必传——
+  // 无 Notes 单元（notes 空数组）仍可导读，不因缺 notesBrief 拦截。
+  const ctxIssue = useCallback((ctx: AssistContext, mode: 'study' | 'follow'): string | null => {
+    if (!ctx.label) return t('aiCtxMissing', locale, { field: 'label' });
+    if (ctx.mode === 'reading') {
+      if (!ctx.fullText?.trim()) return t('aiCtxMissing', locale, { field: locale === 'zh' ? '课文全文' : 'unit text' });
+      if (!ctx.unitWords?.length) return t('aiCtxMissing', locale, { field: locale === 'zh' ? '本单元词表' : 'unit word list' });
+    } else if (mode === 'study' && !ctx.unitWords?.length) {
+      return t('aiCtxMissing', locale, { field: locale === 'zh' ? '本单元词表' : 'unit word list' });
+    }
+    return null;
+  }, [locale]);
+
   // 统一请求入口：mode='study' 主卡 / mode='follow' 追问（prompt-v3）
   const requestCard = useCallback(async (mode: 'study' | 'follow', parent?: { segment: string; probe: string; depth: number }) => {
     if (!cfg || busy || !context) return;
+    const issue = ctxIssue(context, mode);
+    if (issue) { setErr(issue); return; } // 缺必填：不发请求，可见原因
     setBusy(true); setBusyFollow(mode === 'follow'); setErr(''); setCard(null);
     if (mode === 'study') { setViews([]); setIdx(0); } // 主卡/重试/切词：追问链归零
     const msg = mode === 'follow' && parent
-      ? followUpPrompt(parent.segment, parent.probe, context.label, parent.depth)
+      ? followUpPrompt(parent.segment, parent.probe, context.label, parent.depth, context.mode)
       : studyCardPrompt(context.label, context.meaning, context.kind, context.quote, context.unitWords, { mode: context.mode, fullText: context.fullText });
     // prompt-v3.2 knowledge 通道分离：词表进 knowledge（词表标签），课文/注释原文进
     // passage（原句标签）。废除 v1 的 `extra ?? 词表字符串` 混装——曾把整段课文
@@ -179,31 +196,93 @@ export default function AiAssistPanel({
     const sysPrompt = buildSystemPrompt({ unitTitle: unit?.title ?? context.unitTitle, knowledge, notes: notesStr, passage, mode: context.mode, grade: context.grade });
     setTokens((n) => n + estimateTokens(sysPrompt) + estimateTokens(msg));
     addTokenUsage(cfg.model, estimateTokens(sysPrompt) + estimateTokens(msg));
+    const onChunkUpdate = (_d: string, f: string) => { setTokens((n) => n + Math.round(f.length / 4)); };
     try {
-      let full = '';
-      let failure: string | null = null;
-      let timedOut = false;
-      let reasoningChars = 0;
-      await new Promise<void>((resolve) => {
-        let settled = false;
-        const done = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
-        const timer = setTimeout(() => { timedOut = true; done(); }, 60000);
-        streamChat({
-          cfg, systemPrompt: sysPrompt,
-          userMessage: msg,
-          maxTokens: 1800, // 卡片 JSON + probe；推理类模型 streamChat 内部自动翻倍
-          onChunk: (_d, f) => { full = f; },
-          onEnd: (f, meta) => { full = f; reasoningChars = meta.reasoningChars; done(); },
-          onError: (e) => { failure = e.message || String(e); done(); }, // HTTP/网络错误直达用户（prompt-v3）
+      // ── 请求纪律（prompt-v4）：一次用户操作 = 首请求 + 最多 1 次追加 ──
+      // 追加触发来源只有两种：解析失败（parseStudyCard null）、对质失败（好句/quote
+      // 不在原文）。retryUsed 闭包标志保证两者合计只走 1 次。
+      const attempt = async (userMessage: string) => {
+        let full = '';
+        let failure: string | null = null;
+        let timedOut = false;
+        let reasoningChars = 0;
+        await new Promise<void>((resolve) => {
+          let settled = false;
+          const done = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
+          const timer = setTimeout(() => { timedOut = true; done(); }, 60000);
+          streamChat({
+            cfg, systemPrompt: sysPrompt,
+            userMessage,
+            maxTokens: 1800, // 卡片 JSON + probe；推理类模型 streamChat 内部自动翻倍
+            temperature: TEMP_CARD, // 卡片创作 0.5（streamChat 默认），显式声明对齐纪律
+            onChunk: onChunkUpdate,
+            onEnd: (f, meta) => { full = f; reasoningChars = meta.reasoningChars; done(); },
+            onError: (e) => { failure = e.message || String(e); done(); }, // HTTP/网络错误直达用户（prompt-v3）
+          });
         });
-      });
-      setTokens((n) => n + estimateTokens(full));
-      addTokenUsage(cfg.model, estimateTokens(full));
-      if (timedOut) setErr(t('aiBusyGone', locale));
-      else if (failure) setErr(failure);
-      else {
-        const parsed = parseStudyCard(full);
+        return { full, failure, timedOut, reasoningChars };
+      };
+      let { full, failure, timedOut, reasoningChars } = await attempt(msg);
+      if (failure || timedOut) {
+        setTokens((n) => n + estimateTokens(full));
+        addTokenUsage(cfg.model, estimateTokens(full));
+        setErr(timedOut ? t('aiBusyGone', locale) : (failure ?? ''));
+      } else {
+        let parsed = parseStudyCard(full);
+        // 追加 1 次的判定顺序：解析失败 → 补问；补问结果仍要过对质。retryUsed 保证
+        // 解析失败与对质失败合计最多追加 1 次请求（用户拍板）。
+        let retryUsed = false;
+        if (!parsed && full.trim() && !retryUsed) {
+          retryUsed = true;
+          // 追加而非替换：补问须携带原词条/词表上下文（与 Sprint/微写作补问口径一致）
+          const again = await attempt(`${msg}\n\n${parseRetryMessage()}`);
+          setTokens((n) => n + estimateTokens(again.full));
+          addTokenUsage(cfg.model, estimateTokens(again.full));
+          if (!again.failure && !again.timedOut && again.full.trim()) {
+            parsed = parseStudyCard(again.full);
+            full = again.full;
+            reasoningChars = again.reasoningChars;
+          }
+        }
+        setTokens((n) => n + estimateTokens(full));
+        addTokenUsage(cfg.model, estimateTokens(full));
         if (parsed) {
+          // ── 对质校验（prompt-v4）：生成结果与课文/quote 对质 ──
+          // reading：example.en 按句切开逐条须在 fullText 命中；word/notes：有 quote
+          // 时 example.en 须与 quote 归一化匹配。不命中且额度未用 → 定点补问 1 次。
+          const check = (): string | null => {
+            if (context.mode === 'reading' && context.fullText) {
+              const sents = splitSentencesEn(parsed!.example.en);
+              if (sents.length && !sents.every((s) => quoteHitCheck(s, context.fullText!))) return 'quote';
+            } else if (context.mode !== 'reading' && context.quote && parsed!.example.en) {
+              if (!quoteHitCheck(parsed!.example.en, context.quote)) return 'quote';
+            }
+            return null;
+          };
+          if (check() && !retryUsed) {
+            retryUsed = true;
+            const fix = `${parseRetryMessage()}\n另外：example.en 里的好句/例句必须是课文或教材原文的整句（可从「原文」里逐字取用），不要改写或自拟。重新输出完整 JSON。`;
+            const again = await attempt(fix);
+            setTokens((n) => n + estimateTokens(again.full));
+            addTokenUsage(cfg.model, estimateTokens(again.full));
+            if (!again.failure && !again.timedOut && again.full.trim()) {
+              const reparsed = parseStudyCard(again.full);
+              // 补问结果通过对质才采纳；仍不命中 → 保留原卡（内容可用，例句存疑好于报错卡死）
+              if (reparsed) {
+                const stillBad = ((): boolean => {
+                  if (context.mode === 'reading' && context.fullText) {
+                    const sents = splitSentencesEn(reparsed.example.en);
+                    return !!sents.length && !sents.every((s) => quoteHitCheck(s, context.fullText!));
+                  }
+                  if (context.mode !== 'reading' && context.quote && reparsed.example.en) {
+                    return !quoteHitCheck(reparsed.example.en, context.quote);
+                  }
+                  return false;
+                })();
+                if (!stillBad) parsed = reparsed;
+              }
+            }
+          }
           setCard(parsed);
           if (mode === 'follow' && parent) {
             // 新答案入链缓存并跳到该层；更深层的旧缓存（回看后另点别的 probe 产生分叉）一并截断
@@ -243,7 +322,7 @@ export default function AiAssistPanel({
     } finally {
       setBusy(false);
     }
-  }, [cfg, busy, context, unit, selection, noteKey, locale]);
+  }, [cfg, busy, context, unit, selection, noteKey, locale, ctxIssue]);
 
   const study = useCallback(() => requestCard('study'), [requestCard]);
 

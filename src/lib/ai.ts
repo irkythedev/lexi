@@ -101,7 +101,7 @@ export function buildSystemPrompt(args: { unitTitle?: string; knowledge?: string
     : `你是一名面向中国${stage}学生的英语学霸辅导老师，专注课本词汇、短语、固定搭配与句式语法。`;
   const duty = reading
     ? '职责范围：仅做课文导读——概括主旨、梳理段落脉络、点评原文好句、按教材注释口径提示难词难句。导读纪律：好句与难词难句优先选自本单元词表或注释要点在课文中出现的项；可以点明「本课在练哪些表达」；不要逐段翻译，不要文学鉴赏；词表没有但影响理解的生词可少量补充，不要展开成课外词汇课。'
-    : '职责范围：仅做知识讲解、概念辨析、造句批改与考点拓展；';
+    : '职责范围：仅做知识讲解与概念辨析（易混词、搭配、句式结构）；不做造句批改，不额外拓展应试考点；';
   const k = args.knowledge ? `\n当前单元词表（讲解深度、例句用词请对齐这个范围，内容不足时说明并建议查阅教材）：\n${args.knowledge}` : '';
   // notesCtx（prompt-v3.5）：注释要点是第三种语料（教材注释口径），不与词表混一个字段
   const n = args.notes ? `\n本单元注释要点（教材 Notes 口径，讲解难词难句时对齐这些条目）：\n${args.notes}` : '';
@@ -162,13 +162,28 @@ export function isReasoningModel(model: string): boolean {
   return /reasoner|deepseek-r1|\bo1\b|\bo3\b|qwq|thinking/i.test(model);
 }
 
+// ── 请求纪律（prompt-v4）：一次用户操作最多追加 1 次请求 ──
+// withRetry 不是通用重试器，而是「解析失败补问」契约：第一次 streamChat 正常结束
+// 但解析器（parse/validate）判失败 → 追加一条纠偏 user 消息再发 1 次；两次都败才
+// 向调用方报错。对质失败与解析失败共享这个额度：调用方在自己的一次 run 里只允许
+// 触发其中一种追加，且追加总数 ≤1（由调用方在闭包里持有 retryUsed 标志保证）。
+
+/** 追加 1 次请求的公共纠偏消息（调用方以「原消息 + 本纠偏」追加发送，携带完整上下文）。 */
+export function parseRetryMessage(): string {
+  return '你上一次的输出无法解析为 JSON。请重新输出：只输出可解析的 JSON 本体，不要 markdown 代码块、不要任何解释文字。';
+}
+
+/** temperature 纪律：批改（判分）低温 0.2 保稳定，卡片（创作）默认 0.5。 */
+export const TEMP_CORRECTION = 0.2;
+export const TEMP_CARD = 0.5;
+
 // Streaming chat. onChunk receives (delta, full). Abortable.
 // onError（prompt-v3 加固）：fetch/HTTP/流中断错误通过此回调抵达调用方。
 // 此前错误在 detached async 内 rethrow，永远无人接收 → 调用方误报"解析失败"。
 export function streamChat(args: {
   cfg: AiConfig; systemPrompt: string; userMessage: string;
   onChunk?: (delta: string, full: string) => void; onEnd?: (full: string, meta: { reasoningChars: number }) => void;
-  onError?: (e: Error) => void; signal?: AbortSignal; maxTokens?: number;
+  onError?: (e: Error) => void; signal?: AbortSignal; maxTokens?: number; temperature?: number;
 }): StreamHandle {
   const base = normalizeBaseUrl(args.cfg.baseUrl);
   const controller = new AbortController();
@@ -187,7 +202,7 @@ export function streamChat(args: {
         body: JSON.stringify({
           model: args.cfg.model,
           messages: [{ role: 'system', content: args.systemPrompt }, { role: 'user', content: args.userMessage }],
-          stream: true, temperature: 0.5,
+          stream: true, temperature: args.temperature ?? 0.5,
           max_tokens: maxTokens, // 批改足够；卡片请求传更大值（推理模型在上方自动翻倍）
         }),
         signal: controller.signal,
@@ -307,9 +322,12 @@ ${text}
 
 要求：
 - usage 2-4 条，每条对应课文一个段落要点；example 用课文原句，不要自拟，可给 2-3 句。
+- example.en 必须是课文里出现的原句（按句号/问号/叹号整句切分，一句一条），系统会逐句与课文对质，改写或自拟句子会被判无效。
+- definition 必须是主旨概括（这篇在讲什么），不要写成单词释义口径。
 - 好句和难词难句优先选自「本单元词表」「本单元注释要点」在课文中出现的项；可点明本课在练哪些表达。
 - 不要逐段翻译，不要文学鉴赏；词表没有但影响理解的生词可少量补充，不要展开成课外词汇课。
-- 讲解对齐本单元词表范围，浅显易记。`;
+- 讲解对齐本单元词表范围，浅显易记。
+- 示例（仅示意字段形态）：{"word":"${label}","definition":"课文围绕几位人物的职业与性格展开","usage":[{"type":"text","text":"第1段讲吴伟的艺术创作…"}],"example":{"en":"His creative work impresses not only his friends but also the whole town.","zh":"他的创造性作品不仅给朋友们留下深刻印象，也震撼了全镇。"},"examTips":[{"type":"text","text":"impress sb 深深打动某人"}]}`;
   }
   const kindLabel = kind === 'phrase' ? '短语' : kind === 'pattern' ? '句式' : kind === 'notes' ? '教材注释句子' : '单词';
   const peerRule = !quote && peerWords && peerWords.length
@@ -337,7 +355,7 @@ ${text}
 要求：
 - usage 和 examTips 各 2-4 项；speak 项的 text 必须是完整英文词/短语（如 "be energetic"、"more energetic"），禁止拆成字母或词缀。
 - 若英文示例是单个字母（如考点里提示别漏字母 e），单独给一个 { "type": "speak", "text": "e" }。
-- example.en 是完整句子，朗读时整句播，不拆词。
+- example.en 是完整句子，朗读时整句播，不拆词。示例（仅示意字段形态）：{"word":"energetic","definition":"精力充沛的","usage":[{"type":"text","text":"an energetic person 精力充沛的人"}],"example":{"en":"Simon is energetic and loves sports.","zh":"西蒙精力充沛，热爱运动。"},"examTips":[]}
 - ${quoteRule}${peerRule ? `\n${peerRule}` : ''}
 - probe（可省略）：只对讲解中特别值得追问的具体内容点给——该点确实有易混点/易错点/引申空间时，在该段 JSON 对象上加一个 "probe" 字段，内容为面向该点的一个简短中文追问句（学生点它即可展开讲解）。整卡最多 2 个 probe；内容平淡无疑问点时一律不加，宁缺勿滥。
 - 总量控制在 180 字以内，每个字段简短。`;
@@ -348,7 +366,14 @@ ${text}
  * parentSegment 是被追问的原始内容——追问答案必须围绕它展开，不允许发散。
  * 追问答案同样走学习卡片 JSON schema（可再带 probe），由 followUpDepth 限制链深。
  */
-export function followUpPrompt(parentSegment: string, probe: string, label: string, depth: number): string {
+export function followUpPrompt(parentSegment: string, probe: string, label: string, depth: number, mode?: 'word' | 'reading'): string {
+  // 追问分场景（prompt-v4）：导读链只追主旨/脉络/好句/难词四类内容，不套词卡展开口径
+  if (mode === 'reading') {
+    return `学生在课文导读卡里点了一条追问。导读卡四段内容只可能是：主旨概括（definition）、段落脉络（usage）、原文好句（example.en）、难词难句（examTips）。
+原内容：${parentSegment}
+追问：${probe}
+请围绕该内容展开讲解（${depth === 1 ? '第一层：把该点讲清楚' : '第二层：结合课文进一步深化，此后不再设新问题'}），范围限于主旨、段落脉络、原文好句品读、难词难句四类，不要展开成课外拓展或应试讲解。只输出 JSON，格式与导读卡相同（word 填「${label}」，definition 一句话直接回答追问，usage 2-3 条展开且每条内容各不相同，禁止复述 definition 的原句，example.en 如给例句必须是课文原句，examTips 可为空数组）。只输出 JSON，不要任何多余文字。`;
+  }
   return `学生针对「${label}」讲解卡里的这条内容提了一个追问：
 原内容：${parentSegment}
 追问：${probe}
@@ -398,6 +423,23 @@ function normalizeDup(s: string): string {
     .replace(/[\s\u3000]+/g, '')
     .replace(/[，。、；：？！「」『』（）《》"'“”‘’…—,.;:?!()<>]/g, '')
     .toLowerCase();
+}
+
+/** 对质校验（prompt-v4）：needle 归一化后是否在 haystack 中 substring 命中。
+ *  忽略空白/引号/标点差异——模型把原句拆行、换引号仍算命中。
+ *  空 needle 不判命中（无内容可对质）。 */
+export function quoteHitCheck(needle: string, haystack: string): boolean {
+  const n = normalizeDup(needle);
+  if (!n) return false;
+  return normalizeDup(haystack).includes(n);
+}
+
+/** example.en 按句切开（句末标点为界），用于导读好句逐条对质。 */
+export function splitSentencesEn(text: string): string[] {
+  return text
+    .split(/(?<=[.!?])\s+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 /** 解析学习卡片 JSON，容错降级（字段缺失时返回 null，由调用方回退纯文本）。 */
