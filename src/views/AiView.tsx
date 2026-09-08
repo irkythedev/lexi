@@ -184,7 +184,7 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
       {currentProvider?.id === 'doubao' && <p className="mt-1.5 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">{t('aiProviderDoubaoNote', locale)}</p>}
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiBaseUrlLabel', locale)}</div>
-      <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} placeholder={t('aiBaseUrlPlaceholder', locale)} className="mt-2 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
+      <input value={baseUrl} onChange={(e) => setBaseUrl(e.target.value)} readOnly={provider !== 'custom'} placeholder={t('aiBaseUrlPlaceholder', locale)} className={`mt-2 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none ${provider === 'custom' ? 'bg-[var(--color-input-bg)] focus:border-[var(--color-accent)]' : 'cursor-default bg-[var(--color-surface-2)] text-[var(--color-text-2)]'}`} />
 
       <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiApiKeyLabel', locale)}</div>
       <div className="relative mt-2">
