@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { PenLine, Sparkles, ArrowLeft, ChevronDown } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
-import { Panel } from './ui/primitives.tsx';
 import SpeakButton from './SpeakButton.tsx';
 import { streamChat, buildCorrectionSystemPrompt, extractJson, sanitizeCorrection, isValidCorrection, loadConfig, parseRetryMessage, TEMP_CORRECTION } from '../lib/ai.ts';
 import { addError, getSetting, setSetting } from '../db/db.ts';
@@ -33,7 +32,7 @@ ${passage ? `课文原文（评分「课文依据」以此为准）：\n${passag
 /** 微写作卡（审核决策 1：独立模式卡，不塞进 Sprint；Sprint 完成后露出入口）
  *  结构收口（ba68ce5 之后）：输入框占主高度、喇叭贴题干、建议默认收起可点插入、
  *  草稿入 settings（换单元清旧草稿）、0 词禁批改。 */
-export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReading }: { miniPrompt: MiniPrompt; onExit: () => void; onBack?: () => void; onViewReading?: () => void }) {
+export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReading, previewText }: { miniPrompt: MiniPrompt; onExit: () => void; onBack?: () => void; onViewReading?: () => void; /** 视频模式（Remotion）：受控文本，默认 undefined = 行为与现在完全一致 */ previewText?: string }) {
   const locale = useAppStore((s) => s.locale);
   const { unit, selection, tts } = useAppStore();
   // 本课课文 paragraphs 全文（v3.5）：批改「依据本课课文」的评分依据；单元无 Reading 时缺省不传
@@ -43,6 +42,8 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
   }, [unit]);
   const hasReading = !!passage;
   const [text, setText] = useState('');
+  // 受控预览态（视频）：传 previewText 就以外部值为准；草稿 IndexedDB effect 仍在但 stub 环境下无副作用
+  const effText = previewText ?? text;
   const [result, setResult] = useState<CorrectionResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -50,7 +51,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
   const [usefulOpen, setUsefulOpen] = useState(false);
   const cfg = loadConfig();
   const taRef = useRef<HTMLTextAreaElement | null>(null);
-  const wordCount = useMemo(() => text.trim() ? text.trim().split(/\s+/).length : 0, [text]);
+  const wordCount = useMemo(() => effText.trim() ? effText.trim().split(/\s+/).length : 0, [effText]);
   const overLimit = wordCount > WORD_SOFT;
 
   // ── 草稿持久化（settings 通道）──
@@ -152,11 +153,11 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
   const b = result ? band(result) : null;
 
   return (
-    <Panel><div className="flex min-h-[calc(100dvh-13rem)] flex-col p-5">
+    <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4"><div className="flex min-h-[calc(100dvh-13rem)] flex-col">
       {/* 头部：标签 + 返回 */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]"><PenLine size={14} strokeWidth={2.25} style={{ color: 'var(--color-accent)' }} /> {t('miniWriteLabel', locale)}</div>
-        <button onClick={onBack ?? onExit} className="press flex items-center gap-1 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]"><ArrowLeft size={14} /> {t('back', locale)}</button>
+        <button onClick={onBack ?? onExit} className="press flex min-h-11 items-center gap-1.5 rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]"><ArrowLeft size={18} strokeWidth={2.25} /> {t('back', locale)}</button>
       </div>
 
       {/* 题干块：英文题干 + 喇叭（只读题干）+ 题意 + 查看课文 */}
@@ -173,7 +174,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
 
       {/* 输入区：占主高度 */}
       <div className="relative mt-3 flex min-h-[9rem] flex-1 flex-col">
-        <textarea ref={taRef} value={text} onChange={(e) => setText(e.target.value)} maxLength={WORD_LIMIT}
+        <textarea ref={taRef} value={effText} onChange={(e) => setText(e.target.value)} maxLength={WORD_LIMIT}
           placeholder={t('miniWritePlaceholder', locale)}
           className="w-full flex-1 resize-none rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] p-3 text-[calc(15px*var(--type-scale))] leading-relaxed outline-none focus:border-[var(--color-accent)]" />
         <div className="mt-1.5 flex justify-end">
@@ -206,7 +207,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
       {!result ? (
         <div className="mt-3 flex items-center justify-end gap-2">
           <button onClick={onExit} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(14px*var(--type-scale))] text-[var(--color-text-2)]">{t('miniWriteSkip', locale)}</button>
-          <button onClick={run} disabled={loading || !text.trim()} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(14px*var(--type-scale))] font-semibold text-white disabled:opacity-50">
+          <button onClick={run} disabled={loading || !effText.trim()} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(14px*var(--type-scale))] font-semibold text-white disabled:opacity-50">
             {loading ? t('miniWriteLoading', locale) : <>{t('miniWriteSubmit', locale)} <PenLine size={14} strokeWidth={2.25} /></>}
           </button>
         </div>
@@ -226,6 +227,6 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
           </div>
         </div>
       )}
-    </div></Panel>
+    </div></div>
   );
 }

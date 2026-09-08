@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { ArrowLeftRight, Check, X } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
-import { Panel } from './ui/primitives.tsx';
 import { addError } from '../db/db.ts';
 import type { InflectionDrill } from '../types/index.ts';
 
@@ -58,18 +57,18 @@ export default function InflectionDrillView({ drills, onExit }: { drills: Inflec
     // 完成态：本轮对错小结，做完即结束
     const right = queue.length - wrong;
     return (
-      <Panel><div className="flex flex-col items-center p-8 text-center">
+      <div className="flex flex-col items-center p-8 text-center">
         <ArrowLeftRight size={40} strokeWidth={2} style={{ color: 'var(--color-inflection)' }} />
         <p className="mt-3 text-[calc(20px*var(--type-scale))] font-bold text-[var(--color-text)]">{t('inflectDone', locale)}</p>
         <p className="mt-1 tnum text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('inflectScore', locale, { right, total: queue.length })}</p>
         {wrong > 0 && selection && <p className="mt-2 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('inflectErrorsSaved', locale)}</p>}
         <button onClick={onExit} className="press mt-5 rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-accent)] px-6 py-2.5 text-[calc(15px*var(--type-scale))] font-semibold text-white">{t('done', locale)}</button>
-      </div></Panel>
+      </div>
     );
   }
 
   return (
-    <Panel><div className="p-5">
+    <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4"><div className="p-5 sm:p-0">
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-2 text-[calc(12px*var(--type-scale))] font-semibold tracking-wide text-[var(--color-text-2)]"><ArrowLeftRight size={14} strokeWidth={2.25} style={{ color: 'var(--color-inflection)' }} /> {t('inflectTitle', locale)}</span>
         <span className="tnum text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{idx + 1}/{queue.length}</span>
@@ -108,6 +107,6 @@ export default function InflectionDrillView({ drills, onExit }: { drills: Inflec
           </button>
         </div>
       )}
-    </div></Panel>
+    </div></div>
   );
 }

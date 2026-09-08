@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Mic, Check, X, ArrowRight, Trophy, Send, Sparkles } from 'lucide-react';
+import { Mic, Check, X, ArrowRight, Trophy, Send, Sparkles, ArrowLeft } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import type { StudyItem, Unit } from '../types/index.ts';
 import SpeakButton from './SpeakButton.tsx';
@@ -26,7 +26,7 @@ export default function Sprint({ onExit }: { onExit: () => void }) {
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4">
       <div className="mb-3 flex items-center justify-between">
-        <button onClick={onExit} className="press flex items-center gap-1 text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('back', locale)}</button>
+        <button onClick={onExit} className="press flex min-h-11 items-center gap-1.5 rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]"><ArrowLeft size={18} strokeWidth={2.25} /> {t('back', locale)}</button>
         <span className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('sprint', locale)}</span>
       </div>
 
