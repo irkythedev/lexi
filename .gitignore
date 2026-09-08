@@ -7,3 +7,6 @@ dist
 shots/
 design-audit-lexi.md
 # 教材音频：2026-09-06 用户拍板随仓分发（版权可接受，public/audio 进 git，EdgeOne 云端构建可用）。
+
+# Remotion 渲染产物（mp4 不进仓，需要时本地重渲）
+out/

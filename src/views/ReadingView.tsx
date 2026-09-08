@@ -67,11 +67,14 @@ function splitSentences(text: string): string[] {
   return out;
 }
 
-export default function ReadingView({ unit, onExit }: { unit: number; onExit: () => void }) {
+export default function ReadingView({ unit, onExit, previewPlaying, previewSentenceIdx }: { unit: number; onExit: () => void; /** 视频模式（Remotion）：受控播放态，默认 undefined = 行为与现在完全一致 */ previewPlaying?: boolean; previewSentenceIdx?: number } = {} as never) {
   const { tts, locale, unit: unitInfo } = useAppStore();
   const { speak, stop, state: ttsState } = useSpeak();
   const [playing, setPlaying] = useState(false);
   const [sentenceIdx, setSentenceIdx] = useState(0);
+  // 受控预览态：传了 previewPlaying/previewSentenceIdx 就以外部值为准（视频逐帧演戏用；不触发 speak/缓存）
+  const effPlaying = previewPlaying ?? playing;
+  const effSentenceIdx = previewSentenceIdx ?? sentenceIdx;
   // 教材原声模式：'tts' = 合成逐句朗读（默认） | 'orig' = 官方录音整篇串流
   const [audioMode, setAudioMode] = useState<'tts' | 'orig'>('tts');
   // 原声地址异步解析（构建期 manifest → /audio/yilin9a/u{n}_reading.m4a）
@@ -225,8 +228,8 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
       {/* 播放控制栏：音源切换合并进栏内；标题仅此处一处（顶栏右侧不放标题，消重复） */}
       <div className="mt-4 flex items-center gap-1 rounded-[var(--radius-card)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] py-1 pl-1 pr-3 shadow-[var(--shadow-card)]">
         {audioMode === 'tts' ? (
-          <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60" aria-label={playing ? t('playPause', locale) : t('play', locale)}>
-            {ttsState === 'synthesizing' ? <Loader2 size={20} strokeWidth={2.25} className="animate-spin" /> : playing ? <Pause size={20} strokeWidth={2.25} /> : <Play size={20} strokeWidth={2.25} />}
+          <button onClick={toggle} disabled={ttsState === 'synthesizing'} className="press flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60" aria-label={effPlaying ? t('playPause', locale) : t('play', locale)}>
+            {ttsState === 'synthesizing' ? <Loader2 size={20} strokeWidth={2.25} className="animate-spin" /> : effPlaying ? <Pause size={20} strokeWidth={2.25} /> : <Play size={20} strokeWidth={2.25} />}
           </button>
         ) : (
           <button onClick={toggleOrig} disabled={!audioUrl || origLoading} className="press flex h-10 w-10 items-center justify-center rounded-[var(--radius-md)] text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60" aria-label={t('origAudio', locale)}>
@@ -241,7 +244,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
           )}
           <span className="ml-auto shrink-0 text-[calc(12px*var(--type-scale))] text-[var(--color-text-3)]">
             {audioMode === 'tts'
-              ? <span className="tnum">{sentenceIdx + 1} / {total}{playing && ' · ' + t('readingNow', locale)}</span>
+              ? <span className="tnum">{effSentenceIdx + 1} / {total}{effPlaying && ' · ' + t('readingNow', locale)}</span>
               : t('origAudio', locale) + (origPlaying ? ' · ' + t('readingNow', locale) : '')}
           </span>
         </div>
@@ -284,7 +287,7 @@ export default function ReadingView({ unit, onExit }: { unit: number; onExit: ()
             <p key={pi} className="leading-relaxed text-[calc(16px*var(--type-scale))]">
               {paraSentences.map((s, si) => {
                 const globalIdx = localStart + si;
-                const isActive = globalIdx === sentenceIdx && playing;
+                const isActive = globalIdx === effSentenceIdx && effPlaying;
                 const isDone = globalIdx < sentenceIdx;
                 return (
                   <button
