@@ -9,7 +9,7 @@ import { ArrowLeft, Check, X, Volume2, ChevronRight, RotateCcw, Loader2, Sparkle
 import { useAppStore } from '../stores/useAppStore.ts';
 import { findQuote } from '../data/textbooks/unit_texts.ts';
 import {
-  useSessionEngine, type TaskResult,
+  useSessionEngine, type Task, type TaskResult,
   getSessionSnapshot, saveSessionSnapshot, clearSessionSnapshot,
 } from '../lib/session-engine.ts';
 import { useSpeak } from '../lib/useSpeak.ts';
@@ -18,7 +18,7 @@ import { t } from '../lib/i18n.ts';
 import { Tag } from '../components/ui/primitives.tsx';
 import AiAssistPanel from '../components/AiAssistPanel.tsx';
 
-export default function SessionView() {
+export default function SessionView({ previewTask }: { previewTask?: Task } = {} as never) {
   const { unitId } = useParams();
   const navigate = useNavigate();
   const { selection, unit, studyItems, tts } = useAppStore();
@@ -93,16 +93,19 @@ export default function SessionView() {
   }, [snapshotKey, reset]);
 
   // Build recognition options (correct + 3 distractors).
+  // 视频模式（Remotion）：受控 task 注入，其余逻辑（recognizeOptions/渲染）原样复用
+  const effTask: Task | null = previewTask ?? task;
+
   const recognizeOptions = useMemo(() => {
-    if (!task || task.type !== 'recognize') return [];
-    const correct = task.item.meaning;
+    if (!effTask || effTask.type !== 'recognize') return [];
+    const correct = effTask.item.meaning;
     const pool = words.filter((w) => w.id !== task.item.id && w.meaning && w.meaning !== correct);
     const distractors = [...new Set(shuffle(pool).map((w) => w.meaning))].slice(0, 3);
     const fillers = shuffle([t('recogDistractor1', locale), t('recogDistractor2', locale), t('recogDistractor3', locale), t('recogDistractor4', locale)]);
     let fi = 0;
     while (distractors.length < 3) distractors.push(fillers[fi++ % fillers.length]);
     return shuffle([correct, ...distractors]);
-  }, [task, words]);
+  }, [effTask, words]);
 
   const grade = useCallback(async (result: TaskResult, extra?: string) => {
     if (!task) return;
@@ -144,7 +147,7 @@ export default function SessionView() {
     );
   }
 
-  if (!activeUnit || !task) {
+  if ((!activeUnit || !task) && !effTask) {
     return (
       <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-16 text-center">
         <p className="text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{t('sessionNoUnit', locale)}</p>
@@ -153,8 +156,8 @@ export default function SessionView() {
     );
   }
 
-  const meta = KIND_META[task.item.kind];
-  const wordsArr = task.item.label.split(/\s+/);
+  const meta = KIND_META[effTask.item.kind];
+  const wordsArr = effTask.item.label.split(/\s+/);
 
   return (
     <div className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-[var(--max-read)] flex-col px-[var(--pad-x)] py-4">
@@ -173,7 +176,7 @@ export default function SessionView() {
       <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
         {/* kind 标签移入顶栏后，正文区移除重复的 Tag 块 */}
 
-        {task.type === 'listen' && (
+        {effTask.type === 'listen' && (
           <div className="mt-6">
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
               {wordsArr.map((w, i) => (
@@ -190,7 +193,7 @@ export default function SessionView() {
                 onClick={() => {
                   if (ttsState === 'playing' || ttsState === 'paused') { stop(); return; }
                   setShownWord(0);
-                  speak(task.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) });
+                  speak(effTask.item.label, { accent: tts.accent, rate: tts.rate, onWordChange: (idx: number) => setShownWord(idx) });
                 }}
                 disabled={ttsState === 'synthesizing'}
                 className="press flex h-10 w-10 shrink-0 items-center justify-center self-center rounded-full text-[var(--color-accent)] hover:bg-[var(--color-surface-2)] disabled:opacity-60"
@@ -213,10 +216,10 @@ export default function SessionView() {
           </div>
         )}
 
-        {task.type === 'recognize' && (
+        {effTask.type === 'recognize' && (
           <div className="mt-6 w-full">
-            <h2 className="text-[calc(clamp(28px,7vw,40px)*var(--type-scale))] font-bold tracking-[-0.02em]">{task.item.label}</h2>
-            {task.item.phonetic && <p className="mt-2 font-ipa text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{task.item.phonetic}</p>}
+            <h2 className="text-[calc(clamp(28px,7vw,40px)*var(--type-scale))] font-bold tracking-[-0.02em]">{effTask.item.label}</h2>
+            {effTask.item.phonetic && <p className="mt-2 font-ipa text-[calc(15px*var(--type-scale))] text-[var(--color-text-2)]">{effTask.item.phonetic}</p>}
             <div className="mt-3 flex justify-center">
               <button onClick={() => { if (ttsState === 'playing' || ttsState === 'paused') { stop(); return; } speak(task.item.label, { accent: tts.accent, rate: tts.rate }); }} className="press flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-accent)] hover:bg-[var(--color-surface-2)]" aria-label={t('cardListen', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} strokeWidth={2.25} className="animate-spin" /> : ttsState === 'playing' || ttsState === 'paused' ? <Pause size={16} strokeWidth={2.25} /> : <Volume2 size={16} strokeWidth={2.25} />}</button>
             </div>
