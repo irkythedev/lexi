@@ -121,14 +121,17 @@ export function StudyCardView({ card, accent, rate, highlight, onProbe, variant 
 }
 
 export default function AiAssistPanel({
-  open, onClose, context,
+  open, onClose, context, previewCard,
 }: {
   open: boolean;
   onClose: () => void;
   context: AssistContext | null;
+  /** 视频模式（Remotion）：受控学习卡（渲染期禁网，不发起 streamChat），默认 undefined = 行为与现在完全一致 */
+  previewCard?: StudyCard | null;
 }) {
   const { locale, unit, selection } = useAppStore();
-  const cfg = loadConfig();
+  // 视频受控模式：previewCard 注入即视作已配置（渲染期禁网，不读 localStorage）
+  const cfg = previewCard ? { provider: 'custom' as const, baseUrl: '', key: '', model: '', agreed: true } : loadConfig();
   const [card, setCard] = useState<StudyCard | null>(null);
   const [busy, setBusy] = useState(false);
   const [busyFollow, setBusyFollow] = useState(false); // 本次 busy 是否为追问请求（提示条文案分流）
@@ -341,12 +344,14 @@ export default function AiAssistPanel({
   const autoKey = open ? context?.label : undefined;
   const lastAutoKey = useRef<string | undefined>(undefined);
   useEffect(() => {
+    // 视频受控模式：卡片由 previewCard 注入，绝不发起真实请求
+    if (previewCard) return;
     const reading = context?.mode === 'reading';
     if (open && autoKey && (autoKey !== lastAutoKey.current || (reading && !card && !busy && !err))) {
       lastAutoKey.current = autoKey;
       void study();
     }
-  }, [open, autoKey, study, context?.mode, card, busy, err]);
+  }, [open, autoKey, study, context?.mode, card, busy, err, previewCard]);
 
   // 拖拽 / 缩放（桌面端 pointer 事件）
   const startDrag = (e: React.PointerEvent) => {
@@ -445,7 +450,7 @@ export default function AiAssistPanel({
             )}
             {/* 渲染视图 = 链缓存当前层（点面包屑即真正回看）；请求进行中/新卡未入链前回退 card state */}
             {(() => {
-              const shown = views[idx]?.card ?? card;
+              const shown = previewCard ?? views[idx]?.card ?? card;
               return shown && <StudyCardView card={shown} accent={useAppStore.getState().tts.accent} rate={useAppStore.getState().tts.rate} highlight={context?.label} onProbe={idx >= 2 ? undefined : onProbe} variant={context?.mode === 'reading' ? 'reading' : 'word'} />;
             })()}
             {err && (
@@ -456,7 +461,7 @@ export default function AiAssistPanel({
                 </button>
               </div>
             )}
-            {card && idx === 0 && (
+            {!previewCard && card && idx === 0 && (
               <button onClick={() => { setCard(null); void study(); }} className="press text-[calc(12px*var(--type-scale))] text-[var(--color-accent)]">{t('aiAskAgain', locale)}</button>
             )}
           </div>

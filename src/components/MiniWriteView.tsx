@@ -32,7 +32,7 @@ ${passage ? `课文原文（评分「课文依据」以此为准）：\n${passag
 /** 微写作卡（审核决策 1：独立模式卡，不塞进 Sprint；Sprint 完成后露出入口）
  *  结构收口（ba68ce5 之后）：输入框占主高度、喇叭贴题干、建议默认收起可点插入、
  *  草稿入 settings（换单元清旧草稿）、0 词禁批改。 */
-export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReading, previewText }: { miniPrompt: MiniPrompt; onExit: () => void; onBack?: () => void; onViewReading?: () => void; /** 视频模式（Remotion）：受控文本，默认 undefined = 行为与现在完全一致 */ previewText?: string }) {
+export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReading, previewText, previewLoading, previewResult }: { miniPrompt: MiniPrompt; onExit: () => void; onBack?: () => void; onViewReading?: () => void; /** 视频模式（Remotion）：受控文本，默认 undefined = 行为与现在完全一致 */ previewText?: string; /** 受控批改进行中，默认 undefined = 行为与现在完全一致 */ previewLoading?: boolean; /** 受控批改结果卡，默认 undefined = 行为与现在完全一致 */ previewResult?: CorrectionResult | null }) {
   const locale = useAppStore((s) => s.locale);
   const { unit, selection, tts } = useAppStore();
   // 本课课文 paragraphs 全文（v3.5）：批改「依据本课课文」的评分依据；单元无 Reading 时缺省不传
@@ -46,6 +46,9 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
   const effText = previewText ?? text;
   const [result, setResult] = useState<CorrectionResult | null>(null);
   const [loading, setLoading] = useState(false);
+  // 受控注入（视频）：批改 loading/结果以外部值为准（undefined = 原行为）
+  const effResult = previewResult !== undefined ? previewResult : result;
+  const effLoading = previewLoading ?? loading;
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
   const [usefulOpen, setUsefulOpen] = useState(false);
@@ -150,7 +153,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
     finally { setLoading(false); }
   };
 
-  const b = result ? band(result) : null;
+  const b = effResult ? band(effResult) : null;
 
   return (
     <div className="mx-auto max-w-[var(--max-read)] px-[var(--pad-x)] py-4"><div className="flex min-h-[calc(100dvh-13rem)] flex-col">
@@ -204,23 +207,23 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
 
       {error && <p className="mt-2 text-[calc(13px*var(--type-scale))] text-[var(--color-trap-deep)]">{error}</p>}
 
-      {!result ? (
+      {!effResult ? (
         <div className="mt-3 flex items-center justify-end gap-2">
           <button onClick={onExit} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(14px*var(--type-scale))] text-[var(--color-text-2)]">{t('miniWriteSkip', locale)}</button>
-          <button onClick={run} disabled={loading || !effText.trim()} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(14px*var(--type-scale))] font-semibold text-white disabled:opacity-50">
-            {loading ? t('miniWriteLoading', locale) : <>{t('miniWriteSubmit', locale)} <PenLine size={14} strokeWidth={2.25} /></>}
+          <button onClick={run} disabled={effLoading || !effText.trim()} className="press flex items-center gap-1.5 rounded-[var(--radius-md)] bg-[var(--color-accent)] border-2 border-[var(--color-hairline)] px-5 py-2 text-[calc(14px*var(--type-scale))] font-semibold text-white disabled:opacity-50">
+            {effLoading ? t('miniWriteLoading', locale) : <>{t('miniWriteSubmit', locale)} <PenLine size={14} strokeWidth={2.25} /></>}
           </button>
         </div>
       ) : (
         <div className="mt-4 rounded-[var(--radius-md)] border-2 p-4" style={{ borderColor: b!.color }}>
           <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] font-semibold" style={{ color: b!.color }}><Sparkles size={14} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /> {b!.label} · <span className="tnum">{result.examCollocationScore}</span>/100</span>
+            <span className="flex items-center gap-1.5 text-[calc(13px*var(--type-scale))] font-semibold" style={{ color: b!.color }}><Sparkles size={14} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /> {b!.label} · <span className="tnum">{effResult.examCollocationScore}</span>/100</span>
             <span className="text-[calc(11.5px*var(--type-scale))] text-[var(--color-text-2)]">{t('sprintAiEstimateNote', locale)}</span>
           </div>
-          {result.correctedSentence && result.correctedSentence !== result.originalSentence && (
-            <p className="mt-2.5 text-[calc(14.5px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{result.correctedSentence}</p>
+          {effResult.correctedSentence && effResult.correctedSentence !== effResult.originalSentence && (
+            <p className="mt-2.5 text-[calc(14.5px*var(--type-scale))] leading-relaxed text-[var(--color-text)]">{effResult.correctedSentence}</p>
           )}
-          <p className="mt-2 whitespace-pre-wrap text-[calc(13px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{result.grammarBreakdown}</p>
+          <p className="mt-2 whitespace-pre-wrap text-[calc(13px*var(--type-scale))] leading-relaxed text-[var(--color-text-2)]">{effResult.grammarBreakdown}</p>
           {saved && <p className="mt-2 text-[calc(12px*var(--type-scale))] text-[var(--color-trap-deep)]">{t('miniWriteSaved', locale)}</p>}
           <div className="mt-3 flex justify-end">
             <button onClick={() => { setText(''); setResult(null); setSaved(false); }} className="press rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(14px*var(--type-scale))]">{t('miniWriteAgain', locale)}</button>

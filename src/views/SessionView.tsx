@@ -18,7 +18,26 @@ import { t } from '../lib/i18n.ts';
 import { Tag } from '../components/ui/primitives.tsx';
 import AiAssistPanel from '../components/AiAssistPanel.tsx';
 
-export default function SessionView({ previewTask }: { previewTask?: Task } = {} as never) {
+export default function SessionView({
+  previewTask,
+  previewOptions,
+  previewShownWord,
+  previewFeedback,
+  previewSpellText,
+  previewPos,
+}: {
+  previewTask?: Task;
+  /** 视频模式（Remotion）：受控 recognize 选项（固定顺序，杜绝逐帧 shuffle 闪烁），默认 undefined = 行为与现在完全一致 */
+  previewOptions?: string[];
+  /** 受控 listen 逐词高亮进度（-1 = 高亮前），默认 undefined = 行为与现在完全一致 */
+  previewShownWord?: number;
+  /** 受控批改反馈条，默认 undefined = 行为与现在完全一致 */
+  previewFeedback?: { ok: boolean; msg: string } | null;
+  /** 受控拼写输入，默认 undefined = 行为与现在完全一致 */
+  previewSpellText?: string;
+  /** 受控会话进度（pos，驱动顶栏 n/total 与进度条），默认 undefined = 行为与现在完全一致 */
+  previewPos?: number;
+} = {} as never) {
   const { unitId } = useParams();
   const navigate = useNavigate();
   const { selection, unit, studyItems, tts } = useAppStore();
@@ -50,6 +69,11 @@ export default function SessionView({ previewTask }: { previewTask?: Task } = {}
     onComplete: () => setReviewDone(true),
     restoreKey: snapshotKey,
   });
+  // 受控注入（视频）：进度/逐词高亮/反馈/拼写输入以外部值为准（undefined = 原行为）
+  const effPos = previewPos ?? pos;
+  const effShownWord = previewShownWord ?? shownWord;
+  const effFeedback = previewFeedback !== undefined ? previewFeedback : feedback;
+  const effSpellInput = previewSpellText ?? spellInput;
 
   // Track latest state for the unmount snapshot. Refs are read at cleanup
   // time, so the snapshot always captures the newest values even though the
@@ -96,10 +120,14 @@ export default function SessionView({ previewTask }: { previewTask?: Task } = {}
   // 视频模式（Remotion）：受控 task 注入，其余逻辑（recognizeOptions/渲染）原样复用
   const effTask: Task | null = previewTask ?? task;
 
+  // 受控注入（视频）：previewOptions 直接给出固定四选项（Remotion 逐帧独立挂载，
+  // 内部 shuffle 的 Math.random 每帧重掷 → 选项逐帧乱序闪烁，必须外置）。
   const recognizeOptions = useMemo(() => {
+    if (previewOptions && effTask && effTask.type === 'recognize') return previewOptions;
     if (!effTask || effTask.type !== 'recognize') return [];
     const correct = effTask.item.meaning;
-    const pool = words.filter((w) => w.id !== task.item.id && w.meaning && w.meaning !== correct);
+    // 修复：池过滤应排除当前生效词条（preview 注入时 task.item 与 effTask.item 不同源）
+    const pool = words.filter((w) => w.id !== effTask.item.id && w.meaning && w.meaning !== correct);
     const distractors = [...new Set(shuffle(pool).map((w) => w.meaning))].slice(0, 3);
     const fillers = shuffle([t('recogDistractor1', locale), t('recogDistractor2', locale), t('recogDistractor3', locale), t('recogDistractor4', locale)]);
     let fi = 0;
@@ -165,12 +193,12 @@ export default function SessionView({ previewTask }: { previewTask?: Task } = {}
         <button onClick={() => { stop(); navigate('/learn'); }} className="press flex min-h-11 items-center gap-1.5 rounded-full border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] px-4 text-[calc(15px*var(--type-scale))] font-medium text-[var(--color-text-2)] hover:bg-[var(--color-surface-2)]"><ArrowLeft size={18} strokeWidth={2.25} /> {t('back', locale)}</button>
         <span className="flex items-center gap-2">
           <Tag kind={task.item.kind}>{meta.label[locale]}</Tag>
-          <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{pos + 1} / {total}</span>
+          <span className="tnum text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{effPos + 1} / {total}</span>
         </span>
       </div>
 
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--color-track)]">
-        <div className="h-full rounded-full transition-all" style={{ width: `${(pos / total) * 100}%`, background: meta.tint }} />
+        <div className="h-full rounded-full transition-all" style={{ width: `${(effPos / total) * 100}%`, background: meta.tint }} />
       </div>
 
       <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
@@ -182,9 +210,9 @@ export default function SessionView({ previewTask }: { previewTask?: Task } = {}
               {wordsArr.map((w, i) => (
                 <span key={i} className="text-[calc(clamp(26px,6vw,40px)*var(--type-scale))] font-bold transition-all duration-150"
                   style={{
-                    color: i === shownWord ? 'var(--color-accent)' : 'var(--color-text)',
-                    transform: i === shownWord ? 'translateY(-3px)' : 'none',
-                    opacity: i < shownWord ? 0.45 : 1,
+                    color: i === effShownWord ? 'var(--color-accent)' : 'var(--color-text)',
+                    transform: i === effShownWord ? 'translateY(-3px)' : 'none',
+                    opacity: i < effShownWord ? 0.45 : 1,
                   }}
                 >{w}</span>
               ))}
@@ -225,8 +253,8 @@ export default function SessionView({ previewTask }: { previewTask?: Task } = {}
             </div>
             <div className="mt-6 grid grid-cols-1 gap-2.5">
               {recognizeOptions.map((opt, i) => (
-                <button key={i} disabled={!!feedback} onClick={() => void grade(opt === task.item.meaning ? 'correct' : 'wrong')}
-                  className={`press rounded-2xl border-2 bg-[var(--color-surface)] px-4 py-3.5 text-left text-[calc(15px*var(--type-scale))] font-medium ${feedback && !feedback.ok && opt === task.item.meaning ? 'border-[var(--color-vocab-border)] ring-1 ring-[var(--color-vocab)]' : 'border-[var(--color-hairline)]'}`}>
+                <button key={i} disabled={!!effFeedback} onClick={() => void grade(opt === task.item.meaning ? 'correct' : 'wrong')}
+                  className={`press rounded-2xl border-2 bg-[var(--color-surface)] px-4 py-3.5 text-left text-[calc(15px*var(--type-scale))] font-medium ${effFeedback && !effFeedback.ok && opt === task.item.meaning ? 'border-[var(--color-vocab-border)] ring-1 ring-[var(--color-vocab)]' : 'border-[var(--color-hairline)]'}`}>
                   {opt}
                 </button>
               ))}
@@ -234,26 +262,26 @@ export default function SessionView({ previewTask }: { previewTask?: Task } = {}
           </div>
         )}
 
-        {task.type === 'recall' && (
+        {effTask.type === 'recall' && (
           <div className="mt-6 w-full">
             <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('recallHint', locale)}</p>
-            <h2 className="mt-3 text-[calc(clamp(24px,6vw,36px)*var(--type-scale))] font-bold">{task.item.meaning}</h2>
+            <h2 className="mt-3 text-[calc(clamp(24px,6vw,36px)*var(--type-scale))] font-bold">{effTask.item.meaning}</h2>
             <div className="mt-6 grid grid-cols-2 gap-3">
               <button onClick={() => void grade('correct')} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-vocab-border)] bg-[var(--color-vocab-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-vocab)]"><Check size={17} /> {t('known', locale)}</button>
               <button onClick={() => void grade('wrong')} className="press flex items-center justify-center gap-1.5 rounded-[var(--radius-md)] border-2 border-[var(--color-trap-border)] bg-[var(--color-trap-soft)] py-3 text-[calc(15px*var(--type-scale))] font-semibold text-[var(--color-trap)]"><X size={17} /> {t('unknown', locale)}</button>
             </div>
-            <p className="mt-3 text-[calc(13px*var(--type-scale))] text-[var(--color-text-3)]">{task.item.label} · {task.item.phonetic ?? ''}</p>
+            <p className="mt-3 text-[calc(13px*var(--type-scale))] text-[var(--color-text-3)]">{effTask.item.label} · {effTask.item.phonetic ?? ''}</p>
           </div>
         )}
 
-        {task.type === 'spell' && (
+        {effTask.type === 'spell' && (
           <div className="mt-6 w-full">
             <p className="text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('spellHint', locale)}</p>
             <div className="mt-3 flex justify-center">
               <button onClick={() => { if (ttsState === 'playing' || ttsState === 'paused') { stop(); return; } speak(task.item.label, { accent: tts.accent, rate: tts.rate }); }} className="press flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-accent)] hover:bg-[var(--color-surface-2)]" aria-label={t('cardListen', locale)}>{ttsState === 'synthesizing' ? <Loader2 size={16} strokeWidth={2.25} className="animate-spin" /> : ttsState === 'playing' || ttsState === 'paused' ? <Pause size={16} strokeWidth={2.25} /> : <Volume2 size={16} strokeWidth={2.25} />}</button>
             </div>
             <div className="mx-auto mt-5 max-w-sm">
-              <input autoFocus value={spellInput} onChange={(e) => setSpellInput(e.target.value)}
+              <input autoFocus value={effSpellInput} onChange={(e) => setSpellInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') checkSpell(); }}
                 placeholder={t('spellInput', locale)}
                 className="w-full rounded-[var(--radius-md)] border-2 border-[var(--color-input-border)] bg-[var(--color-input-bg)] px-4 py-3.5 text-center text-[calc(18px*var(--type-scale))] font-medium outline-none focus:border-[var(--color-accent)]" />
@@ -262,13 +290,13 @@ export default function SessionView({ previewTask }: { previewTask?: Task } = {}
           </div>
         )}
 
-        {feedback && (
-          <div className={`mt-5 rounded-[var(--radius-md)] px-4 py-2 text-[calc(14px*var(--type-scale))] font-medium ${feedback.ok ? 'bg-[var(--color-vocab-soft)] text-[var(--color-vocab)]' : 'bg-[var(--color-trap-soft)] text-[var(--color-trap)]'}`}>
-            {feedback.msg || (feedback.ok ? t('correct', locale) : t('wrong', locale))}
+        {effFeedback && (
+          <div className={`mt-5 rounded-[var(--radius-md)] px-4 py-2 text-[calc(14px*var(--type-scale))] font-medium ${effFeedback.ok ? 'bg-[var(--color-vocab-soft)] text-[var(--color-vocab)]' : 'bg-[var(--color-trap-soft)] text-[var(--color-trap)]'}`}>
+            {effFeedback.msg || (effFeedback.ok ? t('correct', locale) : t('wrong', locale))}
           </div>
         )}
 
-        {!feedback && task.type !== 'listen' && (
+        {!effFeedback && effTask.type !== 'listen' && (
           <button onClick={skip} className="press mt-5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-3)]">{t('skipThis', locale)}</button>
         )}
       </div>

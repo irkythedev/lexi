@@ -20,12 +20,15 @@ not only...but also|不仅...而且||She speaks not only English but also French
 # 也支持 JSON： [{"word":"...","meaning":"...","phonetic":"...","example":"..."}]
 `;
 
-export default function PersonalImport({ onClose, onSaved }: { onClose: () => void; onSaved?: () => void }) {
+export default function PersonalImport({ onClose, onSaved, previewText, previewStep, previewResult }: { onClose: () => void; onSaved?: () => void; /** 视频模式（Remotion）：预填粘贴内容（解析为纯函数真跑），默认 undefined = 行为与现在完全一致 */ previewText?: string; previewStep?: 0 | 1; previewResult?: ImportResult | null }) {
   const locale = useAppStore((s) => s.locale);
-  const [text, setText] = useState('');
+  const [text, setText] = useState(previewText ?? '');
   const [step, setStep] = useState<0 | 1>(0);
   const [result, setResult] = useState<ImportResult | null>(null);
   const [name, setName] = useState('');
+  // 受控注入（视频）：Pointer 不 dispatch 真实事件，step/解析结果由外部按帧驱动；undefined = 原行为
+  const effStep = previewStep !== undefined ? previewStep : step;
+  const effResult = previewResult !== undefined ? previewResult : result;
 
   const parse = () => {
     const r = parseImport(text);
@@ -59,7 +62,7 @@ export default function PersonalImport({ onClose, onSaved }: { onClose: () => vo
         </div>
 
         {/* Step 0: paste */}
-        {step === 0 && (
+        {effStep === 0 && (
           <div className="flex flex-col gap-3 p-5">
             <textarea
               value={text}
@@ -77,21 +80,21 @@ export default function PersonalImport({ onClose, onSaved }: { onClose: () => vo
         )}
 
         {/* Step 1: review */}
-        {step === 1 && result && (
+        {effStep === 1 && effResult && (
           <div className="flex flex-col gap-3 p-5">
             <div className="flex flex-wrap items-center gap-2 text-[calc(13px*var(--type-scale))]">
-              <span className="rounded-[var(--radius-sm)] px-3 py-1" style={{ background: 'var(--color-vocab-soft)', color: 'var(--color-vocab)' }}>可导入 {result.ok.length}</span>
-              <span className="rounded-[var(--radius-sm)] px-3 py-1" style={{ background: 'var(--color-trap-soft)', color: 'var(--color-trap)' }}>待修正 {result.errors.length}</span>
+              <span className="rounded-[var(--radius-sm)] px-3 py-1" style={{ background: 'var(--color-vocab-soft)', color: 'var(--color-vocab)' }}>可导入 {effResult.ok.length}</span>
+              <span className="rounded-[var(--radius-sm)] px-3 py-1" style={{ background: 'var(--color-trap-soft)', color: 'var(--color-trap)' }}>待修正 {effResult.errors.length}</span>
             </div>
             <div className="max-h-48 overflow-y-auto rounded-2xl border-2 border-[var(--color-hairline)]">
-              {result.ok.map((e, i) => (
+              {effResult.ok.map((e, i) => (
                 <div key={i} className="flex items-center gap-2 border-b border-[var(--color-hairline)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] last:border-b-0">
                   <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[calc(10px*var(--type-scale))] font-bold" style={{ background: KIND_META[e.type].soft, color: KIND_META[e.type].text }}>{KIND_META[e.type].label.zh.slice(0, 1)}</span>
                   <span className="min-w-0 flex-1 truncate font-medium">{e.label}</span>
                   <span className="max-w-[40%] truncate text-[var(--color-text-3)]">{e.meaning}</span>
                 </div>
               ))}
-              {result.errors.map((er, i) => (
+              {effResult.errors.map((er, i) => (
                 <div key={`e${i}`} className="flex items-center gap-2 border-b border-[var(--color-hairline)] px-3 py-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-trap)] last:border-b-0">
                   <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--color-trap)]" />
                   <span className="min-w-0 flex-1 truncate">{er.text}</span>
@@ -108,8 +111,8 @@ export default function PersonalImport({ onClose, onSaved }: { onClose: () => vo
             />
             <div className="flex justify-end gap-2">
               <GhostButton onClick={() => setStep(0)}>返回修改</GhostButton>
-              <PrimaryButton onClick={() => void save()} disabled={result.ok.length === 0}>
-                <FileText size={16} /> 保存 {result.ok.length} 条
+              <PrimaryButton onClick={() => void save()} disabled={effResult.ok.length === 0}>
+                <FileText size={16} /> 保存 {effResult.ok.length} 条
               </PrimaryButton>
             </div>
           </div>

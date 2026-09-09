@@ -21,9 +21,6 @@ import { findQuote, truncateQuote } from '../data/textbooks/unit_texts.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 import WordHighlight from '../components/WordHighlight.tsx';
 
-// 视频模式（Remotion 渲染，一帧纯渲染）：隐藏 IndexedDB 依赖卡与 AI 钮，主 app 不受影响
-const IS_VIDEO = import.meta.env.VITE_REMOTION === '1';
-
 export default function LearnView() {
   const { unit, studyItems, tts, locale, openReadingRequest, consumeOpenReading } = useAppStore();
   const navigate = useNavigate();
@@ -71,8 +68,8 @@ export default function LearnView() {
   const pagedItems = pager.slice;
 
   // 导读单卡（常驻功能：导入词表 → 生成口语练习导读单；无教材空态与已选教材都显示）
-  // 视频模式不渲染（依赖 IndexedDB 的个人导读单列表 + 入口按钮，宣传片中禁出现）
-  const guideCard = IS_VIDEO ? null : (
+  // 视频模式照常渲染（真实功能露出）；宣传片场景层按需用视频层 DOM 过滤隐藏
+  const guideCard = (
     <div className="mt-4 rounded-[var(--radius-hero)] border-2 border-[var(--color-hairline)] bg-[var(--color-surface)] p-5 shadow-[var(--shadow-panel)]">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
@@ -301,7 +298,7 @@ export default function LearnView() {
                   {/* 朗读 + AI + 展开指示 统一成组，gap 2px（紧凑可点）；每钮热区 36px */} 
                   <div className="flex shrink-0 items-center gap-0.5">
                     <SpeakButton text={item.label} accent={tts.accent} rate={tts.rate} size={16} color={meta.tint} compact />
-                    {!IS_VIDEO && (
+                    {(
                     <button onClick={(e) => { e.stopPropagation(); setAiTarget({ label: item.label, meaning: item.meaning, kind: item.kind, quote: quote ?? undefined, unitWords: unit ? [...unit.vocabularies.slice(0, 40).map((v) => `${v.word}（${v.meaning}）`), ...unit.phrases.slice(0, 20).map((p) => `${p.phrase}（${p.meaning}）`)] : undefined, grade: unit?.grade, unitTitle: unit?.title }); setAiOpen(true); }} className="press flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[var(--color-text-3)] hover:bg-[var(--color-surface-2)] hover:text-[var(--color-accent)]" aria-label="问 AI"><Sparkles size={16} strokeWidth={2.25} style={{ color: 'var(--color-ai)' }} /></button>
                     )}
                     {/* 展开指示：仅当词条在课文实际出现时显示，放最右；无 quote 时用同宽占位保持图标对齐 */}
