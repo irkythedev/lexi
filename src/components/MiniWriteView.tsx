@@ -3,7 +3,7 @@ import { PenLine, Sparkles, ArrowLeft, ChevronDown } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import { t } from '../lib/i18n.ts';
 import SpeakButton from './SpeakButton.tsx';
-import { streamChat, buildCorrectionSystemPrompt, extractJson, sanitizeCorrection, isValidCorrection, loadConfig, parseRetryMessage, TEMP_CORRECTION } from '../lib/ai.ts';
+import { streamChat, buildCorrectionSystemPrompt, extractJson, sanitizeCorrection, isValidCorrection, loadConfig, parseRetryMessage, renderStreamFailure, TEMP_CORRECTION } from '../lib/ai.ts';
 import { addError, getSetting, setSetting } from '../db/db.ts';
 import { UNIT_READINGS } from '../data/textbooks/readings.ts';
 import type { MiniPrompt } from '../types/index.ts';
@@ -116,6 +116,7 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
       // 请求纪律（prompt-v4）：首请求 + 最多 1 次解析失败补问（retryUsed 上限）
       const attempt = async (userMessage: string) => {
         const got = { latest: null as CorrectionResult | null }; // holder 承接流式结果：闭包写入安全，TS 控制流不误收窄
+        let failure: Error | null = null;
         await streamChat({
           cfg, systemPrompt: sysPrompt, userMessage,
           temperature: TEMP_CORRECTION, // 批改判分低温 0.2
@@ -123,17 +124,22 @@ export default function MiniWriteView({ miniPrompt, onExit, onBack, onViewReadin
             const j = extractJson(full);
             if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
           },
-          onError: (e) => { setError(e.message || String(e)); },
+          onError: (e) => { failure = e; }, // HTTP/网络/看门狗/空答错误（stem 加固口径）
         });
-        return got.latest;
+        return { latest: got.latest, failure };
       };
-      let final = await attempt(msg);
-      if (!final) {
+      let { latest: final, failure } = await attempt(msg);
+      if (!final && !failure) {
         // 追加而非替换：补问必须携带原作文/题面上下文，否则真实模型无从重新批改
-        final = await attempt(`${msg}\n\n${parseRetryMessage()}`); // 补问 1 次（一次点击最多 2 次请求）
-        if (final) setResult(final);
+        const again = await attempt(`${msg}\n\n${parseRetryMessage()}`); // 补问 1 次（一次点击最多 2 次请求）
+        if (again.latest) final = again.latest;
+        else failure = again.failure;
       }
-      if (!final) { setError(t('aiCorrectionParseError', locale)); return; } // 两次均败：可见报错，不展示 0 分
+      if (!final) {
+        // 两次均败：可见报错（失败分类文案），不展示 0 分
+        setError(failure ? renderStreamFailure(failure, locale, t) : t('aiCorrectionParseError', locale));
+        return;
+      }
       // 批改完成后按未达优秀档存入错题本（kind=miniwrite，ErrorsView 显示「微写作」标签）
       if (final.examCollocationScore < 90 && selection) {
         await addError({

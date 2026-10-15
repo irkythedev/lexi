@@ -6,7 +6,7 @@ import SpeakButton from './SpeakButton.tsx';
 import { useSpeechRecognition, compareWords } from '../lib/speechRecognition.ts';
 import { KIND_META, maskSentence, shuffle } from '../lib/utils.ts';
 import { addError, recordReview } from '../db/db.ts';
-import { loadConfig, buildCorrectionSystemPrompt, correctionPrompt, extractJson, isValidCorrection, sanitizeCorrection, streamChat, parseRetryMessage, TEMP_CORRECTION } from '../lib/ai.ts';
+import { loadConfig, buildCorrectionSystemPrompt, correctionPrompt, extractJson, isValidCorrection, sanitizeCorrection, streamChat, parseRetryMessage, renderStreamFailure, TEMP_CORRECTION } from '../lib/ai.ts';
 import { t } from '../lib/i18n.ts';
 import { Panel } from './ui/primitives.tsx';
 
@@ -184,6 +184,7 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
       // 请求纪律（prompt-v4）：首请求 + 最多 1 次解析失败补问（retryUsed 上限）
       const attempt = async (userMessage: string) => {
         const got = { latest: null as import('../types/index.ts').CorrectionResult | null }; // holder 承接流式结果
+        let failure: Error | null = null;
         await streamChat({
           cfg, systemPrompt: sysPrompt, userMessage,
           temperature: TEMP_CORRECTION, // 批改判分低温 0.2
@@ -191,17 +192,22 @@ function StepAI({ items, unit, onPrev, onNext }: { items: StudyItem[]; unit: Uni
             const j = extractJson(full);
             if (j && isValidCorrection(j)) { got.latest = sanitizeCorrection(j); setResult(got.latest); }
           },
-          onError: (e) => { setError(e.message || String(e)); },
+          onError: (e) => { failure = e; }, // HTTP/网络/看门狗/空答错误（stem 加固口径）
         });
-        return got.latest;
+        return { latest: got.latest, failure };
       };
-      let latest = await attempt(msg);
-      if (!latest) {
+      let { latest, failure } = await attempt(msg);
+      if (!latest && !failure) {
         // 追加而非替换：补问必须携带原句子/短语上下文，否则真实模型无从重新批改
-        latest = await attempt(`${msg}\n\n${parseRetryMessage()}`); // 补问 1 次（一次点击最多 2 次请求）
-        if (latest) setResult(latest);
+        const again = await attempt(`${msg}\n\n${parseRetryMessage()}`); // 补问 1 次（一次点击最多 2 次请求）
+        if (again.latest) latest = again.latest;
+        else failure = again.failure;
       }
-      if (!latest) { setError(t('aiCorrectionParseError', locale)); return; } // 两次均败：可见报错，不展示 0 分
+      if (!latest) {
+        // 两次均败：可见报错（失败分类文案），不展示 0 分
+        setError(failure ? renderStreamFailure(failure, locale, t) : t('aiCorrectionParseError', locale));
+        return;
+      }
     } catch (e) { setError(e instanceof Error ? e.message : String(e)); }
     finally { setLoading(false); }
   };

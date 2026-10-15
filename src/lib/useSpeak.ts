@@ -7,6 +7,7 @@ import { useAppStore } from '../stores/useAppStore.ts';
 import { TTS_BASE, getEdgeVoice, getChineseVoice } from './tts-config.ts';
 import { scfUrlWithToken } from './scf-token.ts';
 import { getOrFetchTts, ttsCacheKey } from './tts-cache.ts';
+import { setTtsChannelStatus } from './tts-status.ts';
 import { speak as webSpeak, type Accent, type SpeakHandle } from './tts.ts';
 
 export const edgeTtsEnabled = Boolean(TTS_BASE);
@@ -22,6 +23,9 @@ export interface SpeakOptions {
   /** Called as playback progresses; wordIndex is 0-based. */
   onWordChange?: (wordIndex: number, totalWords: number) => void;
   onEnd?: () => void;
+  /** 严格模式（stem 试听纪律）：edge 通道失败不静默回退系统语音，如实报错。
+   *  试听的目的正是验证通道连通性，静默换声等于骗人。 */
+  strict?: boolean;
 }
 
 // Split into words (keep punctuation attached to preceding word for natural pacing).
@@ -414,6 +418,7 @@ export function useSpeak() {
           return;
         }
         chunksRef.current = blobs;
+        setTtsChannelStatus('ready'); // 本次会话实测：edge 通道成功出过声
         // Measure cumulative playback time across ALL chunks so per-word
         // highlight pacing matches the real audio, not just the first chunk.
         const measured = await Promise.all(blobs.map(blobDurationMs));
@@ -426,7 +431,15 @@ export function useSpeak() {
         playEdgeChunk(0);
         return;
       } catch (e) {
+        // 严格模式（试听）：如实报错，不静默换声——静默回退等于骗人（stem 纪律）
+        if (options.strict) {
+          setTtsChannelStatus('fallback');
+          setError('edge-tts unavailable');
+          setState('error');
+          return;
+        }
         // fall through to Web Speech
+        setTtsChannelStatus('fallback'); // 本次会话实测：edge 失败，回退系统语音（可见事实）
         console.warn('edge-tts failed, falling back to Web Speech:', e);
       }
     }

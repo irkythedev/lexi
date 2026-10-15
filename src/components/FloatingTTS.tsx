@@ -12,7 +12,7 @@ export function requestStopTts(): void {
   listeners.forEach((fn) => fn({ text: '', accent: 'us', rate: 1, _stop: true }));
 }
 
-interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; onEnd?: () => void; _stop?: boolean; }
+interface SpeakTarget { text: string; accent: 'us' | 'uk'; rate: number; onEnd?: () => void; strict?: boolean; _stop?: boolean; }
 
 const listeners = new Set<(t: SpeakTarget) => void>();
 const stateListeners = new Set<(s: TtsBroadcastState) => void>();
@@ -21,12 +21,12 @@ let current: SpeakTarget | null = null;
 // 是否还属于自己"，被新请求抢占的按钮立即复位，不再跟随全局状态闪烁。
 let speakReqSeq = 0;
 
-export function requestSpeak(text: string, accent?: 'us' | 'uk', rate?: number, onEnd?: () => void): number {
+export function requestSpeak(text: string, accent?: 'us' | 'uk', rate?: number, onEnd?: () => void, strict?: boolean): number {
   if (!text) return speakReqSeq;
   // 默认取当前设置，避免任何调用点漏传时偏离用户配置。
   const tts = useAppStore.getState().tts;
   speakReqSeq += 1;
-  current = { text, accent: accent ?? tts.accent, rate: rate ?? tts.rate, onEnd };
+  current = { text, accent: accent ?? tts.accent, rate: rate ?? tts.rate, onEnd, strict };
   const c = current;
   if (c) listeners.forEach((fn) => fn(c));
   return speakReqSeq;
@@ -40,7 +40,7 @@ export function getActiveSpeakId(): number {
 /** 订阅全局 TTS 播放状态（供设置页试听按钮等外部 UI 显示加载/播放态）。
  *  synthesizing-slow = 合成等待超 4 秒（SCF 冷启动），UI 可变暖色提示。
  *  返回取消订阅函数。 */
-export type TtsBroadcastState = 'idle' | 'synthesizing' | 'synthesizing-slow' | 'playing';
+export type TtsBroadcastState = 'idle' | 'synthesizing' | 'synthesizing-slow' | 'playing' | 'error';
 export function subscribeTtsState(fn: (s: TtsBroadcastState) => void): () => void {
   stateListeners.add(fn);
   return () => { stateListeners.delete(fn); };
@@ -57,7 +57,7 @@ export default function FloatingTTS() {
   const [playing, setPlaying] = useState(false);
   const [loop, setLoop] = useState(false);
   const [open, setOpen] = useState(false); // 默认收起
-  const { speak, stop, resume, state, waitingLong } = useSpeak();
+  const { speak, stop, resume, state, error, waitingLong } = useSpeak();
   const playRef = useRef<(target: SpeakTarget, accent: 'us' | 'uk', rate: number, onEnd?: () => void) => void>(() => {});
   const loopTimerRef = useRef<number | null>(null);
   const autoHideRef = useRef<number | null>(null);
@@ -90,11 +90,13 @@ export default function FloatingTTS() {
 
   const play = useCallback((target: SpeakTarget | null, accent: 'us' | 'uk' = tts.accent, rate: number = tts.rate, onEnd?: () => void) => {
     if (!target?.text) return;
+    strictRef.current = !!target.strict; // 记住本次请求是否 strict（error toast 分流用）
     clearLoopTimer();
     stop();
     const opts: SpeakOptions = {
       accent,
       rate,
+      strict: target.strict,
       onEnd: () => {
         if (loopRef.current) {
           loopTimerRef.current = window.setTimeout(() => playRef.current(target, accent, rate, onEnd), 600);
@@ -114,10 +116,17 @@ export default function FloatingTTS() {
     playRef.current = play;
   }, [play]);
 
-  // 广播播放状态给订阅者（设置页试听等外部 UI）；合成超 4 秒广播 slow 态
+  // 广播播放状态给订阅者（设置页试听等外部 UI）；合成超 4 秒广播 slow 态；
+  // error 单独广播（strict 试听失败时设置页要如实提示，不能当 idle 复位）
   useEffect(() => {
-    emitTtsState(state === 'playing' || state === 'paused' ? 'playing' : state === 'synthesizing' ? (waitingLong ? 'synthesizing-slow' : 'synthesizing') : 'idle');
+    emitTtsState(state === 'error' ? 'error' : state === 'playing' || state === 'paused' ? 'playing' : state === 'synthesizing' ? (waitingLong ? 'synthesizing-slow' : 'synthesizing') : 'idle');
   }, [state, waitingLong]);
+
+  // strict 试听失败 → toast 如实提示（不静默换声）；非 strict 的播放失败不弹此文案
+  const strictRef = useRef(false);
+  useEffect(() => {
+    if (state === 'error' && error && strictRef.current) toast(t('ttsPreviewFailed', locale), 'error');
+  }, [state, error, toast, locale]);
 
   useEffect(() => {
     // 用 playRef.current 而非闭包 play：play 会随 tts.accent/rate 重建，

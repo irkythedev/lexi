@@ -8,8 +8,8 @@ import { X, Sparkles, Loader2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, followUpPrompt, isNetworkError, isReasoningModel,
-  parseStudyCard, quoteHitCheck, splitSentencesEn, parseRetryMessage, TEMP_CARD,
-  type StudyCard, type StudySegment,
+  parseStudyCard, quoteHitCheck, splitSentencesEn, parseRetryMessage, renderStreamFailure, TEMP_CARD,
+  type StudyCard, type StudySegment, type StreamMeta,
 } from '../lib/ai.ts';
 import { addTokenUsage, estimateTokens } from '../lib/token-usage.ts';
 import { upsertAiNote, appendAiNoteChain } from '../db/db.ts';
@@ -206,9 +206,9 @@ export default function AiAssistPanel({
       // 不在原文）。retryUsed 闭包标志保证两者合计只走 1 次。
       const attempt = async (userMessage: string) => {
         let full = '';
-        let failure: string | null = null;
+        let failure: Error | null = null;
         let timedOut = false;
-        let reasoningChars = 0;
+        let meta: StreamMeta = { reasoningChars: 0, finishReason: null, complete: true, usage: null };
         await new Promise<void>((resolve) => {
           let settled = false;
           const done = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
@@ -219,17 +219,25 @@ export default function AiAssistPanel({
             maxTokens: 1800, // 卡片 JSON + probe；推理类模型 streamChat 内部自动翻倍
             temperature: TEMP_CARD, // 卡片创作 0.5（streamChat 默认），显式声明对齐纪律
             onChunk: onChunkUpdate,
-            onEnd: (f, meta) => { full = f; reasoningChars = meta.reasoningChars; done(); },
-            onError: (e) => { failure = e.message || String(e); done(); }, // HTTP/网络错误直达用户（prompt-v3）
+            onEnd: (f, m) => { full = f; meta = m; done(); },
+            onError: (e) => { failure = e; done(); }, // HTTP/网络/看门狗/空答错误直达用户（prompt-v3 + stem 加固）
           });
         });
-        return { full, failure, timedOut, reasoningChars };
+        return { full, failure, timedOut, meta };
       };
-      let { full, failure, timedOut, reasoningChars } = await attempt(msg);
+      // token 记账：端点给了真实 usage 就用真实值（prompt/completion 分列），
+      // 没给才回退 estimateTokens 估算（口径与面板底部条的会话内累计一致）。
+      const recordUsage = (m: StreamMeta, fallbackFull: string) => {
+        if (m.usage?.totalTokens) {
+          if (m.usage.completionTokens) addTokenUsage(cfg.model, m.usage.completionTokens);
+        } else {
+          addTokenUsage(cfg.model, estimateTokens(fallbackFull));
+        }
+      };
+      let { full, failure, timedOut, meta } = await attempt(msg);
       if (failure || timedOut) {
-        setTokens((n) => n + estimateTokens(full));
-        addTokenUsage(cfg.model, estimateTokens(full));
-        setErr(timedOut ? t('aiBusyGone', locale) : (failure ?? ''));
+        recordUsage(meta, full);
+        setErr(timedOut ? t('aiBusyGone', locale) : renderStreamFailure(failure ?? '', locale, t));
       } else {
         let parsed = parseStudyCard(full);
         // 追加 1 次的判定顺序：解析失败 → 补问；补问结果仍要过对质。retryUsed 保证
@@ -239,16 +247,14 @@ export default function AiAssistPanel({
           retryUsed = true;
           // 追加而非替换：补问须携带原词条/词表上下文（与 Sprint/微写作补问口径一致）
           const again = await attempt(`${msg}\n\n${parseRetryMessage()}`);
-          setTokens((n) => n + estimateTokens(again.full));
-          addTokenUsage(cfg.model, estimateTokens(again.full));
+          recordUsage(again.meta, again.full);
           if (!again.failure && !again.timedOut && again.full.trim()) {
             parsed = parseStudyCard(again.full);
             full = again.full;
-            reasoningChars = again.reasoningChars;
+            meta = again.meta;
           }
         }
-        setTokens((n) => n + estimateTokens(full));
-        addTokenUsage(cfg.model, estimateTokens(full));
+        recordUsage(meta, full);
         if (parsed) {
           // ── 对质校验（prompt-v4）：生成结果与课文/quote 对质 ──
           // reading：example.en 按句切开逐条须在 fullText 命中；word/notes：有 quote
@@ -266,8 +272,7 @@ export default function AiAssistPanel({
             retryUsed = true;
             const fix = `${parseRetryMessage()}\n另外：example.en 里的好句/例句必须是课文或教材原文的整句（可从「原文」里逐字取用），不要改写或自拟。重新输出完整 JSON。`;
             const again = await attempt(fix);
-            setTokens((n) => n + estimateTokens(again.full));
-            addTokenUsage(cfg.model, estimateTokens(again.full));
+            recordUsage(again.meta, again.full);
             if (!again.failure && !again.timedOut && again.full.trim()) {
               const reparsed = parseStudyCard(again.full);
               // 补问结果通过对质才采纳；仍不命中 → 保留原卡（内容可用，例句存疑好于报错卡死）
@@ -313,9 +318,10 @@ export default function AiAssistPanel({
             }
           }
         } else if (!full.trim()) {
-          // 空回复分流（prompt-v3.4）：有思考痕迹或模型名像推理类 → 现有推理耗尽文案；
-          // 普通模型 → 短句不点名 deepseek-reasoner。AbortError 已在 streamChat 内静默。
-          setErr(reasoningChars > 0 || isReasoningModel(cfg.model)
+          // 空回复分流（stem EmptyAnswerError 口径）：streamChat 已把「端点回了但正文
+          // 零字符」抛成 EmptyAnswerError 走上面的 failure 分支；走到这里说明流被
+          // 用户 abort 后静默结束或旧路径兼容——按思考痕迹/推理模型名兜底分流。
+          setErr(meta.reasoningChars > 0 || isReasoningModel(cfg.model)
             ? t('aiEmptyReply', locale)
             : t('aiEmptyReplyGeneric', locale));
         } else setErr(t('aiCardParseError', locale));

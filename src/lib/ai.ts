@@ -172,6 +172,69 @@ export function buildCorrectionSystemPrompt(args: { mode: 'sentence' | 'miniwrit
 
 export interface StreamHandle { abort: () => void; }
 
+// ── 流式健壮性（移植自 stem 38910f8 的线上事故教训）──
+
+/**
+ * 空正文失败：这一轮模型只吐了思考（或什么都没吐），正文一个字符都没有。
+ * 必须当失败：对学生的表现就是「回答是空白」。旧实现把空串当正常结束，
+ * 空回答会被写进讲义本/批改历史，学生只看到空白框连「重试」都没有。
+ * 思考型模型把思考也算进输出额度，思考吃满预算时必然走到这里。
+ */
+export class EmptyAnswerError extends Error {
+  /** 端点给出的结束原因：'length' = 输出上限被思考吃满；null = 端点什么都没回 */
+  readonly finishReason: string | null;
+  constructor(finishReason: string | null) {
+    super(finishReason === 'length' ? 'empty answer: output budget exhausted' : 'empty answer');
+    this.name = 'EmptyAnswerError';
+    this.finishReason = finishReason;
+  }
+}
+
+/** 流式请求的 token 用量（端点给了才记；部分自建网关不返回 usage） */
+export interface StreamUsage { promptTokens?: number; completionTokens?: number; totalTokens?: number; }
+
+/** 流结束后的元信息（面板与调用方共用同一口径判定） */
+export interface StreamMeta {
+  reasoningChars: number;
+  /** 端点结束原因：stop=正常收尾；length=被输出上限掐断；null=端点没给（部分自建网关） */
+  finishReason: string | null;
+  /** 端点是否给出过收尾信号（finish_reason 或 [DONE]）。false = 连接在生成中途被切断，
+   *  已收到的正文不一定完整——绝不能当成正常收完（学生看到半句话像结论）。 */
+  complete: boolean;
+  /** 真实 token 用量（请求带 stream_options.include_usage；端点给了才有） */
+  usage: StreamUsage | null;
+}
+
+/** 流式请求的结果分类（stem 同款口径：面板怎么判，调用方就怎么判） */
+export type StreamOutcome = 'ok' | 'limit' | 'cut' | 'empty';
+export function classifyStreamOutcome(full: string, meta: Pick<StreamMeta, 'finishReason' | 'complete'>): StreamOutcome {
+  if (!full.trim()) return 'empty';
+  if (meta.finishReason === 'length') return 'limit';
+  if (!meta.complete) return 'cut';
+  return 'ok';
+}
+
+/** 端点明确说被输出上限掐断（思考吃满预算时最常见的「有思考、没正文」） */
+export function isLengthTruncated(meta: Pick<StreamMeta, 'finishReason'>): boolean {
+  return meta.finishReason === 'length';
+}
+
+/** 看门狗掐断错误：first = 连上但首包超时；stall = 增量停滞。调用方按 kind 出 i18n 可重试文案。 */
+export class StallError extends Error {
+  readonly kind: 'first' | 'stall';
+  constructor(kind: 'first' | 'stall') {
+    super(kind === 'first' ? 'first packet timeout' : 'stream stalled');
+    this.name = 'StallError';
+    this.kind = kind;
+  }
+}
+
+/** 流式请求看门狗：连上了却一个 token 都不吐（服务商拥塞/中间设备挂起），学生不能干等 */
+export const FIRST_PACKET_TIMEOUT_MS = 20000;
+/** 中途停滞：首包已到、但这么久没有任何新增量（弱网/代理半死最常见）。
+ *  取 60s 而非更短（stem 实测口径）：思考型模型两段增量之间能拉开 20s+，30s 闸会误判正常思考。 */
+export const STALL_TIMEOUT_MS = 60000;
+
 /** 把 HTTP 状态映射为可读中文提示，保留服务商原始响应体（用户要求展示供应商报错）。 */
 export function friendlyHttpError(status: number, body: string): string {
   const hint = status === 401 || status === 403
@@ -204,6 +267,30 @@ export function parseRetryMessage(): string {
   return '你上一次的输出无法解析为 JSON。请重新输出：只输出可解析的 JSON 本体，不要 markdown 代码块、不要任何解释文字。';
 }
 
+/** 流式失败 → 用户可读文案（stem 失败分类的 lexi 版）：
+ *  EmptyAnswerError → 空答分流（推理模型/思考耗尽 vs 通用可重试）；
+ *  StallError → 看门狗掐断（首包/停滞各有文案）；
+ *  网络类 → 直连受限提示；其余（friendlyHttpError 等）原文已是中文可读串，直接透传。
+ *  返回 key 名由调用方 t() 渲染；透传串以 'HTTP' 或服务商原文形态出现。 */
+export function classifyStreamFailureMessage(e: Error | string): { key: string } | { raw: string } {
+  const err = typeof e === 'string' ? null : e;
+  const msg = typeof e === 'string' ? e : e.message || String(e);
+  if (err instanceof EmptyAnswerError) {
+    return { key: err.finishReason === 'length' ? 'aiEmptyReply' : 'aiEmptyReplyGeneric' };
+  }
+  if (err instanceof StallError) {
+    return { key: err.kind === 'first' ? 'aiStallFirst' : 'aiStallMid' };
+  }
+  if (isNetworkError(msg)) return { key: 'aiNetUnreachable' };
+  return { raw: msg };
+}
+
+/** 分类 + 渲染一步到位（调用方只需传 t 与 locale）：key 走 i18n，raw 透传服务商原文。 */
+export function renderStreamFailure(e: Error | string, locale: 'zh' | 'en', tr: (key: string, locale: 'zh' | 'en') => string): string {
+  const c = classifyStreamFailureMessage(e);
+  return 'key' in c ? tr(c.key, locale) : c.raw;
+}
+
 /** temperature 纪律：批改（判分）低温 0.2 保稳定，卡片（创作）默认 0.5。 */
 export const TEMP_CORRECTION = 0.2;
 export const TEMP_CARD = 0.5;
@@ -211,9 +298,11 @@ export const TEMP_CARD = 0.5;
 // Streaming chat. onChunk receives (delta, full). Abortable.
 // onError（prompt-v3 加固）：fetch/HTTP/流中断错误通过此回调抵达调用方。
 // 此前错误在 detached async 内 rethrow，永远无人接收 → 调用方误报"解析失败"。
+// 流式加固（移植 stem 38910f8）：onEnd 带 StreamMeta（finishReason/complete/usage），
+// 空正文抛 EmptyAnswerError 经 onError 抵达，首包/停滞双看门狗主动掐断挂起连接。
 export function streamChat(args: {
   cfg: AiConfig; systemPrompt: string; userMessage: string;
-  onChunk?: (delta: string, full: string) => void; onEnd?: (full: string, meta: { reasoningChars: number }) => void;
+  onChunk?: (delta: string, full: string) => void; onEnd?: (full: string, meta: StreamMeta) => void;
   onError?: (e: Error) => void; signal?: AbortSignal; maxTokens?: number; temperature?: number;
 }): StreamHandle {
   const base = normalizeBaseUrl(args.cfg.baseUrl);
@@ -226,6 +315,16 @@ export function streamChat(args: {
   const maxTokens = reasoningModel ? (args.maxTokens ?? 800) * 2 : (args.maxTokens ?? 800);
 
   (async () => {
+    // 看门狗：首包 20s / 增量停滞 60s（stem 放宽后口径）。触发即 abort，
+    // 走下方 catch → onError('响应停滞')，调用方给用户可重试文案而非无限转圈。
+    let watchdog: ReturnType<typeof setTimeout> | null = null;
+    let watchdogKind: 'first' | 'stall' | null = null;
+    const armWatchdog = (ms: number, kind: 'first' | 'stall') => {
+      if (watchdog) clearTimeout(watchdog);
+      watchdogKind = kind;
+      watchdog = setTimeout(() => { watchdogKind = kind; controller.abort(); }, ms);
+    };
+    armWatchdog(FIRST_PACKET_TIMEOUT_MS, 'first');
     try {
       const res = await fetch(`${base}/chat/completions`, {
         method: 'POST',
@@ -235,6 +334,8 @@ export function streamChat(args: {
           messages: [{ role: 'system', content: args.systemPrompt }, { role: 'user', content: args.userMessage }],
           stream: true, temperature: args.temperature ?? 0.5,
           max_tokens: maxTokens, // 批改足够；卡片请求传更大值（推理模型在上方自动翻倍）
+          // 真实用量：各家兼容端点普遍支持；不支持的端点忽略此字段，usage 保持 null
+          stream_options: { include_usage: true },
         }),
         signal: controller.signal,
       });
@@ -246,12 +347,16 @@ export function streamChat(args: {
       const decoder = new TextDecoder();
       let buffer = '';
       let full = '';
+      let finishReason: string | null = null;
+      let sawDone = false;
+      let usage: StreamUsage | null = null;
       // 推理模型兼容：同收 delta.reasoning_content / message.reasoning_content，
       // 只计数不进学习卡、不进 UI（解析与展示只用 content）。
       let reasoningChars = 0;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+        armWatchdog(STALL_TIMEOUT_MS, 'stall'); // 每收到增量就重置停滞闸
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() ?? '';
@@ -259,20 +364,41 @@ export function streamChat(args: {
           const t = line.trim();
           if (!t.startsWith('data:')) continue;
           const payload = t.slice(5).trim();
-          if (payload === '[DONE]') continue;
+          if (payload === '[DONE]') { sawDone = true; continue; }
           try {
-            const json = JSON.parse(payload) as { choices?: { delta?: { content?: string; reasoning_content?: string; reasoning?: string } }[] };
-            const delta = json.choices?.[0]?.delta;
+            const json = JSON.parse(payload) as {
+              choices?: { delta?: { content?: string; reasoning_content?: string; reasoning?: string }; finish_reason?: string | null }[];
+              usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+            };
+            const choice = json.choices?.[0];
+            const delta = choice?.delta;
             const think = delta?.reasoning_content ?? delta?.reasoning; // deepseek/qwen 与 openrouter 两种字段名
             if (think) reasoningChars += think.length;
             if (delta?.content) { full += delta.content; args.onChunk?.(delta.content, full); }
+            if (choice && 'finish_reason' in choice && choice.finish_reason) finishReason = choice.finish_reason;
+            if (json.usage) usage = { promptTokens: json.usage.prompt_tokens, completionTokens: json.usage.completion_tokens, totalTokens: json.usage.total_tokens };
           } catch { /* ignore malformed chunk */ }
         }
       }
+      if (watchdog) clearTimeout(watchdog);
+      // 截断判定（stem 口径）：没有任何收尾信号 = 连接在生成中途被网关/弱网掐断，
+      // 已收正文不一定完整，complete:false 交给调用方决定「标注截断/重试」。
+      const complete = sawDone || finishReason !== null;
+      // 空正文分流（stem EmptyAnswerError）：端点真的回了（否则走 catch），只是正文
+      // 零字符。当失败抛给 onError（可重试），绝不让调用方把空串当成功写进历史。
+      if (!full.trim() && complete) {
+        throw new EmptyAnswerError(finishReason);
+      }
       args.onChunk?.('', full);
-      args.onEnd?.(full, { reasoningChars });
+      args.onEnd?.(full, { reasoningChars, finishReason, complete, usage });
     } catch (e) {
-      if ((e as Error).name === 'AbortError') return;
+      if (watchdog) clearTimeout(watchdog);
+      if ((e as Error).name === 'AbortError') {
+        // 看门狗触发的 abort：翻译为类型化 StallError 经 onError 抵达（调用方出可重试文案）；
+        // 用户主动 abort（无 watchdogKind）保持静默。
+        if (watchdogKind) args.onError?.(new StallError(watchdogKind));
+        return;
+      }
       args.onError?.(e as Error);
       if (!args.onEnd) throw e; // 无 onError 的旧调用方：仍走 onEnd 空串 + rethrow（保持兼容）
       // 有 onError 的调用方已接住错误，这里静默结束（不调 onEnd，避免当成空回复）

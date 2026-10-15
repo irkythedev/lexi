@@ -5,6 +5,7 @@ import { useAppStore, ACCENT_META, type Accent } from '../stores/useAppStore.ts'
 import { useToastStore } from '../stores/toastStore.ts';
 import { Segmented } from '../components/ui/primitives.tsx';
 import { requestSpeak, requestStopTts, subscribeTtsState } from '../components/FloatingTTS.tsx';
+import { useTtsChannelStatus } from '../lib/tts-status.ts';
 import { t } from '../lib/i18n.ts';
 import TextbookSwitcher from '../components/TextbookSwitcher.tsx';
 
@@ -20,14 +21,16 @@ export default function SettingsView() {
   const [editingBook, setEditingBook] = useState(false);
   const [dragRate, setDragRate] = useState(tts.rate);
   const [previewState, setPreviewState] = useState<'idle' | 'synthesizing' | 'playing'>('idle');
+  const channelStatus = useTtsChannelStatus();
 
-  // 试听全程订阅全局 TTS 状态机：synthesizing→playing→(ended/error→idle)。
-  // 不再用 8s 硬超时兜底 —— ended/error 事件驱动复位，合成慢也不会被误截断。
+  // 试听全程订阅全局 TTS 状态机：synthesizing→playing→(ended→idle / error→idle+可见)。
+  // strict 模式：edge 通道失败不静默回退系统语音（FloatingTTS 会 toast 如实提示）。
   useEffect(() => {
     if (previewState === 'idle') return;
     const unsub = subscribeTtsState((s) => {
       if (s === 'playing') setPreviewState('playing');
-      else if (s === 'idle') setPreviewState('idle'); // ended / error / 被抢占 → 复位
+      else if (s === 'error') setPreviewState('idle'); // strict 失败 → 复位（toast 已提示）
+      else if (s === 'idle') setPreviewState('idle'); // ended / 被抢占 → 复位
     });
     return unsub;
   }, [previewState !== 'idle']); // eslint-disable-line react-hooks/exhaustive-deps
@@ -36,7 +39,7 @@ export default function SettingsView() {
     // 播放中再点 = 停止并回空闲（禁止重新合成第二路请求）
     if (previewState === 'playing') { requestStopTts(); setPreviewState('idle'); return; }
     setPreviewState('synthesizing');
-    requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate);
+    requestSpeak(PREVIEW_TEXT, tts.accent, tts.rate, undefined, true); // strict：试听验证通道，失败如实报错
   };
 
   return (
@@ -111,6 +114,22 @@ export default function SettingsView() {
       </Section>
 
       <Section icon={Volume2} title={t('ttsSettings', locale)}>
+        {/* 通道状态徽标（stem 同款纪律）：只记本次会话实测结果，未检测不点绿灯 */}
+        <div className="flex items-center gap-1.5 pb-1 text-[calc(11.5px*var(--type-scale))] font-medium">
+          {channelStatus === 'ready' && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-hairline)] bg-[color-mix(in_srgb,var(--color-accent)_10%,transparent)] px-2 py-0.5 text-[var(--color-accent)]">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--color-accent)' }} /> {t('ttsChannelReady', locale)}
+            </span>
+          )}
+          {channelStatus === 'fallback' && (
+            <span className="inline-flex items-center gap-1 rounded-full border border-[var(--color-hairline)] bg-[var(--color-trap-soft)] px-2 py-0.5 text-[var(--color-trap)]">
+              <span className="h-1.5 w-1.5 rounded-full" style={{ background: 'var(--color-trap)' }} /> {t('ttsChannelFallback', locale)}
+            </span>
+          )}
+          {channelStatus === 'unknown' && (
+            <span className="text-[var(--color-text-3)]">{t('ttsChannelUnknown', locale)}</span>
+          )}
+        </div>
         <div className="py-1">
           <div className="mb-1.5 text-[calc(13px*var(--type-scale))] text-[var(--color-text-2)]">{t('accent', locale)}</div>
           {/* 大旗帜口音切换按钮 */}
