@@ -95,6 +95,21 @@
   --type-scale: 1;
 }
 
+/* Chart series colors (token usage stacked bars) — deliberately OUTSIDE @theme:
+   Tailwind v4 only emits theme tokens it sees referenced statically, and the
+   chart picks colors via a dynamic `var(--chart-${i+1})` template it cannot
+   scan — inside @theme the 2..5 slots get tree-shaken and fills fall back to
+   black. A plain :root block is emitted verbatim. Reuses the site's semantic
+   hues so the chart reads as part of the print palette. */
+:root {
+  --chart-1: var(--color-accent);
+  --chart-2: var(--color-ai);
+  --chart-3: var(--color-phrase-deep);
+  --chart-4: var(--color-pattern-deep);
+  --chart-5: var(--color-trap-deep);
+  --chart-other: #B7AC9E;
+}
+
 /* Dark mode tokens — 暖黑纸 + 浅描边卡（同一套语言的夜间版） */
 .dark {
   --color-ground: #12100E;
@@ -130,6 +145,8 @@
   --color-miniwrite-deep: #D8A077;
   --color-live: #7FA896;
   --color-ai: #7FB6DF;
+  /* chart 'other' neutral lifts for dark ground */
+  --chart-other: #6E675F;
   /* accent is theme-driven; dark uses same theme accent (set below) */
   /* 印章浮起：暗底上黑阶比浅色多 1px，纯黑硬偏移（贴纸/印章，非模糊影） */
   --shadow-card: 3px 3px 0 #000000;
@@ -269,6 +286,9 @@ button:focus-visible {
 
 .press { transition: transform 0.12s ease; }
 .press:active { transform: scale(0.97); }
+
+/* 键盘选日的图表焦点环（token 用量图，←/→ 移动读数日） */
+.usage-chart:focus-visible { outline: 2px solid var(--color-ai); outline-offset: 2px; border-radius: var(--radius-sm); }
 
 @keyframes ai-breathe {
   0%, 100% { opacity: 0.72; transform: scale(1); }
