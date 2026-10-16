@@ -187,6 +187,12 @@ export interface AiConfig {
   model: string;
   agreed: boolean;
   models?: string[];
+  /**
+   * 输出上限（tokens）。留空 / 非正数 = 不下发 max_tokens，由端点自己决定。
+   * 默认不设的理由：思考型模型把思考也算进这个上限，上限一小，思考就把预算吃光、
+   * 正文一个字符都不出。只有明确要控成本时才填。
+   */
+  maxOutputTokens?: number;
 }
 
 export interface CorrectionResult {

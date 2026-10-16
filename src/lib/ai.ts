@@ -251,9 +251,31 @@ export function friendlyHttpError(status: number, body: string): string {
   return `HTTP ${status}：${hint}${body ? `｜服务商返回：${body.slice(0, 200)}` : ''}`;
 }
 
-// 推理类模型名探测（reasoner/o1/o3/qwq/r1/thinking）：空回复文案分流与 max_tokens 提档共用
+// 推理类模型名探测（reasoner/o1/o3/qwq/r1/thinking）：空回复文案分流共用。
+// 注意：不再用它决定 max_tokens 提档——模型名探测不可靠（deepseek-v4-flash /
+// glm-5.2 等思考模型名里根本没有这些词），治标不治本。真正的修法是默认不下发上限。
 export function isReasoningModel(model: string): boolean {
   return /reasoner|deepseek-r1|\bo1\b|\bo3\b|qwq|thinking/i.test(model);
+}
+
+/**
+ * 各链路的默认输出上限（tokens）。undefined = 不下发 max_tokens，由端点自己决定。
+ *
+ * 为什么默认不封顶（stem 38910f8 的硬教训）：思考型模型把思考算进 max_tokens，
+ * 上限一小，思考就把预算吃光、正文一个字符都不出——学生看到「有思考、回答空白」。
+ * 实测复现：deepseek-v4-flash 在 max_tokens=1800 下思考 5636 字符、正文 0，finish_reason=length；
+ * 去掉上限后同一提问正常产出正文。模型名探测不可靠（该模型名不含 reasoner/r1/thinking），
+ * 所以不能靠「识别推理模型再提档」，只能默认不下发。护栏改由提示词长度契约与停滞看门狗承担。
+ */
+export const CHAIN_MAX_TOKENS: { card?: number; correction?: number } = {
+  card: undefined,
+  correction: undefined,
+};
+
+/** 本次请求实际下发的输出上限：用户显式设置优先，其次该链路默认，都没有就不下发 */
+export function resolveMaxTokens(userSet: number | undefined, chainDefault?: number): number | undefined {
+  if (typeof userSet === 'number' && Number.isFinite(userSet) && userSet > 0) return Math.floor(userSet);
+  return chainDefault;
 }
 
 // ── 请求纪律（prompt-v4）：一次用户操作最多追加 1 次请求 ──
@@ -309,10 +331,9 @@ export function streamChat(args: {
   const controller = new AbortController();
   const abort = () => controller.abort();
   if (args.signal) args.signal.addEventListener('abort', abort);
-  // 推理类模型（reasoner/o1/qwq/r1/thinking）思考会消耗输出额度：本次请求提高一档，
-  // 只对命中模型名的请求生效，不对所有模型一刀切加大。
-  const reasoningModel = isReasoningModel(args.cfg.model);
-  const maxTokens = reasoningModel ? (args.maxTokens ?? 800) * 2 : (args.maxTokens ?? 800);
+  // 输出上限：用户显式设置（cfg.maxOutputTokens）优先，其次调用方给的本链路默认，
+  // 都没有就不下发 max_tokens（思考型模型的思考也算进上限，封顶会让正文一个字符都不出）。
+  const maxOut = resolveMaxTokens(args.cfg.maxOutputTokens, args.maxTokens);
 
   (async () => {
     // 看门狗：首包 20s / 增量停滞 60s（stem 放宽后口径）。触发即 abort，
@@ -333,7 +354,9 @@ export function streamChat(args: {
           model: args.cfg.model,
           messages: [{ role: 'system', content: args.systemPrompt }, { role: 'user', content: args.userMessage }],
           stream: true, temperature: args.temperature ?? 0.5,
-          max_tokens: maxTokens, // 批改足够；卡片请求传更大值（推理模型在上方自动翻倍）
+          // 输出上限：只在用户显式设置时才下发（undefined 字段会被 JSON.stringify 丢弃）。
+          // 封顶会把思考型模型的预算全给思考、正文一个字符都不出（stem 38910f8）。
+          ...(maxOut ? { max_tokens: maxOut } : {}),
           // 真实用量：各家兼容端点普遍支持；不支持的端点忽略此字段，usage 保持 null
           stream_options: { include_usage: true },
         }),

@@ -132,6 +132,10 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   const [apiKey, setApiKey] = useState(initial?.key ?? keys[initial?.provider ?? 'deepseek'] ?? '');
   const [model, setModel] = useState(initial?.model ?? '');
   const [liveModels, setLiveModels] = useState<string[]>(initial?.models ?? []);
+  // 输出上限（留空 = 不下发 max_tokens）：思考型模型的思考也算进上限，填小了会挤出空白回答
+  const [maxOutText, setMaxOutText] = useState(
+    typeof initial?.maxOutputTokens === 'number' && initial.maxOutputTokens > 0 ? String(initial.maxOutputTokens) : '',
+  );
   const [showKey, setShowKey] = useState(false);
   const [testing, setTesting] = useState(false);
   const [fetching, setFetching] = useState(false);
@@ -168,7 +172,11 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
   const save = () => {
     if (!apiKey.trim() || !baseUrl.trim() || !model.trim()) { setError(t('aiSaveHint', locale)); return; }
     setKeys(saveKey(provider, apiKey.trim()));
-    const c: AiConfig = { provider, baseUrl: normalizeBaseUrl(baseUrl), key: apiKey.trim(), model: model.trim(), agreed: true, models: liveModels };
+    const maxOutNum = parseInt(maxOutText, 10);
+    const c: AiConfig = {
+      provider, baseUrl: normalizeBaseUrl(baseUrl), key: apiKey.trim(), model: model.trim(), agreed: true, models: liveModels,
+      maxOutputTokens: Number.isFinite(maxOutNum) && maxOutNum > 0 ? maxOutNum : undefined,
+    };
     saveConfig(c); onSaved(c);
     useToastStore.getState().show(t('aiSavedToast', locale), 'success', 'check');
   };
@@ -204,6 +212,16 @@ export function SettingsViewInline({ onSaved, initial }: { onSaved: (c: AiConfig
         <input value={model} onChange={(e) => setModel(e.target.value)} placeholder={t('aiModelPlaceholder', locale)} className="mt-2 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]" />
       )}
       <p className="mt-1 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiTestHint', locale)}</p>
+
+      <div className="mt-4 text-[calc(13px*var(--type-scale))] font-semibold text-[var(--color-text-2)]">{t('aiMaxOutLabel', locale)}</div>
+      <input
+        value={maxOutText}
+        onChange={(e) => setMaxOutText(e.target.value.replace(/[^0-9]/g, ''))}
+        inputMode="numeric"
+        placeholder={t('aiMaxOutPlaceholder', locale)}
+        className="mt-2 w-full rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] bg-[var(--color-input-bg)] px-4 py-2.5 text-[calc(15px*var(--type-scale))] outline-none focus:border-[var(--color-accent)]"
+      />
+      <p className="mt-1 text-[calc(12px*var(--type-scale))] text-[var(--color-text-2)]">{t('aiMaxOutHint', locale)}</p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <button onClick={runTest} disabled={testing || fetching} className="press flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[var(--radius-md)] border-2 border-[var(--color-hairline)] px-4 py-2 text-[calc(13px*var(--type-scale))] font-medium text-[var(--color-text-2)] disabled:opacity-50">{testing ? t('aiTesting', locale) : t('aiTestConnection', locale)}</button>

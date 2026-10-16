@@ -8,7 +8,7 @@ import { X, Sparkles, Loader2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { useAppStore } from '../stores/useAppStore.ts';
 import {
   loadConfig, streamChat, buildSystemPrompt, studyCardPrompt, followUpPrompt, isNetworkError, isReasoningModel,
-  parseStudyCard, quoteHitCheck, splitSentencesEn, parseRetryMessage, renderStreamFailure, TEMP_CARD,
+  parseStudyCard, quoteHitCheck, splitSentencesEn, parseRetryMessage, renderStreamFailure, TEMP_CARD, CHAIN_MAX_TOKENS,
   type StudyCard, type StudySegment, type StreamMeta,
 } from '../lib/ai.ts';
 import { addTokenUsage, estimateTokens } from '../lib/token-usage.ts';
@@ -212,11 +212,16 @@ export default function AiAssistPanel({
         await new Promise<void>((resolve) => {
           let settled = false;
           const done = () => { if (!settled) { settled = true; clearTimeout(timer); resolve(); } };
-          const timer = setTimeout(() => { timedOut = true; done(); }, 60000);
+          // 兜底闸只防「streamChat 既不 onEnd 也不 onError」的极端情况；正常挂起由
+          // streamChat 自身的首包 20s / 停滞 60s 看门狗判死，与总时长无关。
+          // 取 5 分钟而不是 60s：思考型模型一次回答实测可超过 100s，60s 会误杀正常生成。
+          const timer = setTimeout(() => { timedOut = true; done(); }, 300000);
           streamChat({
             cfg, systemPrompt: sysPrompt,
             userMessage,
-            maxTokens: 1800, // 卡片 JSON + probe；推理类模型 streamChat 内部自动翻倍
+            // 输出上限：默认不下发（CHAIN_MAX_TOKENS.card = undefined）。思考型模型的
+            // 思考也算进 max_tokens，封顶会让正文一个字符都不出。用户显式设置时优先。
+            maxTokens: CHAIN_MAX_TOKENS.card,
             temperature: TEMP_CARD, // 卡片创作 0.5（streamChat 默认），显式声明对齐纪律
             onChunk: onChunkUpdate,
             onEnd: (f, m) => { full = f; meta = m; done(); },
