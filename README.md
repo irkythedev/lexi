@@ -2,7 +2,7 @@
 
 # Lexi · 英语听说词汇
 
-![version](https://img.shields.io/badge/版本-v0.6.2-blue)
+![version](https://img.shields.io/badge/版本-v0.8.0-blue)
 ![react](https://img.shields.io/badge/React-18-61dafb) ![vite](https://img.shields.io/badge/Vite-5-646cff) ![tailwind](https://img.shields.io/badge/Tailwind-4-38bdf8) ![typescript](https://img.shields.io/badge/TypeScript-5.5-3178c6) ![zustand](https://img.shields.io/badge/Zustand-5-764abc) ![dexie](https://img.shields.io/badge/Dexie-4-00b894)
 
 <p>围绕江苏译林教材（九年级上册）的英语单词、短语、句式听说学习工具。<br/>本地运行 · 无需登录 · 中英双语 · 深浅主题 · 离线可用 · 在线访问：<a href="https://lexi.irky.dev">https://lexi.irky.dev</a></p>

@@ -14,6 +14,32 @@ export interface ChangelogEntry {
 /** 新版本记录在前。 */
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.8.0',
+    date: '2026-10',
+    zh: [
+      '[新增] AI 用量明细：按模型分色的每日用量图，可切换 7 / 14 / 30 天',
+      '[新增] 朗读通道状态可见：设置页显示当前朗读用的是高质量语音还是系统语音',
+      '[优化] AI 服务商密钥分开保存：切换服务商不再串用上一家的密钥',
+      '[优化] AI 设置中预设服务商的地址改为只读，避免误改后连不上',
+      '[优化] 底部标签「学习」更名为「课本」',
+      '[优化] 练习页返回按钮、词表筛选等文案与样式统一',
+      '[修复] AI 回答空白：思考型模型不再出现「有思考、没有回答」',
+      '[修复] AI 生成中断或长时间无响应时给出明确提示，可直接重试',
+      '[修复] 微写作「查看本课课文」现在会真正打开课文朗读',
+    ],
+    en: [
+      '[New] AI usage breakdown: a per-model daily usage chart with 7 / 14 / 30-day windows',
+      '[New] Speech channel status: Settings shows whether reading uses the high-quality voice or the system fallback',
+      '[Improved] Separate keys per AI provider: switching providers no longer reuses the previous key',
+      '[Improved] Preset provider addresses are read-only in AI settings, so they cannot be changed by accident',
+      '[Improved] The Learn tab is now named Textbook',
+      '[Improved] Unified button and filter labels across practice pages',
+      '[Fixed] Blank AI replies: thinking models no longer return an empty answer',
+      '[Fixed] A clear notice with one-tap retry when AI generation stalls or is interrupted',
+      '[Fixed] View lesson text in mini-writing now really opens the reading view',
+    ],
+  },
+  {
     version: '0.7.0',
     date: '2026-09',
     zh: [
